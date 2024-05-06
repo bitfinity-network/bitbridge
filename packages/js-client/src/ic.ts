@@ -32,3 +32,8 @@ export {
   SignatureVerification,
   createActor as createSignatureVerificationActor
 } from './canisters/signature-verification';
+
+export {
+  RuneActor,
+  createActor as createRuneBridgeActor
+} from './canisters/rune-bridge';

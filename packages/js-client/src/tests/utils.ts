@@ -55,9 +55,15 @@ export const getProvider = () => {
 
 export const generateWallet = () => {
   const wallet = ethers.Wallet.fromPhrase(LOCAL_TEST_SEED_PHRASE);
-  // const wallet = new ethers.Wallet(
-  //   '0xe96e898e18631ef63c31ae9349a332cced5075e04fd5bcf4e212b6ecea699ee3'
-  // );
+
+  const provider = getProvider();
+
+  return wallet.connect(provider);
+};
+
+export const randomWallet = () => {
+  const wallet = ethers.Wallet.createRandom();
+
   const provider = getProvider();
 
   return wallet.connect(provider);
@@ -73,18 +79,71 @@ export const wait = (ms: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
-export const generateBitcoinToAddress = (address: string) => {
-  const command = `~/bitcoin-25.0/bin/bitcoin-cli -conf="/Users/andyosei/Desktop/projects/infinity_swap/ckERC20/src/create_bft_bridge_tool/bitcoin.conf" generatetoaddress 1 "${address}"`;
-
-  exec(command, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`exec error: ${error}`);
-      return;
-    }
-    if (stderr) {
-      console.error(`stderr: ${stderr}`);
-      return;
-    }
-    console.log(`stdout: ${stdout}`);
+export const execCmd = (cmd: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    exec(cmd, (err, stdout) => {
+      if (err) {
+        return reject(err);
+      } else if (stdout) {
+        resolve(stdout);
+      }
+    });
   });
 };
+
+export const execBitcoinCmd = (cmd: string) => {
+  return execCmd(`${process.env.BITCOIN_CMD} ${cmd}`);
+};
+
+export const execOrdCmd = (cmd: string) => {
+  return execCmd(`${process.env.ORD_CMD} ${cmd}`);
+};
+
+export const execOrdSend = async (address: string, runeName: string) => {
+  try {
+    const response = await execOrdCmd(
+      `wallet --server-url http://0.0.0.0:8000 send --fee-rate 10 ${address} 10:${runeName}`
+    );
+
+    const result = JSON.parse(response);
+
+    return result.txid;
+  } catch (_) {
+    return null;
+  }
+};
+
+export const execOrdReceive = async () => {
+  try {
+    const response = await execOrdCmd(
+      `wallet --server-url http://0.0.0.0:8000 receive`
+    );
+
+    const result = JSON.parse(response);
+
+    return result.addresses[0];
+  } catch (_) {
+    return null;
+  }
+};
+
+export async function mintNativeToken(toAddress: string, amount: string) {
+  const response = await fetch(process.env.RPC_URL!, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: '67',
+      method: 'ic_mintNativeToken',
+      params: [toAddress, amount]
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
+}

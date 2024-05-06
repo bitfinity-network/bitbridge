@@ -63,7 +63,6 @@ export class IcrcBridge {
   }
 
   static async create({ wallet, agent, baseTokenId }: CreateOptions) {
-    console.log('icrc2 minter canister', ICRC2_MINTER_CANISTER_ID);
     const icrc2Minter = createICRC2MinterActor(
       Principal.fromText(ICRC2_MINTER_CANISTER_ID),
       agent ? { agent } : undefined
