@@ -15,6 +15,7 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@bitfinity/js-client": "*",
     "@next/eslint-plugin-next": "^14.1.1",
     "@repo/eslint-config": "*",
     "@repo/typescript-config": "*",
