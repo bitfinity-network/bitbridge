@@ -1,10 +1,10 @@
 import { IcrcBridge } from "@bitfinity/js-client";
-import { Foo } from "@bitfinity/widget";
+import { Widget } from "@bitfinity/widget";
 
 function App() {
   return (
     <>
-      <Foo />
+      <Widget />
     </>
   );
 }

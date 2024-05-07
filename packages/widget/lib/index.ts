@@ -1,1 +1,1 @@
-export { default as Foo } from "./../src/foo";
+export * from "../src/components/Widget";
