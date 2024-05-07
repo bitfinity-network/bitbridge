@@ -28,6 +28,15 @@ export const NETWORKS = [
   },
 ];
 
+export const queryKeys = {
+  cachedTokens: "cached_tokens",
+  tokens: "tokens",
+  searchTokens: "search_tokens",
+  tokenBalance: "token_balance",
+  leaderboard: "leaderboard",
+  highestLeaderboard: "highest_leaderboard",
+};
+
 export const TANSTACK_GARBAGE_COLLECTION_TIME = 1000 * 60 * 8; // 8 minutes
 
 export const reactQueryClient = new QueryClient({
