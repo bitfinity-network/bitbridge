@@ -1,0 +1,11 @@
+{
+    "include": ["**/*.ts", "**/*.tsx"],
+    "exclude": ["dist", "build", "node_modules"],
+    "compilerOptions": {
+      "target": "ES6",
+      "paths": {
+        "@/*": ["./src/*"]
+      },
+    },
+  }
+  
