@@ -1,3 +1,5 @@
+import { QueryClient } from "@tanstack/react-query";
+
 export const NETWORK_SYMBOLS = {
   ETHEREUM: "ethereum",
   IC: "ic",
@@ -25,3 +27,14 @@ export const NETWORKS = [
     symbol: NETWORK_SYMBOLS.IC,
   },
 ];
+
+export const TANSTACK_GARBAGE_COLLECTION_TIME = 1000 * 60 * 8; // 8 minutes
+
+export const reactQueryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      gcTime: TANSTACK_GARBAGE_COLLECTION_TIME,
+      staleTime: 60 * 1000,
+    },
+  },
+});
