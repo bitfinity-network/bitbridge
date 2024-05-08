@@ -18,18 +18,25 @@ interface BtcBridgeOptions {
   provider: ethers.Signer;
   bftAddress?: EthAddress;
   wrappedTokenAddress?: EthAddress;
+  btcBridgeCanisterId?: string;
 }
 
 export class BtcBridge {
   protected provider: ethers.Signer;
   protected bftAddress: EthAddress;
+  protected btcBridgeCanisterId: string;
   public wrappedTokenAddress: string;
 
-  constructor({ provider, bftAddress, wrappedTokenAddress }: BtcBridgeOptions) {
+  constructor({
+    provider,
+    bftAddress,
+    wrappedTokenAddress,
+    btcBridgeCanisterId
+  }: BtcBridgeOptions) {
     this.provider = provider;
-    this.bftAddress = bftAddress || (BFT_ETH_ADDRESS! as EthAddress);
-    this.wrappedTokenAddress =
-      wrappedTokenAddress || BTC_TOKEN_WRAPPED_ADDRESS!;
+    this.bftAddress = bftAddress || BFT_ETH_ADDRESS;
+    this.wrappedTokenAddress = wrappedTokenAddress || BTC_TOKEN_WRAPPED_ADDRESS;
+    this.btcBridgeCanisterId = btcBridgeCanisterId || BTC_BRIDGE_CANISTER_ID;
   }
 
   getWrappedTokenContract() {
@@ -41,7 +48,7 @@ export class BtcBridge {
   }
 
   getBftBridgeContract() {
-    return new ethers.Contract(this.bftAddress!, BFTBridgeABI, this.provider);
+    return new ethers.Contract(this.bftAddress, BFTBridgeABI, this.provider);
   }
 
   async getWrappedTokenBalance(address: EthAddress) {
@@ -56,7 +63,7 @@ export class BtcBridge {
 
   async getBTCAddress(address: EthAddress) {
     const btcAddress = await BtcBridgeActor.get_btc_address({
-      owner: [Principal.fromText(BTC_BRIDGE_CANISTER_ID)],
+      owner: [Principal.fromText(this.btcBridgeCanisterId)],
       subaccount: [ethAddrToSubaccount(address)]
     });
 
