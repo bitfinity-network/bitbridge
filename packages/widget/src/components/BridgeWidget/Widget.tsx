@@ -7,18 +7,19 @@ import {
   Input,
   Text,
 } from "@chakra-ui/react";
-import { useBridgeContext } from "../../provider/BridgeProvider";
 import { DropdownMenu, LabelValuePair } from "../../ui";
 import { useState } from "react";
 import { NETWORKS, NETWORK_SYMBOLS } from "../../utils";
-import { NetworkProp } from "../../types";
+import { NetworkProp, TokenProp } from "../../types";
 import { TokenListModal } from "../TokenListModal";
 import { useTokens } from "../../hooks/useTokens";
+import { NetworkListModal } from "../NetworkListModal";
 
 export function Widget() {
   const [network, setNetwork] = useState(NETWORKS[0]);
   const tokens = useTokens(network.symbol);
   const [showTokenList, setShowTokenList] = useState(false);
+  const [showNetworkList, setShowNetworkList] = useState(false);
   const [token, setToken] = useState({ name: "", symbol: "" });
   const [amount, setAmount] = useState(0);
   const getBalance = () => {
@@ -26,6 +27,16 @@ export function Widget() {
       return 0;
     }
     return 0;
+  };
+
+  const selectToken = (e: TokenProp) => {
+    setToken(e);
+    setShowTokenList(false);
+  };
+
+  const selectNetwork = (e: NetworkProp) => {
+    setNetwork(e);
+    setShowNetworkList(false);
   };
 
   return (
@@ -37,11 +48,15 @@ export function Widget() {
               <FormLabel color="secondary.white">Select Network</FormLabel>
             </Box>
           </HStack>
-          <DropdownMenu
-            value={network}
-            handleChange={(e) => setNetwork(e as NetworkProp)}
-            list={[...NETWORKS]}
-          />
+          <Box
+            cursor="pointer"
+            onClick={() => setShowNetworkList(!showNetworkList)}
+          >
+            <DropdownMenu
+              value={network}
+              handleChange={(e) => setNetwork(e as NetworkProp)}
+            />
+          </Box>
         </FormControl>
         <Box pt={2}>
           <Divider />
@@ -87,6 +102,11 @@ export function Widget() {
         isOpen={showTokenList}
         onClose={() => setShowTokenList(false)}
         selectToken={(e) => selectToken(e)}
+      />
+      <NetworkListModal
+        isOpen={showNetworkList}
+        onClose={() => setShowNetworkList(false)}
+        selectNetwork={(e) => selectNetwork(e)}
       />
     </Box>
   );
