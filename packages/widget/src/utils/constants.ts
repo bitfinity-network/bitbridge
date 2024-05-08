@@ -1,4 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
+import EthIcon from "../assets/icons/eth.svg";
+import BtcIcon from "../assets/icons/bitcoin.svg";
+import IcIcon from "../assets/icons/ic.svg";
 
 export const NETWORK_SYMBOLS = {
   ETHEREUM: "ethereum",
@@ -10,17 +13,17 @@ export const NETWORK_SYMBOLS = {
 export const NETWORKS = [
   {
     name: "Ethereum",
-    logo: "/icons/eth.svg",
+    logo: EthIcon,
     symbol: NETWORK_SYMBOLS.ETHEREUM,
   },
   {
     name: "BITCOIN",
-    logo: "/icons/bitcoin.svg",
+    logo: BtcIcon,
     symbol: NETWORK_SYMBOLS.BTC,
   },
   {
     name: "INTERNET COMPUTER",
-    logo: "/icons/ic.svg",
+    logo: IcIcon,
     symbol: NETWORK_SYMBOLS.IC,
   },
 ];
