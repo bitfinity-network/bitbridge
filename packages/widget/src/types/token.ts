@@ -17,3 +17,9 @@ export interface TokenProp {
   variant?: "sm" | "lg";
   canisterInfo?: any;
 }
+
+export type NetworkProp = {
+  name: string;
+  logo: string;
+  symbol: string;
+};
