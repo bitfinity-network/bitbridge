@@ -10,7 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@bitfinity/widget": "*",
+    "@bitfinity-network/bridge": "*",
+    "@bitfinity-network/bridge-widget": "*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
