@@ -23,3 +23,16 @@ export type NetworkProp = {
   logo: string;
   symbol: string;
 };
+
+export type TokenSearchProps = {
+  network: string;
+  tokens: TokenProp[];
+  searchKey: string;
+  userPrincipal?: string;
+};
+
+export type TokenSearchReturnProps = {
+  data: TokenProp[] | undefined;
+  isLoading: boolean;
+  isFetching: boolean;
+};

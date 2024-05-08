@@ -22,7 +22,6 @@
   },
   "dependencies": {
     "@bitfinity/ic": "*",
-    "@bitfinity/js-client": "*",
     "@chakra-ui/react": "^2.8.2",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
@@ -34,7 +33,8 @@
     "framer-motion": "^11.1.9",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-icons": "^5.2.1"
+    "react-icons": "^5.2.1",
+    "react-spring-bottom-sheet": "3.5.0-alpha.0"
   },
   "devDependencies": {
     "@tanstack/react-query-devtools": "^5.24.0",

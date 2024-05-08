@@ -32,7 +32,11 @@ export const queryKeys = {
   tokenBalance: "token_balance",
   leaderboard: "leaderboard",
   highestLeaderboard: "highest_leaderboard",
+  icWallet: "ic_wallet",
 };
+
+export const BITFINITY_INSTALLATION_URL =
+  "https://chrome.google.com/webstore/detail/bitfinity-wallet/jnldfbidonfeldmalbflbmlebbipcnle?hl=kk";
 
 export const TANSTACK_GARBAGE_COLLECTION_TIME = 1000 * 60 * 8; // 8 minutes
 

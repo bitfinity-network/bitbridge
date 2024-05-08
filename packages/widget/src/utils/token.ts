@@ -1,6 +1,9 @@
 import { TokenList } from "@infinityswapofficial/token-lists";
-import { TokenProp } from "../types";
+import { TokenProp, TokenSearchProps } from "../types";
 import { IcConnector, Icrc1IDL, Icrc1Service } from "@bitfinity/ic";
+import { NETWORK_SYMBOLS } from "./constants";
+import TokenContractABI from "./abi/erc20.json";
+import { ethers } from "ethers";
 
 export const getIcTokens = async (cachedTokens: TokenProp[] = []) => {
   const tokenList = await TokenList.create();
@@ -45,4 +48,61 @@ export const searchIcrcToken = async (tokenPrincipal: string) => {
   }
 };
 
+export const searchErc20Token = async (
+  contractAddress: string,
+  rpcUrl: string
+) => {
+  try {
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
+    const tokenContract = new ethers.Contract(
+      contractAddress,
+      TokenContractABI,
+      provider
+    );
+    const [name, symbol, decimals] = await Promise.all([
+      tokenContract.name(),
+      tokenContract.symbol(),
+      tokenContract.decimals(),
+    ]);
+    const newToken: TokenProp = {
+      name: name.replace(/\u0000/g, ""),
+      symbol: symbol.replace(/\u0000/g, ""),
+      decimals,
+      address: contractAddress,
+      standard: "erc20",
+    };
+
+    return newToken;
+  } catch (error) {
+    console.error("Error:", error);
+  }
+};
+
+export const searchToken = async (payload: TokenSearchProps) => {
+  const { tokens, network, searchKey, userPrincipal } = payload;
+  if (!searchKey) {
+    return { tokens, cache: false };
+  }
+  const keys = ["name", "address", "symbol", "id"];
+  const filteredData = tokens.filter((item) => {
+    return keys.some((key) => {
+      const value = item[key as keyof TokenProp];
+      if (typeof value === "string") {
+        return value.toLowerCase().includes(searchKey.toLowerCase());
+      }
+      return false;
+    });
+  });
+  if (filteredData.length) {
+    return { tokens: filteredData, cache: false };
+  }
+  const token =
+    network === NETWORK_SYMBOLS.ETHEREUM
+      ? await searchErc20Token(searchKey, "")
+      : await searchIcrcToken(searchKey);
+  if (token) {
+    return { tokens: [token], cache: true };
+  }
+  return { tokens: [], cache: false };
+};
 export const getBftEvmTokens = (cachedTokens: TokenProp[] = []) => {};
