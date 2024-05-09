@@ -11,23 +11,6 @@ import {
   RPC_URL
 } from '../constants';
 
-export const createAnnonAgent = () => {
-  return new HttpAgent({
-    host: IC_HOST
-  });
-};
-
-export const createAgent = () => {
-  const identity = identityFromSeed(LOCAL_TEST_SEED_PHRASE);
-
-  const agent = new HttpAgent({
-    host: IC_HOST,
-    identity
-  });
-
-  return agent;
-};
-
 export const identityFromSeed = async (
   phrase: string
 ): Promise<Secp256k1KeyIdentity> => {

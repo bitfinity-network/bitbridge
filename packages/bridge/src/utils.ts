@@ -1,4 +1,7 @@
 import { Buffer } from 'buffer';
+import { IC_HOST } from './constants';
+import { HttpAgent } from '@dfinity/agent';
+import { Secp256k1KeyIdentity } from '@dfinity/identity-secp256k1';
 
 export const fromHexString = (hexString: string) =>
   Uint8Array.from(
@@ -30,4 +33,18 @@ export const isBrowser = () => {
   return (
     typeof window !== 'undefined' && typeof window.document !== 'undefined'
   );
+};
+export const createAgent = ({
+  host = IC_HOST,
+  identity = undefined
+}: {
+  host?: string;
+  identity?: Secp256k1KeyIdentity;
+}) => {
+  const agent = new HttpAgent({
+    host,
+    identity
+  });
+
+  return agent;
 };

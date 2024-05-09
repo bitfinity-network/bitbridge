@@ -1,16 +1,19 @@
 import { expect, test } from 'vitest';
-import { createAgent, generateWallet, identityFromSeed, wait } from './utils';
+import { generateWallet, identityFromSeed, wait } from './utils';
 import { IcrcBridge } from '../icrc';
 import { LOCAL_TEST_SEED_PHRASE } from '../constants';
+import { createAgent } from '../utils';
 
 (BigInt as any).prototype.toJSON = function () {
   return this.toString();
 };
 
 test('bridge icrc2 token to evm', async () => {
+  const identity = await identityFromSeed(LOCAL_TEST_SEED_PHRASE);
+
   const wallet = generateWallet();
 
-  const agent = createAgent();
+  const agent = createAgent({ identity });
 
   const icrcBricdge = await IcrcBridge.create({
     wallet,
@@ -49,7 +52,9 @@ test('bridge evmc tokens to icrc2', async () => {
 
   const wallet = generateWallet();
 
-  const agent = createAgent();
+  const identity = await identityFromSeed(LOCAL_TEST_SEED_PHRASE);
+
+  const agent = createAgent({ identity });
 
   const icrcBricdge = await IcrcBridge.create({
     wallet,
