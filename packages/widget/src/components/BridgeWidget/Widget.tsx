@@ -108,7 +108,11 @@ export function Widget() {
           />
           <LabelValuePair label="Service fee">0.000</LabelValuePair>
         </FormControl>
-        <Button onClick={() => bridgeFn()}>Text bridging</Button>
+        <Box pt={2}>
+          <Button w="full" onClick={() => bridgeFn()}>
+            Bridge
+          </Button>
+        </Box>
       </form>
       <TokenListModal
         tokens={tokens}
