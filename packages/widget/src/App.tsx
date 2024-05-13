@@ -5,7 +5,7 @@ function App() {
   return (
     <>
       <Flex justifyContent="center" alignItems="center" h="90vh">
-        <BridgeWidget />
+        <BridgeWidget successFn={(e) => console.log(e)} />
       </Flex>
     </>
   );
