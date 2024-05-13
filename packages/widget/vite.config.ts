@@ -6,6 +6,7 @@ import { defineConfig } from "vite";
 export default defineConfig({
   define: {
     "process.env": process.env,
+    global: "window",
   },
   plugins: [react(), svgr()],
   build: {

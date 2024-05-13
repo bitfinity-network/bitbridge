@@ -1,13 +1,16 @@
+import { useAccount, useBalance } from "wagmi";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { TokenProp, TokenSearchProps, TokenSearchReturnProps } from "../types";
 import {
   NETWORK_SYMBOLS,
   getBftEvmTokens,
+  getIcTokenBalance,
   getIcTokens,
   queryKeys,
   reactQueryClient,
   searchToken,
 } from "../utils";
+import { useIcWalletConnet } from "./useWallets";
 
 const getTokens = async (
   tokenNetwork: string,
@@ -22,6 +25,32 @@ const getTokens = async (
     }
     // return await getBtcTokens();
   } catch (_) {}
+};
+
+export const useErc20TokenBalance = (tokenAddress: `0x${string}`) => {
+  const { address } = useAccount();
+  const { data, isError, isLoading } = useBalance({
+    address,
+    token: tokenAddress,
+  });
+
+  const balance = data?.formatted || "0";
+  return { data, balance, isError, isLoading };
+};
+
+export const useIcTokenBalance = (token: TokenProp) => {
+  const { icWallet } = useIcWalletConnet();
+  const { data, isError, isLoading } = useQuery({
+    queryKey: [queryKeys.tokenBalance, token.id],
+    queryFn: async () =>
+      getIcTokenBalance({
+        tokenId: token.id,
+        userPrincipal: icWallet?.principal,
+        decimals: token.decimals,
+      }),
+    enabled: !!token.id && !!icWallet?.principal,
+  });
+  return { balance: data, isError, isLoading };
 };
 
 export const useTokens = (tokenNetwork: string) => {

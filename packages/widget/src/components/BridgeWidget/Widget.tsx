@@ -13,22 +13,31 @@ import { useState } from "react";
 import { NETWORKS, NETWORK_SYMBOLS } from "../../utils";
 import { NetworkProp, TokenProp } from "../../types";
 import { TokenListModal } from "../TokenListModal";
-import { useTokens } from "../../hooks/useTokens";
+import {
+  useErc20TokenBalance,
+  useIcTokenBalance,
+  useTokens,
+} from "../../hooks/useTokens";
 import { NetworkListModal } from "../NetworkListModal";
 import { useBridge } from "../../hooks/useBridge";
 
 export function Widget() {
   const [network, setNetwork] = useState(NETWORKS[0]);
-  const { bridgeFn, amount, setAmount } = useBridge({
+  const { bridgeFn, amount, setAmount, token, setToken } = useBridge({
     network: network?.symbol,
   });
   const tokens = useTokens(network.symbol);
   const [showTokenList, setShowTokenList] = useState(false);
   const [showNetworkList, setShowNetworkList] = useState(false);
-  const [token, setToken] = useState({ name: "", symbol: "" });
+  const { balance: ethBalance } = useErc20TokenBalance(
+    token?.address as `0x${string}`
+  );
+  const { balance: icBalance } = useIcTokenBalance(token);
   const getBalance = () => {
     if (network.symbol === NETWORK_SYMBOLS.ETHEREUM) {
-      return 0;
+      return ethBalance;
+    } else if (network.symbol === NETWORK_SYMBOLS.IC) {
+      return icBalance;
     }
     return 0;
   };

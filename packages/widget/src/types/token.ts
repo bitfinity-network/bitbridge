@@ -1,3 +1,4 @@
+import { Principal } from "@dfinity/principal";
 import { NetworkType } from "./network";
 
 export interface TokenProp {
@@ -35,4 +36,10 @@ export type TokenSearchReturnProps = {
   data: TokenProp[] | undefined;
   isLoading: boolean;
   isFetching: boolean;
+};
+
+export type TGetIcTokenBalance = {
+  tokenId?: string;
+  decimals?: number | bigint;
+  userPrincipal?: Principal | null;
 };

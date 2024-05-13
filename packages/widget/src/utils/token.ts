@@ -1,11 +1,12 @@
 import { TokenList } from "@infinityswapofficial/token-lists";
-import { TokenProp, TokenSearchProps } from "../types";
+import { TGetIcTokenBalance, TokenProp, TokenSearchProps } from "../types";
 import { createICRC1Actor } from "@bitfinity-network/bridge";
 import { NETWORK_SYMBOLS } from "./constants";
 import TokenContractABI from "./abi/erc20.json";
 import { ethers } from "ethers";
 import { Principal } from "@dfinity/principal";
 import { agent } from "./ic";
+import { toDecimal } from "./bridge";
 
 export const getIcTokens = async (cachedTokens: TokenProp[] = []) => {
   const tokenList = await TokenList.create();
@@ -26,9 +27,12 @@ export const getIcTokens = async (cachedTokens: TokenProp[] = []) => {
 
 export const searchIcrcToken = async (tokenPrincipal: string) => {
   try {
+    console.log("createICRC1Actor", createICRC1Actor);
     const tokenActor = createICRC1Actor(Principal.fromText(tokenPrincipal), {
       agent,
     });
+
+    console.log("tokenActory", tokenActor);
     const metadata = await Promise.all([
       tokenActor.icrc1_name(),
       tokenActor.icrc1_symbol(),
@@ -129,5 +133,28 @@ export const importToken = async (address: string) => {
     }
   } catch (error) {
     console.error(error);
+  }
+};
+
+export const getIcTokenBalance = async ({
+  tokenId,
+  userPrincipal,
+  decimals,
+}: TGetIcTokenBalance) => {
+  try {
+    if (tokenId && userPrincipal) {
+      const tokenActor = createICRC1Actor(Principal.fromText(tokenId), {
+        agent,
+      });
+      const balance = await tokenActor.icrc1_balance_of({
+        owner: userPrincipal,
+        subaccount: [],
+      });
+      return toDecimal(balance, decimals || 8);
+    }
+    return 0;
+  } catch (error) {
+    console.error(error);
+    return 0;
   }
 };
