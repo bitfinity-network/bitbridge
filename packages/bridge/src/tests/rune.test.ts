@@ -1,15 +1,14 @@
-import 'dotenv/config';
 import { describe, expect, test } from 'vitest';
 
-import { RuneBridge } from '../rune';
+import { RuneBridge } from '../';
 import {
   execBitcoinCmd,
   execOrdReceive,
   execOrdSend,
   mintNativeToken,
-  randomWallet,
-  wait
+  randomWallet
 } from './utils';
+import { wait } from '../utils';
 
 describe.sequential(
   'rune',
@@ -20,7 +19,7 @@ describe.sequential(
 
     await mintNativeToken(wallet.address, '10000000000000000');
 
-    const runeBridge = new RuneBridge({ provider: wallet });
+    const runeBridge = new RuneBridge({ wallet });
 
     test('bridge to evm', async () => {
       const toAddress = wallet.address as `0x${string}`;

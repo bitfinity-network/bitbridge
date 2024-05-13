@@ -18,7 +18,7 @@ export {
 } from './canisters/icrc1';
 
 export {
-  BtcBridge as BtcBridgeActor,
+  BtcActor,
   createActor as createBtcBridgeActor
 } from './canisters/btc-bridge';
 

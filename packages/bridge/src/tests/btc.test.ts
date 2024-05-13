@@ -1,10 +1,9 @@
-import 'dotenv/config';
-
 import { describe, expect, test } from 'vitest';
 import bitcore from 'bitcore-lib';
 
-import { BtcBridge } from '../btc';
-import { randomWallet, wait, mintNativeToken, execBitcoinCmd } from './utils';
+import { BtcBridge } from '..';
+import { randomWallet, mintNativeToken, execBitcoinCmd } from './utils';
+import { wait } from '../utils';
 import { EthAddress } from '../validation';
 
 describe.sequential(
@@ -12,7 +11,7 @@ describe.sequential(
   () => {
     const wallet = randomWallet();
 
-    const btcBridge = new BtcBridge({ provider: wallet });
+    const btcBridge = new BtcBridge({ wallet });
 
     test('get balance', async () => {
       await mintNativeToken(wallet.address, '10000000000000000');

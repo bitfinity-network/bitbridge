@@ -30,17 +30,7 @@ export const BTC_BRIDGE_CANISTER_ID = str.parse(
   process.env.BTC_BRIDGE_CANISTER_ID
 );
 
-// export const CKBTC_TOKEN_CANISTER_ID = str.parse(
-//   process.env.CKBTC_TOKEN_CANISTER_ID
-// );
-//
-// export const CK_BTC_CANISTER_ID = str.parse(process.env.CK_BTC_CANISTER_ID);
-
-export const IS_TEST = z.boolean().parse(process.env.IS_TEST || false);
-
-// export const BTC_BRIDGE_ETH_ADDRESS = str.parse(
-//   process.env.BTC_BRIDGE_ETH_ADDRESS
-// );
+export const IS_TEST = z.coerce.boolean().parse(process.env.IS_TEST || false);
 
 export const BFT_ETH_ADDRESS = str.parse(
   process.env.BFT_ETH_ADDRESS

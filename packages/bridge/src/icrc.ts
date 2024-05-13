@@ -1,3 +1,4 @@
+import { Actor, HttpAgent } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
 import * as ethers from 'ethers';
 import { numberToHex } from 'viem';
@@ -17,7 +18,7 @@ import { Address, Id256, Id256Factory } from './validation';
 import BftBridgeABI from './abi/BFTBridge';
 import WrappedTokenABI from './abi/WrappedToken';
 import { Icrc1IdlFactory } from './ic';
-import { Actor, HttpAgent } from '@dfinity/agent';
+
 import { Icrc2Burn } from './canisters/icrc2-minter/icrc2-minter.did';
 import { isBrowser } from './utils';
 

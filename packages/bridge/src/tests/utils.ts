@@ -75,9 +75,7 @@ export const getContract = (address: string, abi: any) => {
   return contract;
 };
 
-export const wait = (ms: number) => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-};
+
 
 export const execCmd = (cmd: string): Promise<string> => {
   return new Promise((resolve, reject) => {

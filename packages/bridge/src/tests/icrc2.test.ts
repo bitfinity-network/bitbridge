@@ -1,7 +1,9 @@
 import { expect, test } from 'vitest';
-import { createAgent, generateWallet, identityFromSeed, wait } from './utils';
-import { IcrcBridge } from '../icrc';
+
+import { IcrcBridge } from '../';
+import { createAgent, generateWallet, identityFromSeed } from './utils';
 import { LOCAL_TEST_SEED_PHRASE } from '../constants';
+import { wait } from '../utils';
 
 (BigInt as any).prototype.toJSON = function () {
   return this.toString();

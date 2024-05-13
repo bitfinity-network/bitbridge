@@ -1,54 +1,52 @@
+import { Actor } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
 import * as ethers from 'ethers';
 
-import { BtcBridgeActor } from './ic';
-import {
-  BFT_ETH_ADDRESS,
-  BTC_BRIDGE_CANISTER_ID,
-  BTC_TOKEN_WRAPPED_ADDRESS
-} from './constants';
+import { BtcActor } from './ic';
+import { BFT_ETH_ADDRESS, BTC_TOKEN_WRAPPED_ADDRESS } from './constants';
 import { encodeBtcAddress, ethAddrToSubaccount } from './utils';
 import WrappedTokenABI from './abi/WrappedToken';
 import BFTBridgeABI from './abi/BFTBridge';
-import { wait } from './tests/utils';
+import { wait } from './utils';
 
 import { EthAddress } from './validation';
 
 interface BtcBridgeOptions {
-  provider: ethers.Signer;
+  wallet: ethers.Signer;
   bftAddress?: EthAddress;
   wrappedTokenAddress?: EthAddress;
   btcBridgeCanisterId?: string;
+  btcActor?: typeof BtcActor;
 }
 
 export class BtcBridge {
-  protected provider: ethers.Signer;
+  protected wallet: ethers.Signer;
   protected bftAddress: EthAddress;
-  protected btcBridgeCanisterId: string;
+  protected btcActor: typeof BtcActor;
   public wrappedTokenAddress: string;
 
   constructor({
-    provider,
+    wallet,
     bftAddress,
     wrappedTokenAddress,
-    btcBridgeCanisterId
+    btcActor
   }: BtcBridgeOptions) {
-    this.provider = provider;
+    this.wallet = wallet;
     this.bftAddress = bftAddress || BFT_ETH_ADDRESS;
     this.wrappedTokenAddress = wrappedTokenAddress || BTC_TOKEN_WRAPPED_ADDRESS;
-    this.btcBridgeCanisterId = btcBridgeCanisterId || BTC_BRIDGE_CANISTER_ID;
+    this.btcActor = btcActor || BtcActor;
   }
 
   getWrappedTokenContract() {
     return new ethers.Contract(
       this.wrappedTokenAddress,
       WrappedTokenABI,
-      this.provider
+      this.wallet
     );
   }
 
   getBftBridgeContract() {
-    return new ethers.Contract(this.bftAddress, BFTBridgeABI, this.provider);
+    return new ethers.Contract(this.bftAddress, BFTBridgeABI, this.wallet);
   }
 
   async getWrappedTokenBalance(address: EthAddress) {
@@ -57,18 +55,26 @@ export class BtcBridge {
     return await wrappedTokenContract.balanceOf(address);
   }
 
-  async bridgeBtc(address: EthAddress) {
-    return await BtcBridgeActor.btc_to_erc20(address);
-  }
-
   async getBTCAddress(address: EthAddress) {
-    const btcAddress = await BtcBridgeActor.get_btc_address({
-      owner: [Principal.fromText(this.btcBridgeCanisterId)],
+    const btcAddress = await this.btcActor.get_btc_address({
+      owner: [Principal.fromText(Actor.canisterIdOf(this.btcActor).toText())],
       subaccount: [ethAddrToSubaccount(address)]
     });
 
     return btcAddress;
   }
+
+  /**
+   * After you sent the BTC to the address returned
+   * by getBTCAddress, this function will bridge
+   * the tokens to EVM.
+   *
+   * @param address
+   */
+  async bridgeBtc(address: EthAddress) {
+    return await this.btcActor.btc_to_erc20(address);
+  }
+
 
   async bridgeEVMc(address: string, satoshis: number) {
     const wrappedTokenContract = this.getWrappedTokenContract();
