@@ -1,5 +1,6 @@
 import {
   Box,
+  Button,
   Divider,
   FormControl,
   FormLabel,
@@ -14,15 +15,17 @@ import { NetworkProp, TokenProp } from "../../types";
 import { TokenListModal } from "../TokenListModal";
 import { useTokens } from "../../hooks/useTokens";
 import { NetworkListModal } from "../NetworkListModal";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useBridge } from "../../hooks/useBridge";
 
 export function Widget() {
   const [network, setNetwork] = useState(NETWORKS[0]);
+  const { bridgeFn, amount, setAmount } = useBridge({
+    network: network?.symbol,
+  });
   const tokens = useTokens(network.symbol);
   const [showTokenList, setShowTokenList] = useState(false);
   const [showNetworkList, setShowNetworkList] = useState(false);
   const [token, setToken] = useState({ name: "", symbol: "" });
-  const [amount, setAmount] = useState(0);
   const getBalance = () => {
     if (network.symbol === NETWORK_SYMBOLS.ETHEREUM) {
       return 0;
@@ -96,7 +99,7 @@ export function Widget() {
           />
           <LabelValuePair label="Service fee">0.000</LabelValuePair>
         </FormControl>
-        <ConnectButton />
+        <Button onClick={() => bridgeFn()}>Text bridging</Button>
       </form>
       <TokenListModal
         tokens={tokens}

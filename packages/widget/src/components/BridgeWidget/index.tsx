@@ -8,11 +8,13 @@ import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { WagmiProvider } from "wagmi";
 import { BITFINITY_LOCAL_CHAIN } from "../../utils/network";
 import "@rainbow-me/rainbowkit/styles.css";
+import { TBridgeWidget } from "../../types";
+
 const persister = createSyncStoragePersister({
   storage: window.localStorage,
 });
 
-export const BridgeWidget = ({ chains = [] }) => {
+export const BridgeWidget = ({ chains = [], ...rest }: TBridgeWidget) => {
   const config = getDefaultConfig({
     appName: "bridge-widget",
     projectId: "YOUR_PROJECT_ID",
@@ -26,7 +28,7 @@ export const BridgeWidget = ({ chains = [] }) => {
         persistOptions={{ persister }}
       >
         <RainbowKitProvider>
-          <BridgeProvider>
+          <BridgeProvider {...rest}>
             <Widget />
           </BridgeProvider>
         </RainbowKitProvider>

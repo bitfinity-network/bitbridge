@@ -26,6 +26,7 @@
     "prepublishOnly": "yarn build"
   },
   "dependencies": {
+    "@dfinity/agent": "^1.2.0",
     "@bitfinity-network/bridge": "*",
     "@chakra-ui/react": "^2.8.2",
     "@emotion/react": "^11.11.4",

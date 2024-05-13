@@ -82,7 +82,7 @@ export const searchErc20Token = async (
 };
 
 export const searchToken = async (payload: TokenSearchProps) => {
-  const { tokens, network, searchKey, userPrincipal } = payload;
+  const { tokens, network, searchKey } = payload;
   if (!searchKey) {
     return { tokens, cache: false };
   }
@@ -109,3 +109,25 @@ export const searchToken = async (payload: TokenSearchProps) => {
   return { tokens: [], cache: false };
 };
 export const getBftEvmTokens = (cachedTokens: TokenProp[] = []) => {};
+
+export const importToken = async (address: string) => {
+  try {
+    if (typeof window !== "undefined") {
+      const token = await searchErc20Token(address);
+      await (window as any).ethereum.request({
+        method: "wallet_watchAsset",
+        params: {
+          type: "ERC20",
+          options: {
+            address: address,
+            symbol: token?.symbol,
+            decimals: token?.decimals,
+            image: token?.logo,
+          },
+        },
+      });
+    }
+  } catch (error) {
+    console.error(error);
+  }
+};
