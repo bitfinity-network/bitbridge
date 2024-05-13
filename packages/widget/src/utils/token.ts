@@ -27,12 +27,10 @@ export const getIcTokens = async (cachedTokens: TokenProp[] = []) => {
 
 export const searchIcrcToken = async (tokenPrincipal: string) => {
   try {
-    console.log("createICRC1Actor", createICRC1Actor);
     const tokenActor = createICRC1Actor(Principal.fromText(tokenPrincipal), {
       agent,
     });
 
-    console.log("tokenActory", tokenActor);
     const metadata = await Promise.all([
       tokenActor.icrc1_name(),
       tokenActor.icrc1_symbol(),
