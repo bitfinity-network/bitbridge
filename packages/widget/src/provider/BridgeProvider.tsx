@@ -20,7 +20,9 @@ const BridgeContext = createContext<TBridgeContext>(defaultValue);
 
 export const BridgeProvider = ({
   children,
-  icHost = "http://127:0.0.1:8000",
+  icHost = "http://localhost:4943",
+  rpcUrl = "http://127.0.0.1:8545",
+  allowTokenImport = true,
   ...rest
 }: TBridgeProvider) => {
   const [wallet, setWallet] = useState<JsonRpcSigner | undefined>();
@@ -36,11 +38,13 @@ export const BridgeProvider = ({
   };
 
   const getIcAgent = () => {
+    console.log("ichost", icHost);
     return createAgent({ host: icHost });
   };
 
   const getIcrcBridge = async (baseTokenId: string) => {
     try {
+      console.log("baseTokenId", baseTokenId);
       if (!icrcBridge) {
         const evmWallet = await getEthWallet();
         const agent = getIcAgent();
@@ -62,7 +66,14 @@ export const BridgeProvider = ({
 
   return (
     <BridgeContext.Provider
-      value={{ getEthWallet, getIcrcBridge, getIcAgent, ...rest }}
+      value={{
+        getEthWallet,
+        getIcrcBridge,
+        getIcAgent,
+        allowTokenImport,
+        rpcUrl,
+        ...rest,
+      }}
     >
       {children}
     </BridgeContext.Provider>

@@ -3,6 +3,7 @@ import { useBridgeContext } from "../provider/BridgeProvider";
 import { NETWORK_SYMBOLS, fromDecimal, importToken } from "../utils";
 import { TokenProp } from "../types";
 import { IcrcBridge } from "@bitfinity-network/bridge";
+import { useWallets } from "./useWallets";
 
 type TBridingHookProps = {
   network: string;
@@ -16,13 +17,14 @@ const BRIDGE_STEPS = [
 ];
 
 export const useBridge = ({ network }: TBridingHookProps) => {
-  const { successFn, getIcrcBridge, getEthWallet, allowTokenImport } =
+  const { successFn, getIcrcBridge, getEthWallet, allowTokenImport, rpcUrl } =
     useBridgeContext();
   const [amount, setAmount] = useState<number>(0);
   const [, setMessage] = useState("");
   const [token, setToken] = useState<TokenProp>({ name: "", symbol: "" });
-
   const amtInBigInt = BigInt(fromDecimal(amount, token.decimals || 8));
+  const { icWallet } = useWallets();
+  const icWalletPrincipal = icWallet?.principal;
 
   const bridgeIcToErc20 = async (
     icrcBricdge: IcrcBridge,
@@ -37,10 +39,20 @@ export const useBridge = ({ network }: TBridingHookProps) => {
       await icrcBricdge.bridgeIcrc2ToEmvc(amt, userAddress || "");
       // const balance = await wrappedToken.balanceOf(userAddress);
       setMessage(`${BRIDGE_STEPS[3]}`);
-      if (allowTokenImport) await importToken(wrappedToken.target as string);
-      if (successFn) successFn("");
+      if (allowTokenImport) {
+        await importToken(wrappedToken.target as string, rpcUrl!);
+      }
+      if (successFn) successFn("bridging was successfully");
     } catch (error) {
       console.error("bridging Ic error", error);
+    }
+  };
+
+  const bridgeErc20ToIc = async (icrcBricdge: IcrcBridge, amt: bigint) => {
+    setMessage(`Bridging ${amount} ${token.name}`);
+    if (icWalletPrincipal) {
+      await icrcBricdge.bridgeEmvcToIcrc2(amt, icWalletPrincipal);
+      if (successFn) successFn("bridging was successfully");
     }
   };
 
@@ -50,6 +62,12 @@ export const useBridge = ({ network }: TBridingHookProps) => {
       const wallet = await getEthWallet();
       if (icrcBridge) {
         await bridgeIcToErc20(icrcBridge, amtInBigInt, wallet?.address!);
+      }
+    }
+    if (network === NETWORK_SYMBOLS.ETHEREUM) {
+      const icrcBridge = await getIcrcBridge(token?.id || "");
+      if (icrcBridge) {
+        await bridgeErc20ToIc(icrcBridge, amtInBigInt);
       }
     }
   };

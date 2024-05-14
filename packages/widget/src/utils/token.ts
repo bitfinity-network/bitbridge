@@ -112,10 +112,10 @@ export const searchToken = async (payload: TokenSearchProps) => {
 };
 export const getBftEvmTokens = (cachedTokens: TokenProp[] = []) => {};
 
-export const importToken = async (address: string) => {
+export const importToken = async (address: string, rpcUrl: string) => {
   try {
     if (typeof window !== "undefined") {
-      const token = await searchErc20Token(address);
+      const token = await searchErc20Token(address, rpcUrl);
       await (window as any).ethereum.request({
         method: "wallet_watchAsset",
         params: {

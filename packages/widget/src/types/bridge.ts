@@ -5,6 +5,7 @@ export type TBridgeOptions = {
   successFn?: (status: string) => void;
   allowTokenImport?: boolean;
   icHost?: string;
+  rpcUrl?: string;
   defaultAmount?: number;
 };
 
