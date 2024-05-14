@@ -2,12 +2,13 @@ import { QueryClient } from "@tanstack/react-query";
 import EthIcon from "../assets/icons/eth.svg";
 import BtcIcon from "../assets/icons/bitcoin.svg";
 import IcIcon from "../assets/icons/ic.svg";
+import BftIcon from "../assets/icons/bitfinity.svg";
 
 export const NETWORK_SYMBOLS = {
   ETHEREUM: "ethereum",
-  IC: "ic",
-  BTC: "btc",
-  BITFINITY: "bft",
+  IC: "IC",
+  BTC: "BTC",
+  BITFINITY: "BFT",
 };
 
 export const NETWORKS = [
@@ -15,6 +16,11 @@ export const NETWORKS = [
     name: "Ethereum",
     logo: EthIcon,
     symbol: NETWORK_SYMBOLS.ETHEREUM,
+  },
+  {
+    name: "BITFINITY EVM",
+    logo: BftIcon,
+    symbol: NETWORK_SYMBOLS.BITFINITY,
   },
   {
     name: "BITCOIN",
@@ -40,6 +46,9 @@ export const queryKeys = {
 
 export const BITFINITY_INSTALLATION_URL =
   "https://chrome.google.com/webstore/detail/bitfinity-wallet/jnldfbidonfeldmalbflbmlebbipcnle?hl=kk";
+
+export const EVM_TOKENS_URL =
+  "https://raw.githubusercontent.com/bitfinity-network/token-lists/main/src/evm.tokenlist.testnet.json";
 
 export const TANSTACK_GARBAGE_COLLECTION_TIME = 1000 * 60 * 8; // 8 minutes
 

@@ -1,7 +1,7 @@
 import { TokenList } from "@infinityswapofficial/token-lists";
 import { TGetIcTokenBalance, TokenProp, TokenSearchProps } from "../types";
 import { createICRC1Actor } from "@bitfinity-network/bridge";
-import { NETWORK_SYMBOLS } from "./constants";
+import { EVM_TOKENS_URL, NETWORK_SYMBOLS } from "./constants";
 import TokenContractABI from "./abi/erc20.json";
 import { ethers } from "ethers";
 import { Principal } from "@dfinity/principal";
@@ -84,7 +84,7 @@ export const searchErc20Token = async (
 };
 
 export const searchToken = async (payload: TokenSearchProps) => {
-  const { tokens, network, searchKey } = payload;
+  const { tokens, network, searchKey, rpcUrl } = payload;
   if (!searchKey) {
     return { tokens, cache: false };
   }
@@ -102,15 +102,26 @@ export const searchToken = async (payload: TokenSearchProps) => {
     return { tokens: filteredData, cache: false };
   }
   const token =
-    network === NETWORK_SYMBOLS.ETHEREUM
-      ? await searchErc20Token(searchKey, "")
+    network === NETWORK_SYMBOLS.BITFINITY
+      ? await searchErc20Token(searchKey, rpcUrl)
       : await searchIcrcToken(searchKey);
   if (token) {
     return { tokens: [token], cache: true };
   }
   return { tokens: [], cache: false };
 };
-export const getBftEvmTokens = (cachedTokens: TokenProp[] = []) => {};
+export const getBftEvmTokens = async (cachedTokens: TokenProp[] = []) => {
+  try {
+    const response = await fetch(EVM_TOKENS_URL);
+    const tokenList = await response.json();
+    const filteredCachedTokens = cachedTokens.filter(
+      (token) => token.standard?.toLowerCase() === "erc20"
+    );
+    return [...tokenList.tokens, ...filteredCachedTokens] || [];
+  } catch (_) {
+    return [];
+  }
+};
 
 export const importToken = async (address: string, rpcUrl: string) => {
   try {

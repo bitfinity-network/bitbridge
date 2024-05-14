@@ -30,6 +30,7 @@ export type TokenSearchProps = {
   tokens: TokenProp[];
   searchKey: string;
   userPrincipal?: string;
+  rpcUrl: string;
 };
 
 export type TokenSearchReturnProps = {

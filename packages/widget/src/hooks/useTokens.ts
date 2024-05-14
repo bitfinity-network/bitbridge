@@ -11,6 +11,7 @@ import {
   searchToken,
 } from "../utils";
 import { useIcWalletConnet } from "./useWallets";
+import { useBridgeContext } from "../provider/BridgeProvider";
 
 const getTokens = async (
   tokenNetwork: string,
@@ -72,11 +73,19 @@ export const useTokenSearch = ({
   network,
   userPrincipal,
 }: TokenSearchProps): TokenSearchReturnProps => {
+  const { rpcUrl, icHost } = useBridgeContext();
   const queryClient = useQueryClient();
   const { data, isLoading, isFetching } = useQuery({
     queryKey: [queryKeys.searchTokens, tokens.length, searchKey],
     queryFn: async () =>
-      await searchToken({ tokens, network, searchKey, userPrincipal }),
+      await searchToken({
+        tokens,
+        network,
+        searchKey,
+        userPrincipal,
+        rpcUrl,
+        icHost,
+      }),
     enabled: !!searchKey,
   });
   if (searchKey === "") {

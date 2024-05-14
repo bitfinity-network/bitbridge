@@ -3,7 +3,7 @@ import { useBridgeContext } from "../provider/BridgeProvider";
 import { NETWORK_SYMBOLS, fromDecimal, importToken } from "../utils";
 import { TokenProp } from "../types";
 import { IcrcBridge } from "@bitfinity-network/bridge";
-import { useWallets } from "./useWallets";
+import { getIcWallet, useWallets } from "./useWallets";
 
 type TBridingHookProps = {
   network: string;
@@ -23,8 +23,6 @@ export const useBridge = ({ network }: TBridingHookProps) => {
   const [, setMessage] = useState("");
   const [token, setToken] = useState<TokenProp>({ name: "", symbol: "" });
   const amtInBigInt = BigInt(fromDecimal(amount, token.decimals || 8));
-  const { icWallet } = useWallets();
-  const icWalletPrincipal = icWallet?.principal;
 
   const bridgeIcToErc20 = async (
     icrcBricdge: IcrcBridge,
@@ -49,10 +47,16 @@ export const useBridge = ({ network }: TBridingHookProps) => {
   };
 
   const bridgeErc20ToIc = async (icrcBricdge: IcrcBridge, amt: bigint) => {
-    setMessage(`Bridging ${amount} ${token.name}`);
-    if (icWalletPrincipal) {
-      await icrcBricdge.bridgeEmvcToIcrc2(amt, icWalletPrincipal);
-      if (successFn) successFn("bridging was successfully");
+    try {
+      setMessage(`Bridging ${amount} ${token.name}`);
+      const icWallet = await getIcWallet();
+      const icWalletPrincipal = icWallet?.principal;
+      if (icWalletPrincipal) {
+        await icrcBricdge.bridgeEmvcToIcrc2(amt, icWalletPrincipal);
+        if (successFn) successFn("bridging was successfully");
+      }
+    } catch (error) {
+      console.error("bridgeErc20ToIc Error", error);
     }
   };
 
@@ -64,9 +68,10 @@ export const useBridge = ({ network }: TBridingHookProps) => {
         await bridgeIcToErc20(icrcBridge, amtInBigInt, wallet?.address!);
       }
     }
-    if (network === NETWORK_SYMBOLS.ETHEREUM) {
+    if (network === NETWORK_SYMBOLS.BITFINITY) {
       const icrcBridge = await getIcrcBridge(token?.id || "");
       if (icrcBridge) {
+        console.log("icrcBridge", icrcBridge);
         await bridgeErc20ToIc(icrcBridge, amtInBigInt);
       }
     }

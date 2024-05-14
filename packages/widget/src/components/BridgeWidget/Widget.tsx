@@ -20,6 +20,7 @@ import {
 } from "../../hooks/useTokens";
 import { NetworkListModal } from "../NetworkListModal";
 import { useBridge } from "../../hooks/useBridge";
+import { useWallets } from "../../hooks/useWallets";
 
 export function Widget() {
   const [network, setNetwork] = useState(NETWORKS[0]);
@@ -33,6 +34,7 @@ export function Widget() {
     token?.address as `0x${string}`
   );
   const { balance: icBalance } = useIcTokenBalance(token);
+  const { connectToIcWallet } = useWallets();
   const getBalance = () => {
     if (network.symbol === NETWORK_SYMBOLS.ETHEREUM) {
       return ethBalance;
@@ -50,6 +52,17 @@ export function Widget() {
   const selectNetwork = (e: NetworkProp) => {
     setNetwork(e);
     setShowNetworkList(false);
+  };
+
+  const bridgeToken = async () => {
+    if (
+      network.symbol === NETWORK_SYMBOLS.BITFINITY ||
+      network.symbol === NETWORK_SYMBOLS.IC
+    ) {
+      // connect ic and wallet
+      await connectToIcWallet();
+    }
+    await bridgeFn();
   };
 
   return (
@@ -109,7 +122,7 @@ export function Widget() {
           <LabelValuePair label="Service fee">0.000</LabelValuePair>
         </FormControl>
         <Box pt={2}>
-          <Button w="full" onClick={() => bridgeFn()}>
+          <Button w="full" onClick={() => bridgeToken()}>
             Bridge
           </Button>
         </Box>

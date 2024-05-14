@@ -24,7 +24,7 @@ const getPrincipalAndAccountId = async (
   return { principal, accountId };
 };
 
-const getIcWallet = async () => {
+export const getIcWallet = async () => {
   if (typeof window !== "undefined") {
     const currentWallet = (window as any).ic?.[icWalletId];
 

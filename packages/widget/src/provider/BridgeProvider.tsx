@@ -44,7 +44,6 @@ export const BridgeProvider = ({
 
   const getIcrcBridge = async (baseTokenId: string) => {
     try {
-      console.log("baseTokenId", baseTokenId);
       if (!icrcBridge) {
         const evmWallet = await getEthWallet();
         const agent = getIcAgent();
