@@ -21,6 +21,7 @@ import {
 import { NetworkListModal } from "../NetworkListModal";
 import { useBridge } from "../../hooks/useBridge";
 import { useWallets } from "../../hooks/useWallets";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
 
 export function Widget() {
   const [network, setNetwork] = useState(NETWORKS[0]);
@@ -35,6 +36,7 @@ export function Widget() {
   );
   const { balance: icBalance } = useIcTokenBalance(token);
   const { connectToIcWallet } = useWallets();
+  const { openConnectModal } = useConnectModal();
   const getBalance = () => {
     if (network.symbol === NETWORK_SYMBOLS.ETHEREUM) {
       return ethBalance;
@@ -59,7 +61,9 @@ export function Widget() {
       network.symbol === NETWORK_SYMBOLS.BITFINITY ||
       network.symbol === NETWORK_SYMBOLS.IC
     ) {
-      // connect ic and wallet
+      if (openConnectModal) {
+        await openConnectModal();
+      }
       await connectToIcWallet();
     }
     await bridgeFn();

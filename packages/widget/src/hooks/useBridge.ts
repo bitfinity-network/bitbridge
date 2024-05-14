@@ -37,10 +37,14 @@ export const useBridge = ({ network }: TBridingHookProps) => {
       await icrcBricdge.bridgeIcrc2ToEmvc(amt, userAddress || "");
       // const balance = await wrappedToken.balanceOf(userAddress);
       setMessage(`${BRIDGE_STEPS[3]}`);
+      if (successFn) {
+        successFn("bridging was successfully");
+      }
       if (allowTokenImport) {
         await importToken(wrappedToken.target as string, rpcUrl!);
       }
-      if (successFn) successFn("bridging was successfully");
+
+      console.log("bridging complete");
     } catch (error) {
       console.error("bridging Ic error", error);
     }
@@ -53,7 +57,9 @@ export const useBridge = ({ network }: TBridingHookProps) => {
       const icWalletPrincipal = icWallet?.principal;
       if (icWalletPrincipal) {
         await icrcBricdge.bridgeEmvcToIcrc2(amt, icWalletPrincipal);
-        if (successFn) successFn("bridging was successfully");
+        if (successFn) {
+          successFn("bridging was successfully");
+        }
       }
     } catch (error) {
       console.error("bridgeErc20ToIc Error", error);
