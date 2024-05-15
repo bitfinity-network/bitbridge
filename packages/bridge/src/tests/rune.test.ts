@@ -1,7 +1,9 @@
 import { describe, expect, test } from 'vitest';
 
-import { RuneBridge } from '../';
+import { Connector } from '../';
 import {
+  createAgent,
+  createBitfinityWallet,
   execBitcoinCmd,
   execOrdReceive,
   execOrdSend,
@@ -17,9 +19,21 @@ describe.sequential(
 
     const wallet = randomWallet();
 
+    const { agent } = createAgent(wallet.privateKey);
+    const bitfinityWallet = createBitfinityWallet(agent);
+
     await mintNativeToken(wallet.address, '10000000000000000');
 
-    const runeBridge = new RuneBridge({ wallet });
+    const connector = Connector.create({
+      bridges: ['rune'],
+      wallet,
+      bitfinityWallet
+    });
+    await connector.init();
+
+    await connector.requestIcConnect();
+
+    const runeBridge = connector.getBridge('rune');
 
     test('bridge to evm', async () => {
       const toAddress = wallet.address as `0x${string}`;
@@ -42,7 +56,7 @@ describe.sequential(
         `generatetoaddress 1 bcrt1q7xzw9nzmsvwnvfrx6vaq5npkssqdylczjk8cts`
       );
 
-      await runeBridge.bridgeBtc(toAddress);
+      await runeBridge.bridgeToEvmc(toAddress);
 
       await wait(15000);
 
@@ -55,7 +69,7 @@ describe.sequential(
     test('bridge from evm', async () => {
       const toAddress = await execOrdReceive();
 
-      await runeBridge.bridgeEVMc(toAddress, 100);
+      await runeBridge.bridgeFromEvmc(toAddress, 100);
 
       await wait(15000);
 

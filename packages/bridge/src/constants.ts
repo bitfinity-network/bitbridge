@@ -1,5 +1,4 @@
 import z from 'zod';
-import { EthAddress } from './validation';
 
 const str = z.string();
 
@@ -11,11 +10,6 @@ export const RPC_URL = str.parse(
 
 export const IC_HOST = str.parse(
   process.env.IC_HOST || 'http://127.0.0.1:4943'
-);
-
-export const LOCAL_TEST_SEED_PHRASE = str.parse(
-  process.env.LOCAL_TEST_SEED_PHRASE ||
-    'piece cabin metal credit library hobby fetch nature topple region nominee always'
 );
 
 export const ICRC2_MINTER_CANISTER_ID = str.parse(
@@ -30,11 +24,11 @@ export const BTC_BRIDGE_CANISTER_ID = str.parse(
   process.env.BTC_BRIDGE_CANISTER_ID
 );
 
-export const IS_TEST = z.coerce.boolean().parse(process.env.IS_TEST || false);
+export const RUNE_BRIDGE_CANISTER_ID = str.parse(
+  process.env.RUNE_BRIDGE_CANISTER_ID
+);
 
-export const BFT_ETH_ADDRESS = str.parse(
-  process.env.BFT_ETH_ADDRESS
-) as EthAddress;
+export const BFT_ETH_ADDRESS = str.parse(process.env.BFT_ETH_ADDRESS);
 
 export const BTC_TOKEN_WRAPPED_ADDRESS = str.parse(
   process.env.BTC_TOKEN_WRAPPED_ADDRESS

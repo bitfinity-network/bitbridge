@@ -3,9 +3,10 @@ import { Actor, HttpAgent } from '@dfinity/agent';
 // Imports and re-exports candid interface
 import { idlFactory } from './btc-bridge.did.js';
 export { idlFactory } from './btc-bridge.did.js';
+import { BTC_BRIDGE_CANISTER_ID, IC_HOST } from '../../constants';
 
-export const canisterId = process.env.BTC_BRIDGE_CANISTER_ID;
-const host = process.env.IC_HOST;
+export const canisterId = BTC_BRIDGE_CANISTER_ID;
+const host = IC_HOST;
 
 export const createActor = (canisterId, options = {}) => {
   const agent = options.agent || new HttpAgent({ ...options.agentOptions });

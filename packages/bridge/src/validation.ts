@@ -6,8 +6,6 @@ import * as ethers from 'ethers';
 export type Id256 = Buffer;
 export type SignedMintOrder = ethers.BytesLike; //Uint8Array | number[];
 
-export type EthAddress = `0x${string}`;
-
 export class Id256Factory {
   chainIdFromId256(buffer: Id256): number {
     if (buffer.readUIntBE(0, 1) == 1) {
@@ -99,7 +97,6 @@ export class Address {
     this.address = address;
 
     if (!isAddress(this.addressAsBuffer())) {
-      console.log(address);
       throw Error('Not a valid Address');
     }
   }
