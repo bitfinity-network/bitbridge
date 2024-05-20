@@ -1,4 +1,5 @@
 import { Principal } from '@dfinity/principal';
+import { Buffer } from 'node:buffer';
 
 import { Id256 } from './id256';
 import { AddressWithChainID } from './address';
@@ -11,7 +12,7 @@ export class Id256Factory {
     if (buffer.readUIntBE(0, 1) !== Id256Factory.EVM_ADDRESS_MARK) {
       return 0;
     }
-    return buffer.readUIntBE(1, 4);
+    return buffer.readUInt32BE(1);
   }
 
   static toPrincipal(id: Id256): Principal {
