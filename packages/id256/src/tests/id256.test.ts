@@ -19,7 +19,7 @@ describe('id256 factory', () => {
     expect(Id256Factory.toPrincipal(id).toText()).toStrictEqual(principalStr);
   });
 
-  test('chainIdFromId256', () => {
+  test('address with chain round trip', () => {
     const id = Id256Factory.from(addressWithChain);
 
     const [c, a] = Id256Factory.toEvmAddress(id)
