@@ -22,8 +22,6 @@ describe('id256 factory', () => {
   test('chainIdFromId256', () => {
     const id = Id256Factory.from(addressWithChain);
 
-    console.log(Id256Factory.toEvmAddress(id));
-
     const [c, a] = Id256Factory.toEvmAddress(id)
 
     expect(c).toEqual(chainId);

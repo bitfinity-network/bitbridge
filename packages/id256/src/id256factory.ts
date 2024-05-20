@@ -27,8 +27,6 @@ export class Id256Factory {
       throw Error('Wrong evm address mark in Id256');
     }
 
-    console.log(id.slice(1, 5).byteLength);
-
     if (id.slice(1, 5).byteLength !== 4) {
       throw new Error('Unexpected chain id length, must be 4 bytes');
     }
