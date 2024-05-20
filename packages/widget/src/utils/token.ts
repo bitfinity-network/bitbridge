@@ -5,7 +5,6 @@ import { EVM_TOKENS_URL, NETWORK_SYMBOLS } from "./constants";
 import TokenContractABI from "./abi/erc20.json";
 import { ethers } from "ethers";
 import { Principal } from "@dfinity/principal";
-import { agent } from "./ic";
 import { toDecimal } from "./bridge";
 
 export const getIcTokens = async (cachedTokens: TokenProp[] = []) => {
@@ -71,6 +70,7 @@ export const searchErc20Token = async (
       tokenContract.symbol(),
       tokenContract.decimals(),
     ]);
+    console.log(name, symbol, decimals);
     const newToken: TokenProp = {
       name: name.replace(/\u0000/g, ""),
       symbol: symbol.replace(/\u0000/g, ""),
@@ -136,14 +136,14 @@ export const importToken = async (address: string, rpcUrl: string) => {
           options: {
             address: address,
             symbol: token?.symbol,
-            decimals: token?.decimals,
+            decimals: Number(token?.decimals),
             image: token?.logo,
           },
         },
       });
     }
   } catch (error) {
-    console.error(error);
+    console.error("err", error);
   }
 };
 
@@ -155,7 +155,9 @@ export const getIcTokenBalance = async ({
   try {
     if (tokenId && userPrincipal) {
       const tokenActor = createICRC1Actor(Principal.fromText(tokenId), {
-        agent,
+        agentOptions: {
+          host: "http://127.0.0.1:4943",
+        },
       });
       const balance = await tokenActor.icrc1_balance_of({
         owner: userPrincipal,

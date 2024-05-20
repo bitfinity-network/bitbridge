@@ -2,19 +2,16 @@ import { JsonRpcSigner } from "ethers";
 import { createContext, useContext, useState } from "react";
 import { getEvmWallet } from "../utils";
 import { TBridgeOptions, TBridgeProvider } from "../types";
-import { Connector, IcrcBridge, createAgent } from "@bitfinity-network/bridge";
-import { HttpAgent } from "@dfinity/agent";
+import { Connector, IcrcBridge } from "@bitfinity-network/bridge";
 
 type TBridgeContext = {
   getEthWallet: () => Promise<JsonRpcSigner | undefined>;
   getIcrcBridge: (baseTokenId: string) => Promise<IcrcBridge | undefined>;
-  getIcAgent: () => HttpAgent | undefined;
 } & TBridgeOptions;
 
 const defaultValue: TBridgeContext = {
   getEthWallet: async () => undefined,
   getIcrcBridge: async () => undefined,
-  getIcAgent: () => undefined,
 };
 const BridgeContext = createContext<TBridgeContext>(defaultValue);
 
@@ -37,12 +34,7 @@ export const BridgeProvider = ({
     return wallet;
   };
 
-  const getIcAgent = () => {
-    console.log("ichost", icHost);
-    return createAgent({ host: icHost });
-  };
-
-  const getIcrcBridge = async (baseTokenId: string) => {
+  const getIcrcBridge = async (baseTokenCanisterId: string) => {
     try {
       if (!icrcBridge) {
         const evmWallet = await getEthWallet();
@@ -50,6 +42,15 @@ export const BridgeProvider = ({
           bridges: ["icrc"],
           wallet: evmWallet,
           bitfinityWallet: window.ic.bitfinityWallet,
+          network: {
+            icHost,
+            bftAddress: "0x3bd7f6a9305001fe6dce63d942f4e739440f6151",
+            icrc: {
+              baseTokenCanisterId:
+                baseTokenCanisterId || "bkyz2-fmaaa-aaaaa-qaaaq-cai",
+              iCRC2MinterCanisterId: "br5f7-7uaaa-aaaaa-qaaca-cai",
+            },
+          },
         });
         await connector.init();
 
@@ -72,7 +73,6 @@ export const BridgeProvider = ({
       value={{
         getEthWallet,
         getIcrcBridge,
-        getIcAgent,
         allowTokenImport,
         rpcUrl,
         ...rest,

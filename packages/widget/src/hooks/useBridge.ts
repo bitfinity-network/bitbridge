@@ -34,13 +34,14 @@ export const useBridge = ({ network }: TBridingHookProps) => {
       await icrcBricdge.deployBftWrappedToken(token.name, token.name);
       const wrappedToken = await icrcBricdge.getWrappedTokenContract();
       setMessage(`${BRIDGE_STEPS[2]} ${token.name}`);
-      await icrcBricdge.bridgeIcrc2ToEmvc(amt, userAddress || "");
+      await icrcBricdge.bridgeToEvmc(amt, userAddress || "");
       // const balance = await wrappedToken.balanceOf(userAddress);
       setMessage(`${BRIDGE_STEPS[3]}`);
       if (successFn) {
         successFn("bridging was successfully");
       }
       if (allowTokenImport) {
+        console.log("allowTo", wrappedToken);
         await importToken(wrappedToken.target as string, rpcUrl!);
       }
 
@@ -56,7 +57,7 @@ export const useBridge = ({ network }: TBridingHookProps) => {
       const icWallet = await getIcWallet();
       const icWalletPrincipal = icWallet?.principal;
       if (icWalletPrincipal) {
-        await icrcBricdge.bridgeEmvcToIcrc2(amt, icWalletPrincipal);
+        await icrcBricdge.bridgeFromEvmc(icWalletPrincipal.toText(), amt);
         if (successFn) {
           successFn("bridging was successfully");
         }
