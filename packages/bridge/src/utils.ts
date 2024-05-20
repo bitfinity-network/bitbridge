@@ -1,28 +1,16 @@
 import { Buffer } from 'buffer';
-import { IC_HOST } from './constants';
-import { HttpAgent } from '@dfinity/agent';
-import { Secp256k1KeyIdentity } from '@dfinity/identity-secp256k1';
-
-export const fromHexString = (hexString: string) =>
-  Uint8Array.from(
-    hexString.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16))
-  );
+import { fromHexString } from '@dfinity/candid';
 
 export const ethAddrToSubaccount = (ethAddr: string) => {
   ethAddr = ethAddr.replace(/^0x/, '');
 
-  const hex = fromHexString(ethAddr);
+  const buffer = fromHexString(ethAddr);
 
-  const y = [];
-  for (const i of hex) {
-    y.push(i);
-  }
+  const acc = new Uint8Array(32);
 
-  while (y.length !== 32) {
-    y.push(0);
-  }
+  acc.set(new Uint8Array(buffer), 0);
 
-  return Uint8Array.from(y);
+  return acc;
 };
 
 export const encodeBtcAddress = (address: string) => {
@@ -34,17 +22,7 @@ export const isBrowser = () => {
     typeof window !== 'undefined' && typeof window.document !== 'undefined'
   );
 };
-export const createAgent = ({
-  host = IC_HOST,
-  identity = undefined
-}: {
-  host?: string;
-  identity?: Secp256k1KeyIdentity;
-}) => {
-  const agent = new HttpAgent({
-    host,
-    identity
-  });
 
-  return agent;
+export const wait = (ms: number) => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 };

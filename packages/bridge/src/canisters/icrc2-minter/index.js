@@ -3,10 +3,10 @@ import { Actor, HttpAgent } from '@dfinity/agent';
 // Imports and re-exports candid interface
 import { idlFactory } from './icrc2-minter.did.js';
 export { idlFactory } from './icrc2-minter.did.js';
-import { ICRC2_MINTER_CANISTER_ID } from '../../constants';
+import { ICRC2_MINTER_CANISTER_ID, IC_HOST } from '../../constants';
 
 const canisterId = ICRC2_MINTER_CANISTER_ID;
-const host = process.env.IC_HOST;
+const host = IC_HOST;
 
 export const createActor = (canisterId, options = {}) => {
   const agent = options.agent || new HttpAgent({ ...options.agentOptions });

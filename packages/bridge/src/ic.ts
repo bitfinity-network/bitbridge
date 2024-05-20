@@ -18,8 +18,9 @@ export {
 } from './canisters/icrc1';
 
 export {
-  BtcBridge as BtcBridgeActor,
-  createActor as createBtcBridgeActor
+  BtcActor,
+  idlFactory as BtcBridgeIdlFactory,
+  createActor as createBtcBridgeActor,
 } from './canisters/btc-bridge';
 
 export {
@@ -35,5 +36,6 @@ export {
 
 export {
   RuneActor,
+  idlFactory as RuneBridgeIdlFactory,
   createActor as createRuneBridgeActor
 } from './canisters/rune-bridge';

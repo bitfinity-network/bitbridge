@@ -1,35 +1,79 @@
 import { Actor } from '@dfinity/agent';
 import * as ethers from 'ethers';
 
-import { RuneActor } from './ic';
-import { EthAddress, Id256Factory } from './validation';
+import { RuneActor, RuneBridgeIdlFactory } from './ic';
+import { Id256Factory } from './validation';
 import WrappedTokenABI from './abi/WrappedToken';
-import BftBridgeABI from './abi/BFTBridge';
-import { wait } from './tests/utils';
+import { wait } from './utils';
 import { encodeBtcAddress } from './utils';
-import { BFT_ETH_ADDRESS } from './constants';
+import { BitfinityWallet } from '@bitfinity-network/bitfinitywallet';
+import BFTBridgeABI from './abi/BFTBridge';
+import { Bridge } from './bridge';
 
 interface RuneBridgeOptions {
-  bftAddress?: EthAddress;
-  provider: ethers.Signer;
+  wallet: ethers.Signer;
+  bitfinityWallet: BitfinityWallet;
+  bftAddress: string;
+  icHost: string;
+  runeBridgeCanisterId: string;
 }
 
-export class RuneBridge {
-  protected bftAddress: EthAddress;
-  protected provider: ethers.Signer;
+export class RuneBridge implements Bridge {
+  protected bitfinityWallet: BitfinityWallet;
+  protected wallet: ethers.Signer;
+  protected bftBridge: ethers.Contract;
+  protected icHost: string;
+  protected runeBridgeCanisterId: string;
+  protected walletActors: {
+    runeActor?: typeof RuneActor;
+  } = {};
 
-  constructor({ provider, bftAddress }: RuneBridgeOptions) {
-    this.bftAddress = bftAddress || (BFT_ETH_ADDRESS! as EthAddress);
-    this.provider = provider;
+  constructor({
+    wallet,
+    bitfinityWallet,
+    bftAddress,
+    icHost,
+    runeBridgeCanisterId
+  }: RuneBridgeOptions) {
+    this.wallet = wallet;
+    this.bitfinityWallet = bitfinityWallet;
+    this.bftBridge = this.getBftBridgeContract(bftAddress);
+    this.icHost = icHost;
+    this.runeBridgeCanisterId = runeBridgeCanisterId;
   }
 
-  /**
-   *
-   * dfx canister call rune-bridge get_deposit_address "(\"$ETH_WALLET_ADDRESS\")"
-   *
-   */
-  async getDepositAddress(ethAddress: EthAddress) {
-    const result = await RuneActor.get_deposit_address(ethAddress);
+  async init() {
+    await this.initRuneActor();
+  }
+
+  async icWhitelist() {
+    return [this.runeBridgeCanisterId];
+  }
+
+  protected async initRuneActor() {
+    if (this.walletActors.runeActor) {
+      return this.walletActors.runeActor;
+    }
+
+    this.walletActors.runeActor = await this.bitfinityWallet.createActor<
+      typeof RuneActor
+    >({
+      canisterId: this.runeBridgeCanisterId,
+      interfaceFactory: RuneBridgeIdlFactory,
+      host: this.icHost
+    });
+  }
+
+  get runeActor() {
+    if (!this.walletActors.runeActor) {
+      throw new Error('Wallet actors not init yet. Call init() before');
+    }
+
+    return this.walletActors.runeActor;
+  }
+
+  async getDepositAddress(ethAddress: string) {
+    const result = await this.runeActor.get_deposit_address(ethAddress);
 
     if (!('Ok' in result)) {
       throw new Error('Err');
@@ -38,44 +82,39 @@ export class RuneBridge {
     return result.Ok;
   }
 
-  private getBftBridgeContract() {
-    return new ethers.Contract(this.bftAddress, BftBridgeABI, this.provider);
+  protected getBftBridgeContract(address: string) {
+    return new ethers.Contract(address, BFTBridgeABI, this.wallet);
   }
 
   private async getWrappedTokenContract() {
     const address = await this.getWrappedTokenEthAddress();
 
-    return new ethers.Contract(address, WrappedTokenABI, this.provider);
+    return new ethers.Contract(address, WrappedTokenABI, this.wallet);
   }
 
-  /**
-   *
-   * TOKEN_ETH_ADDRESS=$(cargo run -q -p create_bft_bridge_tool -- create-token \
-   *   --bft-bridge-address="$BFT_ETH_ADDRESS" \
-   *   --token-name=RUNE \
-   *   --token-id="$RUNE_BRIDGE" \
-   *   --evm-canister="$EVM" \
-   *   --wallet="$ETH_WALLET")
-   *
-   */
   async getWrappedTokenEthAddress(): Promise<string> {
-    const contract = this.getBftBridgeContract();
-
     // TODO: is the TOKEN_ETH_ADDRESS only depends on token-id?
-    return await contract.getWrappedToken(
-      Id256Factory.fromPrincipal(Actor.canisterIdOf(RuneActor))
+    return await this.bftBridge.getWrappedToken(
+      Id256Factory.fromPrincipal(Actor.canisterIdOf(this.runeActor))
     );
   }
 
-  async getWrappedTokenBalance(address: EthAddress) {
+  async getWrappedTokenBalance(address: string) {
     const wrappedTokenContract = await this.getWrappedTokenContract();
 
     return await wrappedTokenContract.balanceOf(address);
   }
 
-  async bridgeBtc(ethAddress: EthAddress) {
+  /**
+   * After you sent the BTC to the address returned
+   * by getDepositAddress, this function will bridge
+   * the tokens to EVM.
+   *
+   * @param address
+   */
+  async bridgeToEvmc(address: string) {
     for (let attempt = 0; attempt < 3; attempt++) {
-      const result = await RuneActor.deposit(ethAddress);
+      const result = await this.runeActor.deposit(address);
 
       if ('Ok' in result) {
         return result.Ok;
@@ -86,35 +125,31 @@ export class RuneBridge {
   }
 
   /**
+   * Will send (bridge) the amount to the given BTC address.
    *
-   * cargo run -q -p create_bft_bridge_tool -- burn-wrapped \
-   *   --wallet="$ETH_WALLET" \
-   *   --evm-canister="$EVM" \
-   *   --bft-bridge="$BFT_ETH_ADDRESS" \
-   *   --token-address="$TOKEN_ETH_ADDRESS" \
-   *   --address="$RECEIVER" \
-   *   --amount=10
-   *
+   * @param address
+   * @param amount
    */
-  async bridgeEVMc(address: string, satoshis: number) {
+  async bridgeFromEvmc(address: string, amount: number) {
     const wrappedTokenContract = await this.getWrappedTokenContract();
 
-    await wrappedTokenContract.approve(this.bftAddress, satoshis);
+    await wrappedTokenContract.approve(
+      await this.bftBridge.getAddress(),
+      amount
+    );
 
     await wait(15000);
 
-    const bftBridgeContract = this.getBftBridgeContract();
-
     const tokenAddress = await this.getWrappedTokenEthAddress();
 
-    await bftBridgeContract.burn(
-      satoshis,
+    await this.bftBridge.burn(
+      amount,
       tokenAddress,
       `0x${encodeBtcAddress(address)}`
     );
   }
 
   async getRunesBalance(address: string) {
-    return await RuneActor.get_rune_balances(address);
+    return await this.runeActor.get_rune_balances(address);
   }
 }

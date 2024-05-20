@@ -3,10 +3,11 @@ import { Actor, HttpAgent } from "@dfinity/agent";
 // Imports and re-exports candid interface
 import { idlFactory } from "./service.did";
 export { idlFactory } from "./service.did";
+import { RUNE_BRIDGE_CANISTER_ID, IC_HOST } from '../../constants';
 
-export const canisterId = process.env.RUNE_BRIDGE_CANISTER_ID;
-const host = process.env.IC_HOST;
-//
+export const canisterId = RUNE_BRIDGE_CANISTER_ID;
+const host = IC_HOST;
+
 export const createActor = (canisterId, options = {}) => {
   const agent = options.agent || new HttpAgent({ ...options.agentOptions });
 
