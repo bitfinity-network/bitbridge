@@ -1,7 +1,5 @@
 import { isAddress } from 'web3-validator';
 
-import { Id256 } from './id256';
-
 export class Address {
   private address: string;
 
@@ -9,7 +7,7 @@ export class Address {
     return this.address;
   }
 
-  public addressAsBuffer(): Id256 {
+  public addressAsBuffer() {
     return Buffer.from(this.address.replace('0x', ''), 'hex');
   }
 
