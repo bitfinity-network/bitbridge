@@ -28,7 +28,9 @@ export const getIcTokens = async (cachedTokens: TokenProp[] = []) => {
 export const searchIcrcToken = async (tokenPrincipal: string) => {
   try {
     const tokenActor = createICRC1Actor(Principal.fromText(tokenPrincipal), {
-      agent,
+      agentOptions: {
+        host: "http://127.0.0.1:4943",
+      },
     });
 
     const metadata = await Promise.all([

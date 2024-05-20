@@ -2,7 +2,7 @@ import { JsonRpcSigner } from "ethers";
 import { createContext, useContext, useState } from "react";
 import { getEvmWallet } from "../utils";
 import { TBridgeOptions, TBridgeProvider } from "../types";
-import { IcrcBridge, createAgent } from "@bitfinity-network/bridge";
+import { Connector, IcrcBridge, createAgent } from "@bitfinity-network/bridge";
 import { HttpAgent } from "@dfinity/agent";
 
 type TBridgeContext = {
@@ -46,13 +46,17 @@ export const BridgeProvider = ({
     try {
       if (!icrcBridge) {
         const evmWallet = await getEthWallet();
-        const agent = getIcAgent();
-
-        const bridge = await IcrcBridge.create({
+        const connector = Connector.create({
+          bridges: ["icrc"],
           wallet: evmWallet,
-          agent,
-          baseTokenId,
+          bitfinityWallet: window.ic.bitfinityWallet,
         });
+        await connector.init();
+
+        await connector.requestIcConnect();
+
+        const bridge = connector.getBridge("icrc");
+        ///
 
         setIcrcBridge(bridge);
         return bridge;
