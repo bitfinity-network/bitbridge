@@ -1,8 +1,7 @@
-// import { Actor } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
 import * as ethers from 'ethers';
 import { numberToHex } from 'viem';
-
+import { Address, Id256, Id256Factory } from '@bitfinity-network/id256';
 import {
   BitfinityWallet,
   Transaction
@@ -10,29 +9,14 @@ import {
 
 import { Bridge } from './bridge';
 import {
-  // Icrc2MinterIdlFactory,
-  // createICRC1Actor,
-  // createICRC2MinterActor,
   Icrc1IdlFactory,
   Icrc2MinterIdlFactory,
   ICRC1,
   ICRC2Minter
 } from './ic';
 import { generateOperationId } from './tests/utils';
-import { Address, Id256, Id256Factory } from './validation';
 import BftBridgeABI from './abi/BFTBridge';
 import WrappedTokenABI from './abi/WrappedToken';
-// import { Icrc1IdlFactory } from './ic';
-
-// import { BitfinityWallet } from './btifinity';
-
-// import { Icrc2Burn } from './canisters/icrc2-minter/icrc2-minter.did';
-
-// import { ICRC2Minter } from './canisters/icrc2-minter';
-// import { isBrowser } from './utils';
-
-// type Icrc2MinterActor = ReturnType<typeof createICRC2MinterActor>;
-// type Icrc1Actor = ReturnType<typeof createICRC1Actor>;
 
 export interface IcrcBridgeOptions {
   wallet: ethers.Signer;
@@ -42,10 +26,6 @@ export interface IcrcBridgeOptions {
   iCRC2MinterCanisterId: string;
   baseTokenCanisterId: string;
 }
-
-// type CreateOptions = Pick<IcrcBridgeOptions, 'wallet' | 'agent'> & {
-//   baseTokenId?: string;
-// };
 
 export class IcrcBridge implements Bridge {
   protected bftBridge: ethers.Contract;
@@ -125,22 +105,6 @@ export class IcrcBridge implements Bridge {
     await this.initICRC2Minter();
     await this.initBaseToken();
   }
-
-  // static async create({ wallet, agent, baseTokenId }: CreateOptions) {
-  //   const icrc2Minter = createICRC2MinterActor(
-  //     Principal.fromText(ICRC2_MINTER_CANISTER_ID),
-  //     agent ? { agent } : undefined
-  //   );
-  //
-  //   const baseToken = createICRC1Actor(
-  //     Principal.fromText(baseTokenId || ICRC2_TOKEN_CANISTER_ID),
-  //     agent ? { agent } : undefined
-  //   );
-  //
-  //   // const bftBridge =  this.getBftBridgeContract(icrc2Minter, wallet);
-  //
-  //   return new IcrcBridge({ bftBridge, baseToken, icrc2Minter, wallet, agent });
-  // }
 
   protected getBftBridgeContract(address: string) {
     return new ethers.Contract(address, BftBridgeABI, this.wallet);

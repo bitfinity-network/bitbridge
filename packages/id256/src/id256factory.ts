@@ -1,27 +1,52 @@
-import { isAddress } from 'web3-validator';
 import { Principal } from '@dfinity/principal';
-import { Buffer } from 'buffer';
-import * as ethers from 'ethers';
+import { Buffer } from 'node:buffer';
 
-export type Id256 = Buffer;
-export type SignedMintOrder = ethers.BytesLike; //Uint8Array | number[];
+import { Id256 } from './id256';
+import { AddressWithChainID } from './address';
 
 export class Id256Factory {
-  chainIdFromId256(buffer: Id256): number {
-    if (buffer.readUIntBE(0, 1) == 1) {
-      throw Error('Needs an IC Buffer');
+  static PRINCIPAL_MARK = 0;
+  static EVM_ADDRESS_MARK = 1;
+
+  static chainIdFromId256(buffer: Id256): number {
+    if (buffer.readUIntBE(0, 1) !== Id256Factory.EVM_ADDRESS_MARK) {
+      return 0;
     }
-    return buffer.readUIntBE(1, 4);
+    return buffer.readUInt32BE(1);
+  }
+
+  static toPrincipal(id: Id256): Principal {
+    if (id[0] !== Id256Factory.PRINCIPAL_MARK) {
+      throw Error('Wrong principal mark in Id256');
+    }
+
+    return Principal.fromUint8Array(id.slice(2, 2 + id[1]));
+  }
+
+  static toEvmAddress(id: Id256): [number, string] {
+    if (id[0] !== Id256Factory.EVM_ADDRESS_MARK) {
+      throw Error('Wrong evm address mark in Id256');
+    }
+
+    if (id.slice(1, 5).byteLength !== 4) {
+      throw new Error('Unexpected chain id length, must be 4 bytes');
+    }
+
+    return [
+      id.slice(1, 5).readUInt32BE(),
+      `0x${id.slice(5, 25).toString('hex')}`
+    ];
   }
 
   static fromPrincipal(principal: Principal): Id256 {
     const buf = Buffer.alloc(32);
-    buf[0] = 0;
+    buf[0] = Id256Factory.PRINCIPAL_MARK;
 
     const principalData = principal.toUint8Array();
     buf[1] = principalData.length;
     const prinBuffer = Buffer.from(principalData);
     buf.set(prinBuffer, 2);
+
     return buf;
   }
 
@@ -31,6 +56,7 @@ export class Id256Factory {
     const length = buf.readUInt8(1);
     const principalData = Buffer.alloc(length);
     buf.copy(principalData, 0, 2, 2 + length);
+
     return Principal.fromUint8Array(Uint8Array.from(principalData));
   }
 
@@ -41,6 +67,7 @@ export class Id256Factory {
     const buf = new Uint8Array(newBuffer);
     buf[0] = oldBuffer.length;
     buf.set(oldBuffer, 1);
+
     return buf;
   }
 
@@ -50,13 +77,14 @@ export class Id256Factory {
     const buf = new Uint8Array(newBuffer);
     buf[0] = oldBuffer.length;
     buf.set(oldBuffer, 1);
+
     return buf;
   }
 
   static fromAddress(input: AddressWithChainID): Id256 {
     const buf = Buffer.alloc(32); // Create a buffer with 32 bytes
-    // Set the first byte to EVM_ADDRESS_MARK (0x01 in this example)
-    buf[0] = 0x01;
+    // Set the first byte to EVM_ADDRESS_MARK
+    buf[0] = Id256Factory.EVM_ADDRESS_MARK;
 
     // Convert the chainId to big-endian and add it to the buffer
     const chainIdBuf = Buffer.alloc(4);
@@ -66,51 +94,15 @@ export class Id256Factory {
     // Convert the address to bytes and add it to the buffer
     const addressBuf = input.addressAsBuffer();
     addressBuf.copy(buf, 5);
+
     return buf;
   }
 
   static from(input: AddressWithChainID | Principal): Id256 {
-    if (typeof input == typeof AddressWithChainID) {
+    if (input instanceof AddressWithChainID) {
       return this.fromAddress(input as AddressWithChainID);
     } else {
       return this.fromPrincipal(input as Principal);
     }
-  }
-}
-
-export class Address {
-  private address: string;
-
-  public getAddress(): string {
-    return this.address;
-  }
-
-  public addressAsBuffer(): Id256 {
-    return Buffer.from(this.address.replace('0x', ''), 'hex');
-  }
-
-  public isZero(): boolean {
-    return /^0x0+$/.test(this.address);
-  }
-
-  constructor(address: string) {
-    this.address = address;
-
-    if (!isAddress(this.addressAsBuffer())) {
-      throw Error('Not a valid Address');
-    }
-  }
-}
-
-export class AddressWithChainID extends Address {
-  private chainID: number;
-
-  public getChainID(): number {
-    return this.chainID;
-  }
-
-  constructor(address: string, chainID: number) {
-    super(address);
-    this.chainID = chainID;
   }
 }

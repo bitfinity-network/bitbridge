@@ -36,9 +36,7 @@ describe.sequential(
     const runeBridge = connector.getBridge('rune');
 
     test('bridge to evm', async () => {
-      const toAddress = wallet.address as `0x${string}`;
-
-      console.log(toAddress);
+      const toAddress = wallet.address;
 
       const address = await runeBridge.getDepositAddress(toAddress);
 
@@ -74,7 +72,7 @@ describe.sequential(
       await wait(15000);
 
       const wrappedBalance = await runeBridge.getWrappedTokenBalance(
-        wallet.address as `0x${string}`
+        wallet.address
       );
       expect(wrappedBalance).toStrictEqual(900n);
     });

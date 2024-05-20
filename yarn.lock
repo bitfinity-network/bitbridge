@@ -1019,15 +1019,14 @@
     "@babel/helper-validator-identifier" "^7.24.5"
     to-fast-properties "^2.0.0"
 
-"@bitfinity-network/bitfinitywallet@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@bitfinity-network/bitfinitywallet/-/bitfinitywallet-0.2.0.tgz#b3f883cb203c3ef07d7fc7fa30a53ad1428e9de9"
-  integrity sha512-/786bMf5ar7AlTSw5wUxXYTKNvt0B43E9EVWiyz4IxV+/nTEbKHvbYjSnVV7TNYBQsjL6I8G0xOzcgOZe4iFdg==
+"@bitfinity-network/bitfinitywallet@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@bitfinity-network/bitfinitywallet/-/bitfinitywallet-0.3.0.tgz#03c755e30ad67935b25d935f53da99f0dbad666b"
+  integrity sha512-233ARWfBd+Z7MzzwkgG+4WFou+iMbCbm26YSsZdfu/5dsLBr/lQ28DcK72lZUL/5jZena4TSOfW8uq+vU3tUqA==
   dependencies:
     "@dfinity/agent" "^1.3.0"
     "@dfinity/candid" "^1.3.0"
     "@dfinity/principal" "^1.3.0"
-    dotenv "^16.3.1"
 
 "@chakra-ui/accordion@2.3.1":
   version "2.3.1"
@@ -6182,7 +6181,7 @@ dotenv@16.0.3:
   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-16.0.3.tgz#115aec42bac5053db3c456db30cc243a5a836a07"
   integrity sha512-7GO6HghkA5fYG9TYnNxi14/7K9f5occMlp3zXAuSxn7CKCxt9xbNWG7yF8hTCSUchlfWSe3uLmlPfigevRItzQ==
 
-dotenv@^16.0.3, dotenv@^16.3.1, dotenv@^16.4.5:
+dotenv@^16.4.5:
   version "16.4.5"
   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-16.4.5.tgz#cdd3b3b604cb327e286b4762e13502f717cb099f"
   integrity sha512-ZmdL2rui+eB2YwhsWzjInR8LldtZHGDoQ1ugH85ppHKwpUHL7j7rN0Ti9NCnGiQbhaZ11FpR+7ao1dNsmduNUg==
