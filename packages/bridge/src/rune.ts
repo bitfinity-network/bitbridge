@@ -1,12 +1,12 @@
 import { Actor } from '@dfinity/agent';
 import * as ethers from 'ethers';
+import { Id256Factory } from '@bitfinity-network/id256';
+import { BitfinityWallet } from '@bitfinity-network/bitfinitywallet';
 
 import { RuneActor, RuneBridgeIdlFactory } from './ic';
-import { Id256Factory } from './validation';
 import WrappedTokenABI from './abi/WrappedToken';
 import { wait } from './utils';
 import { encodeBtcAddress } from './utils';
-import { BitfinityWallet } from '@bitfinity-network/bitfinitywallet';
 import BFTBridgeABI from './abi/BFTBridge';
 import { Bridge } from './bridge';
 

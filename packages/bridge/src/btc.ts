@@ -1,6 +1,7 @@
 import { Actor } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
 import * as ethers from 'ethers';
+import { BitfinityWallet } from '@bitfinity-network/bitfinitywallet';
 
 import { Bridge } from './bridge';
 import { BtcActor, BtcBridgeIdlFactory } from './ic';
@@ -8,7 +9,6 @@ import { encodeBtcAddress, ethAddrToSubaccount } from './utils';
 import WrappedTokenABI from './abi/WrappedToken';
 import BFTBridgeABI from './abi/BFTBridge';
 import { wait } from './utils';
-import { BitfinityWallet } from '@bitfinity-network/bitfinitywallet';
 
 interface BtcBridgeOptions {
   wallet: ethers.Signer;
