@@ -17,7 +17,7 @@ const icWalletId = "bitfinityWallet";
 const emptyIcWallet: IcWalletType = { principal: null, accountId: null };
 
 const getPrincipalAndAccountId = async (
-  payload: IcType
+  payload: IcType,
 ): Promise<IcWalletType> => {
   const principal = await payload.getPrincipal();
   const accountId = await (window as any).ic[icWalletId].getAccountID();

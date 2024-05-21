@@ -25,6 +25,7 @@ import {
 import { useWallets } from "../../hooks/useWallets";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { NetworkProp, TokenProp } from "../../types";
+import { useBridgeContext } from "../../provider/BridgeProvider";
 
 export const WidgetForm = () => {
   const theme = useTheme();
@@ -34,7 +35,12 @@ export const WidgetForm = () => {
     "dark.secondary.alpha4"
   );
 
-  const [network, setNetwork] = useState(NETWORKS[0]);
+  const { defaultNetwork } = useBridgeContext();
+  const selectedDefaultNetwork =
+    NETWORKS.find(
+      (item) => item.symbol.toLowerCase() === defaultNetwork?.toLowerCase()
+    ) || NETWORKS[0];
+  const [network, setNetwork] = useState(selectedDefaultNetwork);
   const { bridgeFn, amount, setAmount, token, setToken } = useBridge({
     network: network?.symbol,
   });
@@ -90,7 +96,7 @@ export const WidgetForm = () => {
   });
 
   return (
-    <Box paddingY={4}>
+    <Box width={"500px"} borderWidth={1}>
       <form>
         <EnhancedFormControl>
           <HStack justifyContent="space-between">
@@ -146,7 +152,7 @@ export const WidgetForm = () => {
           <LabelValuePair label="Service fee">0.000</LabelValuePair>
         </EnhancedFormControl>
         <Box pt={2}>
-          <Button variant="solid" w="full" onClick={() => bridgeToken()}>
+          <Button w="full" onClick={() => bridgeToken()}>
             Bridge
           </Button>
         </Box>
@@ -161,7 +167,7 @@ export const WidgetForm = () => {
       <NetworkListModal
         isOpen={showNetworkList}
         onClose={() => setShowNetworkList(false)}
-        selectNetwork={(e) => selectNetwork(e as unknown as NetworkProp)}
+        selectNetwork={(e) => selectNetwork(e)}
       />
     </Box>
   );

@@ -31,6 +31,7 @@ export type TokenSearchProps = {
   searchKey: string;
   userPrincipal?: string;
   rpcUrl: string;
+  icHost: string;
 };
 
 export type TokenSearchReturnProps = {
@@ -43,4 +44,5 @@ export type TGetIcTokenBalance = {
   tokenId?: string;
   decimals?: number | bigint;
   userPrincipal?: Principal | null;
+  icHost: string | undefined;
 };
