@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import React, { Fragment } from "react";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { BridgeProvider } from "../../provider/BridgeProvider";
@@ -11,7 +11,11 @@ import { BITFINITY_LOCAL_CHAIN } from "../../utils/network";
 import "@rainbow-me/rainbowkit/styles.css";
 import { TBridgeWidget } from "../../types";
 import { extendDefaultTheme, ThemeType } from "../../theme/Theme";
-import { ChakraProvider, ColorModeScript } from "@chakra-ui/react";
+import {
+  ChakraProvider,
+  ColorModeScript,
+  useColorMode,
+} from "@chakra-ui/react";
 
 const persister = createSyncStoragePersister({
   storage: window.localStorage,
@@ -28,10 +32,27 @@ export const BridgeWidget = ({
     chains: [BITFINITY_LOCAL_CHAIN, ...chains],
   });
 
+  const { setColorMode, colorMode } = useColorMode();
+
   // TODO: The custome theme I am manually adding is just for testing purposes.
   // I will remove it.
-  const customTheme: Partial<ThemeType> | undefined = theme;
+  const customTheme: Partial<ThemeType> | undefined = theme ?? {
+    config: {
+      initialColorMode: "light",
+      cssVarPrefix: "bridge",
+      useSystemColorMode: false,
+    },
+  };
+  const customColorMode = customTheme?.config?.initialColorMode;
   const extendedTheme = extendDefaultTheme(customTheme);
+
+  React.useEffect(() => {
+    if (!customColorMode) return;
+    console.log("customColorMode", customColorMode, setColorMode);
+    if (colorMode !== customColorMode && setColorMode) {
+      setColorMode(customColorMode);
+    }
+  }, [customColorMode, colorMode, setColorMode]);
 
   return (
     <Fragment>
