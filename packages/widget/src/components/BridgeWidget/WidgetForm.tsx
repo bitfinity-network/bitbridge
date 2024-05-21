@@ -96,7 +96,7 @@ export const WidgetForm = () => {
   });
 
   return (
-    <Box width={"500px"} borderWidth={1}>
+    <Box>
       <form>
         <EnhancedFormControl>
           <HStack justifyContent="space-between">
