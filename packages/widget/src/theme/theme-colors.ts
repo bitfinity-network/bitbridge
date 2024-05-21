@@ -24,7 +24,7 @@ export const themeColors = {
     },
     gradients: {
       primary:
-        "linear-gradient(0deg, #03FEFF 0%, rgba(3, 254, 255, 0.04) 100%)",
+        "linear-gradient(0deg, #03FEFF 0%, rgba(99, 179, 237, 0.04) 100%)",
       secondary:
         "linear-gradient(0deg, #FFFFFF 0%, rgba(255, 255, 255, 0.08) 100%)",
     },
@@ -49,17 +49,17 @@ export const themeColors = {
   },
   light: {
     primary: {
-      main: "#03FEFF",
-      hover: "#02E1E1",
-      500: "#03FEFF",
-      alpha4: "rgba(3, 254, 255, 0.04)",
-      alpha8: "rgba(3, 254, 255, 0.08)",
-      alpha12: "rgba(3, 254, 255, 0.12)",
-      alpha20: "rgba(3, 254, 255, 0.20)",
-      alpha26: "rgba(3, 254, 255, 0.26)",
-      alpha32: "rgba(3, 254, 255, 0.32)",
-      alpha40: "rgba(3, 254, 255, 0.40)",
-      alpha48: "rgba(3, 254, 255, 0.48)",
+      main: "#63B3ED",
+      hover: "#90CDF4",
+      500: "#3182CE",
+      alpha4: "rgba(99, 179, 237, 0.04)",
+      alpha8: "rgba(99, 179, 237, 0.08)",
+      alpha12: "rgba(99, 179, 237, 0.12)",
+      alpha20: "rgba(99, 179, 237, 0.20)",
+      alpha26: "rgba(99, 179, 237, 0.26)",
+      alpha32: "rgba(99, 179, 237, 0.32)",
+      alpha40: "rgba(99, 179, 237, 0.40)",
+      alpha48: "rgba(99, 179, 237, 0.48)",
     },
     secondary: {
       main: "#FFFFFF",
@@ -80,7 +80,7 @@ export const themeColors = {
     },
     gradients: {
       primary:
-        "linear-gradient(0deg, #03FEFF 0%, rgba(3, 254, 255, 0.04) 100%)",
+        "linear-gradient(0deg, #03FEFF 0%, rgba(99, 179, 237, 0.04) 100%)",
       secondary:
         "linear-gradient(0deg, #FFFFFF 0%, rgba(255, 255, 255, 0.08) 100%)",
     },
