@@ -3,7 +3,6 @@ import { createContext, useContext, useState } from "react";
 import { getEvmWallet } from "../utils";
 import { TBridgeOptions, TBridgeProvider } from "../types";
 import { Connector, IcrcBridge } from "@bitfinity-network/bridge";
-import { useTheme } from "@chakra-ui/react";
 
 type TBridgeContext = {
   getEthWallet: () => Promise<JsonRpcSigner | undefined>;
