@@ -38,9 +38,10 @@ export const WidgetForm = () => {
       (item) => item.symbol.toLowerCase() === defaultNetwork?.toLowerCase()
     ) || NETWORKS[0];
   const [network, setNetwork] = useState(selectedDefaultNetwork);
-  const { bridgeFn, amount, setAmount, token, setToken } = useBridge({
-    network: network?.symbol,
-  });
+  const { bridgeFn, amount, setAmount, token, setToken, isBridging } =
+    useBridge({
+      network: network?.symbol,
+    });
   const tokens = useTokens(network.symbol);
   const [showTokenList, setShowTokenList] = useState(false);
   const [showNetworkList, setShowNetworkList] = useState(false);
@@ -50,6 +51,9 @@ export const WidgetForm = () => {
   const { balance: icBalance } = useIcTokenBalance(token);
   const { connectToIcWallet, isFetching: isFethcingICWallet } = useWallets();
   const { openConnectModal } = useConnectModal();
+
+  const isPendingBridgeOrWalletOperation = isBridging || isFethcingICWallet;
+
   const getBalance = () => {
     if (network.symbol === NETWORK_SYMBOLS.ETHEREUM) {
       return ethBalance;
@@ -149,7 +153,11 @@ export const WidgetForm = () => {
           <LabelValuePair label="Service fee">0.000</LabelValuePair>
         </EnhancedFormControl>
         <Box pt={2}>
-          <Button isLoading={isFethcingICWallet} w="full" onClick={bridgeToken}>
+          <Button
+            isLoading={isPendingBridgeOrWalletOperation}
+            w="full"
+            onClick={bridgeToken}
+          >
             Bridge
           </Button>
         </Box>

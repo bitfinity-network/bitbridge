@@ -31,6 +31,8 @@ export const useBridge = ({ network }: TBridingHookProps) => {
   const [token, setToken] = useState<TokenProp>({ name: "", symbol: "" });
   const amtInBigInt = BigInt(fromDecimal(amount, token.decimals || 8));
 
+  const [isBridging, setBridgingStatus] = useState(false);
+
   const bridgeIcToErc20 = async (
     icrcBricdge: IcrcBridge,
     amt: bigint,
@@ -75,6 +77,7 @@ export const useBridge = ({ network }: TBridingHookProps) => {
   };
 
   const bridgeFn = async () => {
+    setBridgingStatus(true);
     if (network === NETWORK_SYMBOLS.IC) {
       const icrcBridge = await getIcrcBridge(token?.id || "");
       const wallet = await getEthWallet();
@@ -88,6 +91,8 @@ export const useBridge = ({ network }: TBridingHookProps) => {
         await bridgeErc20ToIc(icrcBridge, amtInBigInt);
       }
     }
+    setBridgingStatus(false);
   };
-  return { bridgeFn, amount, setAmount, token, setToken };
+
+  return { bridgeFn, amount, setAmount, token, setToken, isBridging };
 };
