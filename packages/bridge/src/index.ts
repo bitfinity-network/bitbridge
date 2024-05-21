@@ -13,3 +13,4 @@ export {
 } from './connector';
 export * from './ic';
 export * from './utils';
+export * from './constants';
