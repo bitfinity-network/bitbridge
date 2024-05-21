@@ -23,7 +23,6 @@ export class BtcBridge implements Bridge {
   protected bitfinityWallet: BitfinityWallet;
   protected wallet: ethers.Signer;
   protected bftBridge: ethers.Contract;
-  protected icHost: string;
   protected btcBridgeCanisterId: string;
   protected wrappedTokenAddress: string;
   protected walletActors: {
@@ -65,8 +64,7 @@ export class BtcBridge implements Bridge {
       typeof BtcActor
     >({
       canisterId: this.btcBridgeCanisterId,
-      interfaceFactory: BtcBridgeIdlFactory,
-      host: this.icHost
+      interfaceFactory: BtcBridgeIdlFactory
     });
   }
 

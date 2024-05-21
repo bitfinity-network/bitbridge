@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import bitcore from 'bitcore-lib';
 
-import { Connector } from '..';
+import { BTC_TOKEN_WRAPPED_ADDRESS, Connector } from '..';
 import {
   randomWallet,
   mintNativeToken,
@@ -21,16 +21,23 @@ describe.sequential(
 
     await mintNativeToken(wallet.address, '10000000000000000');
 
+    await wait(1000);
+
     const connector = Connector.create({
-      bridges: ['btc'],
       wallet,
       bitfinityWallet
     });
+
+    await connector.fetchLocal();
+    await connector.bridgeAfterDeploy();
+
+    await wait(1000);
+
     await connector.init();
 
     await connector.requestIcConnect();
 
-    const btcBridge = connector.getBridge('btc');
+    const btcBridge = connector.getBridge<'btc'>(BTC_TOKEN_WRAPPED_ADDRESS);
 
     test('get balance', async () => {
       const wrappedBalance = await btcBridge.getWrappedTokenBalance(

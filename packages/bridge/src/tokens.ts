@@ -15,7 +15,6 @@ export type BridgeIcrcToken = z.infer<typeof BridgeIcrcToken>;
 
 export const BridgeBtcToken = BridgeBaseToken.extend({
   type: z.literal('btc').default('btc'),
-  name: z.string(),
   wrappedTokenAddress: z.string(),
   btcBridgeCanisterId: z.string()
 });

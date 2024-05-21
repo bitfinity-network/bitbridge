@@ -11,7 +11,8 @@ import {
   BTC_BRIDGE_CANISTER_ID,
   ICRC2_MINTER_CANISTER_ID,
   ICRC2_TOKEN_CANISTER_ID,
-  RUNE_BRIDGE_CANISTER_ID
+  RUNE_BRIDGE_CANISTER_ID,
+  BTC_TOKEN_WRAPPED_ADDRESS
 } from './constants';
 
 export const DeployBaseToken = z.object({
@@ -21,10 +22,10 @@ export const DeployBaseToken = z.object({
 // ICRC
 
 export const DeployedIcrcToken = DeployBaseToken.extend({
-  type: z.literal('icrc'),
-  baseTokenCanisterId: z.string().default(ICRC2_TOKEN_CANISTER_ID),
+  type: z.literal('icrc').default('icrc'),
   name: z.string().default('AUX'),
   symbol: z.string().default('AUX'),
+  baseTokenCanisterId: z.string().default(ICRC2_TOKEN_CANISTER_ID),
   iCRC2MinterCanisterId: z.string().default(ICRC2_MINTER_CANISTER_ID)
 });
 
@@ -34,10 +35,9 @@ export type FetchedIcrcToken = z.infer<typeof FetchedIcrcToken>;
 // BTC
 
 export const DeployedBtcToken = DeployBaseToken.extend({
-  type: z.literal('btc'),
-  name: z.string().default('BTC'),
-  symbol: z.string().default('BTC'),
-  btcBridgeCanisterId: z.string().default(BTC_BRIDGE_CANISTER_ID)
+  type: z.literal('btc').default('btc'),
+  btcBridgeCanisterId: z.string().default(BTC_BRIDGE_CANISTER_ID),
+  wrappedTokenAddress: z.string().default(BTC_TOKEN_WRAPPED_ADDRESS)
 });
 
 export const FetchedBtcToken = z.union([BridgeBtcToken, DeployedBtcToken]);
@@ -46,7 +46,7 @@ export type FetchedBtcToken = z.infer<typeof FetchedBtcToken>;
 // Runes
 
 export const DeployedRuneToken = DeployBaseToken.extend({
-  type: z.literal('rune'),
+  type: z.literal('rune').default('rune'),
   runeId: z.string().default('RUNERUNERUNERUNE'),
   name: z.string().default('RUNERUNERUNERUNE'),
   symbol: z.string().default('R'),
@@ -88,8 +88,6 @@ export const splitTokens = (
     } else if (token.type === 'rune' && 'wrappedTokenAddress' in token) {
       bridged.push(token);
     } else if (token.type === 'icrc' && 'symbol' in token) {
-      deployed.push(token);
-    } else if (token.type === 'btc' && 'symbol' in token) {
       deployed.push(token);
     } else if (token.type === 'rune' && 'symbol' in token) {
       deployed.push(token);

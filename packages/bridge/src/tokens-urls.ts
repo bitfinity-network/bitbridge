@@ -8,8 +8,8 @@ import {
 } from './tokens-fetched';
 
 export const defaultDeployedTokens = [
-  DeployedIcrcToken.parse({ type: 'icrc' })
-  // DeployedBtcToken.parse({ type: 'btc' }),
+  DeployedIcrcToken.parse({}),
+  DeployedBtcToken.parse({})
   // DeployedRuneToken.parse({ type: 'rune' })
 ];
 

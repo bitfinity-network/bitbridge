@@ -140,45 +140,43 @@ export class Connector {
   async bridgeAfterDeploy() {
     const [bridged, toBeDeployed] = splitTokens(this.tokensFetched);
 
-    const deployed: BridgeToken[] = await Promise.all(
-      toBeDeployed.map(async (token) => {
-        const deployer = this.getDeployer(token.bftAddress);
+    const deployed: BridgeToken[] = (
+      await Promise.all(
+        toBeDeployed.map(async (token) => {
+          if (token.type === 'btc') {
+            return undefined!;
+          }
 
-        const wrappedAddress = await deployer.deployBftWrappedToken(
-          'baseTokenCanisterId' in token ? token.baseTokenCanisterId : '', // todo: !!!
-          token.name,
-          token.symbol
-        );
+          const deployer = this.getDeployer(token.bftAddress);
 
-        const baseToken = BridgeBaseToken.parse(token);
+          const wrappedAddress = await deployer.deployBftWrappedToken(
+            'baseTokenCanisterId' in token ? token.baseTokenCanisterId : '', // todo: RUNE! !!!
+            token.name,
+            token.symbol
+          );
 
-        if (token.type === 'icrc') {
-          return {
-            ...baseToken,
-            type: 'icrc',
-            baseTokenCanisterId: token.baseTokenCanisterId,
-            iCRC2MinterCanisterId: token.iCRC2MinterCanisterId,
-            wrappedTokenAddress: wrappedAddress
-          } satisfies BridgeIcrcToken;
-        } else if (token.type === 'btc') {
-          return {
-            ...baseToken,
-            type: 'btc',
-            name: token.name,
-            wrappedTokenAddress: wrappedAddress,
-            btcBridgeCanisterId: token.btcBridgeCanisterId
-          } satisfies BridgeBtcToken;
-        } else {
-          return {
-            ...baseToken,
-            type: 'rune',
-            runeId: token.runeId,
-            runeBridgeCanisterId: token.runeBridgeCanisterId,
-            wrappedTokenAddress: wrappedAddress
-          } satisfies BridgeRuneToken;
-        }
-      })
-    );
+          const baseToken = BridgeBaseToken.parse(token);
+
+          if (token.type === 'icrc') {
+            return {
+              ...baseToken,
+              type: 'icrc',
+              baseTokenCanisterId: token.baseTokenCanisterId,
+              iCRC2MinterCanisterId: token.iCRC2MinterCanisterId,
+              wrappedTokenAddress: wrappedAddress
+            } satisfies BridgeIcrcToken;
+          } else {
+            return {
+              ...baseToken,
+              type: 'rune',
+              runeId: token.runeId,
+              runeBridgeCanisterId: token.runeBridgeCanisterId,
+              wrappedTokenAddress: wrappedAddress
+            } satisfies BridgeRuneToken;
+          }
+        })
+      )
+    ).filter((token) => !!token);
 
     const addedCount = this.addBridgedTokens(bridged.concat(deployed));
 
