@@ -26,11 +26,13 @@
     "prepublishOnly": "yarn build"
   },
   "dependencies": {
-    "@dfinity/agent": "^1.2.0",
     "@bitfinity-network/bridge": "*",
     "@chakra-ui/react": "^2.8.2",
+    "@dfinity/agent": "^1.2.0",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
+    "@fontsource/open-sans": "^5.0.28",
+    "@fontsource/raleway": "^5.0.19",
     "@infinityswapofficial/token-lists": "^0.3.7",
     "@rainbow-me/rainbowkit": "^2.0.7",
     "@tanstack/query-sync-storage-persister": "^5.22.2",

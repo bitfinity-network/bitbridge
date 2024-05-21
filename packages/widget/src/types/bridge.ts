@@ -1,5 +1,6 @@
 import { Chain } from "@rainbow-me/rainbowkit";
 import { ReactNode } from "react";
+import { ThemeType } from "../theme/Theme";
 
 export type TBridgeOptions = {
   successFn?: (status: string) => void;
@@ -11,8 +12,10 @@ export type TBridgeOptions = {
 
 export type TBridgeWidget = {
   chains?: Chain[];
+  theme?: Partial<ThemeType>;
 } & TBridgeOptions;
 
 export type TBridgeProvider = {
   children: ReactNode;
+  theme?: Partial<ThemeType>;
 } & TBridgeOptions;

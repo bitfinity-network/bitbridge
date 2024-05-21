@@ -11,6 +11,7 @@ import {
   ModalProps,
   Text,
   useBreakpointValue,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { ReactNode } from "react";
 import "react-spring-bottom-sheet/dist/style.css";
@@ -62,6 +63,7 @@ const CustomModal = ({
   ...rest
 }: CustomModalProps & ModalProps) => {
   const breakpoint = useBreakpointValue({ base: "base", md: "md", lg: "lg" });
+  const modalBgColor = useColorModeValue("light.bg.modal", "dark.bg.modal");
 
   if (breakpoint === "base") {
     return (
@@ -83,7 +85,7 @@ const CustomModal = ({
       <ModalContent
         boxShadow="0 20px 40px 0 rgba(0, 0, 0, 0.24)"
         p={4}
-        bg="bg.modal"
+        bg={modalBgColor}
         backdropFilter="blur(40px)"
         borderRadius={0}
         {...modalContentProps}

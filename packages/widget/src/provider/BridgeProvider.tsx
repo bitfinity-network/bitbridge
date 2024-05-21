@@ -3,6 +3,7 @@ import { createContext, useContext, useState } from "react";
 import { getEvmWallet } from "../utils";
 import { TBridgeOptions, TBridgeProvider } from "../types";
 import { Connector, IcrcBridge } from "@bitfinity-network/bridge";
+import { useTheme } from "@chakra-ui/react";
 
 type TBridgeContext = {
   getEthWallet: () => Promise<JsonRpcSigner | undefined>;
@@ -38,6 +39,8 @@ export const BridgeProvider = ({
     try {
       if (!icrcBridge) {
         const evmWallet = await getEthWallet();
+        if (!evmWallet) return;
+
         const connector = Connector.create({
           bridges: ["icrc"],
           wallet: evmWallet,
@@ -83,4 +86,5 @@ export const BridgeProvider = ({
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useBridgeContext = () => useContext(BridgeContext);

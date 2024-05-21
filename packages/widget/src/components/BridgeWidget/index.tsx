@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { BridgeProvider } from "../../provider/BridgeProvider";
@@ -9,31 +10,49 @@ import { WagmiProvider } from "wagmi";
 import { BITFINITY_LOCAL_CHAIN } from "../../utils/network";
 import "@rainbow-me/rainbowkit/styles.css";
 import { TBridgeWidget } from "../../types";
+import { extendDefaultTheme, ThemeType } from "../../theme/Theme";
+import { ChakraProvider, ColorModeScript } from "@chakra-ui/react";
 
 const persister = createSyncStoragePersister({
   storage: window.localStorage,
 });
 
-export const BridgeWidget = ({ chains = [], ...rest }: TBridgeWidget) => {
+export const BridgeWidget = ({
+  chains = [],
+  theme,
+  ...rest
+}: TBridgeWidget) => {
   const config = getDefaultConfig({
     appName: "bridge-widget",
     projectId: "YOUR_PROJECT_ID",
     chains: [BITFINITY_LOCAL_CHAIN, ...chains],
   });
 
+  // TODO: The custome theme I am manually adding is just for testing purposes.
+  // I will remove it.
+  const customTheme: Partial<ThemeType> | undefined = theme;
+  const extendedTheme = extendDefaultTheme(customTheme);
+
   return (
-    <WagmiProvider config={config}>
-      <PersistQueryClientProvider
-        client={reactQueryClient}
-        persistOptions={{ persister }}
-      >
-        <RainbowKitProvider>
-          <BridgeProvider {...rest}>
-            <Widget />
-          </BridgeProvider>
-        </RainbowKitProvider>
-        <ReactQueryDevtools initialIsOpen={false} />
-      </PersistQueryClientProvider>
-    </WagmiProvider>
+    <Fragment>
+      <ColorModeScript
+        initialColorMode={extendedTheme.config.initialColorMode}
+      />
+      <ChakraProvider theme={extendedTheme}>
+        <WagmiProvider config={config}>
+          <PersistQueryClientProvider
+            client={reactQueryClient}
+            persistOptions={{ persister }}
+          >
+            <RainbowKitProvider>
+              <BridgeProvider {...rest}>
+                <Widget />
+              </BridgeProvider>
+            </RainbowKitProvider>
+            <ReactQueryDevtools initialIsOpen={false} />
+          </PersistQueryClientProvider>
+        </WagmiProvider>
+      </ChakraProvider>
+    </Fragment>
   );
 };
