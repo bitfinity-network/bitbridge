@@ -1,7 +1,7 @@
 import { Chain } from "@rainbow-me/rainbowkit";
 import { JsonRpcSigner } from "ethers";
 import { ReactNode } from "react";
-import { NETWORK_SYMBOLS } from "../utils";
+import { NetworkType } from "./network";
 
 export type TBridgeOptions = {
   onSuccess?: (status: string) => void;
@@ -10,7 +10,7 @@ export type TBridgeOptions = {
   icHost?: string;
   rpcUrl?: string;
   defaultAmount?: number;
-  defaultNetwork?: (typeof NETWORK_SYMBOLS)[keyof typeof NETWORK_SYMBOLS];
+  defaultNetwork?: NetworkType;
   jsonRpcSigner?: JsonRpcSigner;
   bftAddress?: string;
   iCRC2MinterCanisterId?: string;

@@ -1,4 +1,4 @@
-import { useTokenSearch, useTokens } from "../../hooks/useTokens";
+import { useTokenSearch } from "../../hooks/useTokens";
 import { useWallets } from "../../hooks/useWallets";
 import { TokenProp } from "../../types";
 import { CustomModal, SearchInput } from "../../ui";
@@ -25,11 +25,7 @@ export function TokenListModal({
   const icWalletPrincipal = icWallet?.principal?.toText?.();
 
   const [search, setSearch] = useState("");
-  const {
-    data: filteredTokens,
-    isLoading,
-    isFetching,
-  } = useTokenSearch({
+  const { data: filteredTokens } = useTokenSearch({
     tokens,
     searchKey: search,
     network: tokenNetwork,

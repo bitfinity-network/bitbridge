@@ -1,4 +1,4 @@
-import { NetworkProp, TokenProp } from "../../types";
+import { NetworkProp } from "../../types";
 import { CustomModal } from "../../ui";
 import { TokenTag } from "../../ui/TokenTag";
 import { Box, Flex } from "@chakra-ui/react";
@@ -7,7 +7,7 @@ import { NETWORKS } from "../../utils";
 type TokenListModelProps = {
   isOpen: boolean;
   onClose: () => void;
-  selectNetwork: (e: TokenProp) => void;
+  selectNetwork: (e: NetworkProp) => void;
 };
 
 export function NetworkListModal({
@@ -38,7 +38,7 @@ export function NetworkListModal({
                 >
                   {item ? (
                     <TokenTag
-                      name={item.symbol || item.name || ""}
+                      name={item.symbol || item?.name || ""}
                       img={item?.logo || ""}
                       variant="sm"
                     />

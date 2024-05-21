@@ -3,6 +3,7 @@ import EthIcon from "../assets/icons/eth.svg";
 import BtcIcon from "../assets/icons/bitcoin.svg";
 import IcIcon from "../assets/icons/ic.svg";
 import BftIcon from "../assets/icons/bitfinity.svg";
+import { NetworkProp } from "../types";
 
 export const NETWORK_SYMBOLS = {
   ETHEREUM: "ethereum",
@@ -11,7 +12,7 @@ export const NETWORK_SYMBOLS = {
   BITFINITY: "BFT",
 } as const;
 
-export const NETWORKS = [
+export const NETWORKS: NetworkProp[] = [
   {
     name: "Ethereum",
     logo: EthIcon,

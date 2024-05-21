@@ -24,11 +24,11 @@ export const getIcTokens = async (cachedTokens: TokenProp[] = []) => {
   return [...icrcTokens, ...filteredCachedTokens] || [];
 };
 
-export const searchIcrcToken = async (tokenPrincipal: string) => {
+export const searchIcrcToken = async (tokenPrincipal: string, host: string) => {
   try {
     const tokenActor = createICRC1Actor(Principal.fromText(tokenPrincipal), {
       agentOptions: {
-        host: "http://127.0.0.1:4943",
+        host,
       },
     });
 
@@ -86,7 +86,7 @@ export const searchErc20Token = async (
 };
 
 export const searchToken = async (payload: TokenSearchProps) => {
-  const { tokens, network, searchKey, rpcUrl } = payload;
+  const { tokens, network, searchKey, rpcUrl, icHost } = payload;
   if (!searchKey) {
     return { tokens, cache: false };
   }
@@ -106,7 +106,7 @@ export const searchToken = async (payload: TokenSearchProps) => {
   const token =
     network === NETWORK_SYMBOLS.BITFINITY
       ? await searchErc20Token(searchKey, rpcUrl)
-      : await searchIcrcToken(searchKey);
+      : await searchIcrcToken(searchKey, icHost);
   if (token) {
     return { tokens: [token], cache: true };
   }
@@ -151,12 +151,13 @@ export const getIcTokenBalance = async ({
   tokenId,
   userPrincipal,
   decimals,
+  icHost,
 }: TGetIcTokenBalance) => {
   try {
     if (tokenId && userPrincipal) {
       const tokenActor = createICRC1Actor(Principal.fromText(tokenId), {
         agentOptions: {
-          host: "http://127.0.0.1:4943",
+          host: icHost,
         },
       });
       const balance = await tokenActor.icrc1_balance_of({
