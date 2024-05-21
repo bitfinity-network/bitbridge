@@ -17,7 +17,7 @@ const icWalletId = "bitfinityWallet";
 const emptyIcWallet: IcWalletType = { principal: null, accountId: null };
 
 const getPrincipalAndAccountId = async (
-  payload: IcType,
+  payload: IcType
 ): Promise<IcWalletType> => {
   const principal = await payload.getPrincipal();
   const accountId = await (window as any).ic[icWalletId].getAccountID();
@@ -74,7 +74,12 @@ export const useIcWalletConnet = () => {
   const walletQueryKey = [queryKeys.icWallet];
   const queryClient = useQueryClient();
 
-  const { data: icWallet, refetch } = useQuery({
+  const {
+    data: icWallet,
+    refetch,
+    isLoading,
+    isFetching,
+  } = useQuery({
     queryKey: walletQueryKey,
     queryFn: async () => {
       return await getIcWallet();
@@ -100,11 +105,14 @@ export const useIcWalletConnet = () => {
       });
     },
   });
+
   return {
     connectToIcWallet,
     icWallet,
     refetchIcWallet: refetch,
     disconnectIcWallet,
+    isLoading,
+    isFetching,
   };
 };
 

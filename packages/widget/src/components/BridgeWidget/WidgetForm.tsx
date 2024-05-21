@@ -9,7 +9,6 @@ import {
   Text,
   chakra,
   useColorModeValue,
-  useTheme,
 } from "@chakra-ui/react";
 import { DropdownMenu, LabelValuePair } from "../../ui";
 import { TokenListModal } from "../TokenListModal";
@@ -28,8 +27,6 @@ import { NetworkProp, TokenProp } from "../../types";
 import { useBridgeContext } from "../../provider/BridgeProvider";
 
 export const WidgetForm = () => {
-  const theme = useTheme();
-  console.log(theme);
   const enhancedFormControlBg = useColorModeValue(
     "light.secondary.alpha4",
     "dark.secondary.alpha4"
@@ -51,7 +48,7 @@ export const WidgetForm = () => {
     token?.address as `0x${string}`
   );
   const { balance: icBalance } = useIcTokenBalance(token);
-  const { connectToIcWallet } = useWallets();
+  const { connectToIcWallet, isFetching: isFethcingICWallet } = useWallets();
   const { openConnectModal } = useConnectModal();
   const getBalance = () => {
     if (network.symbol === NETWORK_SYMBOLS.ETHEREUM) {
@@ -152,7 +149,7 @@ export const WidgetForm = () => {
           <LabelValuePair label="Service fee">0.000</LabelValuePair>
         </EnhancedFormControl>
         <Box pt={2}>
-          <Button w="full" onClick={() => bridgeToken()}>
+          <Button isLoading={isFethcingICWallet} w="full" onClick={bridgeToken}>
             Bridge
           </Button>
         </Box>
