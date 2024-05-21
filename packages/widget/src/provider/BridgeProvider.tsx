@@ -2,7 +2,15 @@ import { JsonRpcSigner } from "ethers";
 import { createContext, useContext, useState } from "react";
 import { getEvmWallet } from "../utils";
 import { TBridgeOptions, TBridgeProvider } from "../types";
-import { Connector, IcrcBridge } from "@bitfinity-network/bridge";
+import {
+  BFT_ETH_ADDRESS,
+  Connector,
+  ICRC2_MINTER_CANISTER_ID,
+  ICRC2_TOKEN_CANISTER_ID,
+  IC_HOST,
+  IcrcBridge,
+  RPC_URL,
+} from "@bitfinity-network/bridge";
 
 type TBridgeContext = {
   getEthWallet: () => Promise<JsonRpcSigner | undefined>;
@@ -17,8 +25,8 @@ const BridgeContext = createContext<TBridgeContext>(defaultValue);
 
 export const BridgeProvider = ({
   children,
-  icHost = "http://localhost:4943",
-  rpcUrl = "http://127.0.0.1:8545",
+  icHost = IC_HOST,
+  rpcUrl = RPC_URL,
   allowTokenImport = true,
   jsonRpcSigner,
   iCRC2MinterCanisterId,
@@ -29,6 +37,9 @@ export const BridgeProvider = ({
   const [icrcBridge, setIcrcBridge] = useState<IcrcBridge>();
 
   const getEthWallet = async () => {
+    if (jsonRpcSigner) {
+      return jsonRpcSigner;
+    }
     if (!wallet) {
       const evmWallet = await getEvmWallet();
       setWallet(evmWallet);
@@ -39,7 +50,7 @@ export const BridgeProvider = ({
 
   const getIcrcBridge = async (baseTokenCanisterId: string) => {
     try {
-      const evmWallet = jsonRpcSigner ? jsonRpcSigner : await getEthWallet();
+      const evmWallet = await getEthWallet();
 
       if (!icrcBridge && evmWallet) {
         const connector = Connector.create({
@@ -48,13 +59,12 @@ export const BridgeProvider = ({
           bitfinityWallet: window.ic.bitfinityWallet,
           network: {
             icHost,
-            bftAddress:
-              bftAddress || "0x3bd7f6a9305001fe6dce63d942f4e739440f6151",
+            bftAddress: bftAddress || BFT_ETH_ADDRESS,
             icrc: {
               baseTokenCanisterId:
-                baseTokenCanisterId || "bkyz2-fmaaa-aaaaa-qaaaq-cai",
+                baseTokenCanisterId || ICRC2_TOKEN_CANISTER_ID,
               iCRC2MinterCanisterId:
-                iCRC2MinterCanisterId || "br5f7-7uaaa-aaaaa-qaaca-cai",
+                iCRC2MinterCanisterId || ICRC2_MINTER_CANISTER_ID,
             },
           },
         });
