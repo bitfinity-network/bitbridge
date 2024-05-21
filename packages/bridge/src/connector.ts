@@ -2,154 +2,271 @@ import * as ethers from 'ethers';
 import { BitfinityWallet } from '@bitfinity-network/bitfinitywallet';
 
 import {
-  IC_HOST,
-  BFT_ETH_ADDRESS,
-  BTC_BRIDGE_CANISTER_ID,
-  BTC_TOKEN_WRAPPED_ADDRESS,
-  RUNE_BRIDGE_CANISTER_ID,
-  ICRC2_MINTER_CANISTER_ID,
-  ICRC2_TOKEN_CANISTER_ID
-} from './constants';
+  BridgeBaseToken,
+  BridgeBtcToken,
+  BridgeIcrcToken,
+  BridgeRuneToken,
+  BridgeToken,
+  idMatch,
+  idStrMatch
+} from './tokens';
+import { FetchedToken, splitTokens } from './tokens-fetched';
+import { FetchRemoteSchema, FetchUrl, FetchUrlLocal } from './tokens-urls';
 
 import { IcrcBridge } from './icrc';
 import { RuneBridge } from './rune';
 import { BtcBridge } from './btc';
+import { Deployer } from './deployer';
 
-export interface Bridges {
+export type Bridges = {
   icrc: IcrcBridge;
   btc: BtcBridge;
   rune: RuneBridge;
-}
+};
 
-export interface BridgeConfig {
-  icrc: {
-    iCRC2MinterCanisterId: string;
-    baseTokenCanisterId: string;
-  };
-  btc: {
-    btcBridgeCanisterId: string;
-    wrappedTokenAddress: string;
-  };
-  rune: {
-    runeBridgeCanisterId: string;
-  };
-}
-
-export type BridgeNetwork<B extends Partial<Bridges>> = {
-  icHost: string;
-  bftAddress: string;
-} & { [k in keyof B]: BridgeConfig[k extends keyof BridgeConfig ? k : never] };
-
-export interface BridgeOptions<B extends Partial<Bridges>> {
+export interface BridgeOptions {
   wallet: ethers.Signer;
   bitfinityWallet: BitfinityWallet;
-  network?: BridgeNetwork<B>;
-  bridges: (keyof B)[];
+  deployer?: { address: string; deployer: Deployer };
 }
 
-export class Connector<T extends Partial<Bridges>> {
-  bitfinityWallet: BitfinityWallet;
-  bridges = {} as T;
+export class Connector {
+  protected deployers: Record<string, Deployer> = {};
+  protected wallet: ethers.Signer;
+  protected bitfinityWallet: BitfinityWallet;
+  protected bridges: Bridges[keyof Bridges][] = [];
+  protected tokensBridged: BridgeToken[] = [];
+  protected tokensFetched: FetchedToken[] = [];
 
-  private constructor({
-    wallet,
-    bitfinityWallet,
-    network,
-    bridges
-  }: BridgeOptions<T>) {
+  private constructor({ wallet, bitfinityWallet, deployer }: BridgeOptions) {
+    this.wallet = wallet;
     this.bitfinityWallet = bitfinityWallet;
-
-    if (!network) {
-      network = {
-        icHost: IC_HOST,
-        bftAddress: BFT_ETH_ADDRESS
-      } as unknown as typeof network;
-    }
-
-    if (!network) {
-      throw new Error('Unreachable');
-    }
-
-    if (bridges.includes('icrc')) {
-      if (!network.icrc) {
-        network.icrc = {
-          iCRC2MinterCanisterId: ICRC2_MINTER_CANISTER_ID,
-          baseTokenCanisterId: ICRC2_TOKEN_CANISTER_ID
-        };
-      }
-
-      this.bridges.icrc = new IcrcBridge({
-        wallet: wallet,
-        bitfinityWallet: bitfinityWallet,
-        icHost: network.icHost,
-        bftAddress: network.bftAddress,
-        iCRC2MinterCanisterId: network.icrc.iCRC2MinterCanisterId,
-        baseTokenCanisterId: network.icrc.baseTokenCanisterId
-      });
-    }
-
-    if (bridges.includes('btc')) {
-      if (!network.btc) {
-        network.btc = {
-          wrappedTokenAddress: BTC_TOKEN_WRAPPED_ADDRESS,
-          btcBridgeCanisterId: BTC_BRIDGE_CANISTER_ID
-        };
-      }
-
-      this.bridges.btc = new BtcBridge({
-        wallet: wallet,
-        bitfinityWallet: bitfinityWallet,
-        icHost: network.icHost,
-        bftAddress: network.bftAddress,
-        btcBridgeCanisterId: network.btc.btcBridgeCanisterId,
-        wrappedTokenAddress: network.btc.wrappedTokenAddress
-      });
-    }
-
-    if (bridges.includes('rune')) {
-      if (!network.rune) {
-        network.rune = {
-          runeBridgeCanisterId: RUNE_BRIDGE_CANISTER_ID
-        };
-      }
-
-      this.bridges.rune = new RuneBridge({
-        wallet: wallet,
-        bitfinityWallet: bitfinityWallet,
-        icHost: network.icHost,
-        bftAddress: network.bftAddress,
-        runeBridgeCanisterId: network.rune.runeBridgeCanisterId
-      });
+    if (deployer) {
+      this.deployers[deployer.address] = deployer.deployer;
     }
   }
 
-  static create<K extends keyof Bridges>(
-    options: BridgeOptions<Pick<Bridges, K>>
-  ): Connector<Pick<Bridges, K>> {
+  static create(options: BridgeOptions): Connector {
     return new Connector(options);
   }
 
-  async init() {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for (const [_, bridge] of Object.entries(this.bridges)) {
-      await bridge.init();
-    }
+  protected createBridges() {
+    this.tokensBridged.forEach((token) => {
+      if (this.bridges.find((bridge) => bridge.idMatch(token))) {
+        return;
+      }
+
+      if (token.type === 'icrc') {
+        this.bridges.push(
+          new IcrcBridge({
+            wallet: this.wallet,
+            bitfinityWallet: this.bitfinityWallet,
+            icHost: token.icHost,
+            bftAddress: token.bftAddress,
+            iCRC2MinterCanisterId: token.iCRC2MinterCanisterId,
+            baseTokenCanisterId: token.baseTokenCanisterId,
+            wrappedTokenAddress: token.wrappedTokenAddress
+          })
+        );
+      }
+
+      if (token.type === 'btc') {
+        this.bridges.push(
+          new BtcBridge({
+            wallet: this.wallet,
+            bitfinityWallet: this.bitfinityWallet,
+            icHost: token.icHost,
+            bftAddress: token.bftAddress,
+            btcBridgeCanisterId: token.btcBridgeCanisterId,
+            wrappedTokenAddress: token.wrappedTokenAddress
+          })
+        );
+      }
+
+      if (token.type === 'rune') {
+        this.bridges.push(
+          new RuneBridge({
+            wallet: this.wallet,
+            bitfinityWallet: this.bitfinityWallet,
+            icHost: token.icHost,
+            bftAddress: token.bftAddress,
+            runeBridgeCanisterId: token.runeBridgeCanisterId
+          })
+        );
+      }
+    });
   }
 
-  async requestIcConnect() {
-    const whitelist = (
+  protected getDeployer(bftAddress: string) {
+    if (this.deployers[bftAddress]) {
+      return this.deployers[bftAddress];
+    }
+
+    const deployer = new Deployer({
+      bftAddress: bftAddress,
+      wallet: this.wallet
+    });
+
+    this.deployers[bftAddress] = deployer;
+
+    return deployer;
+  }
+
+  protected addBridgedTokens(tokens: BridgeToken[]) {
+    return tokens.reduce((total, t1) => {
+      if (this.tokensBridged.find((t2) => idMatch(t1, t2))) {
+        return total;
+      }
+
+      this.tokensBridged.push(t1);
+
+      return total + 1;
+    }, 0);
+  }
+
+  protected resetFetchedTokens() {
+    this.tokensFetched = [];
+  }
+
+  bridge() {
+    const [tokens] = splitTokens(this.tokensFetched);
+
+    const addedCount = this.addBridgedTokens(tokens);
+
+    this.resetFetchedTokens();
+
+    this.createBridges();
+
+    return addedCount;
+  }
+
+  async bridgeAfterDeploy() {
+    const [bridged, toBeDeployed] = splitTokens(this.tokensFetched);
+
+    const deployed: BridgeToken[] = await Promise.all(
+      toBeDeployed.map(async (token) => {
+        const deployer = this.getDeployer(token.bftAddress);
+
+        const wrappedAddress = await deployer.deployBftWrappedToken(
+          'baseTokenCanisterId' in token ? token.baseTokenCanisterId : '', // todo: !!!
+          token.name,
+          token.symbol
+        );
+
+        const baseToken = BridgeBaseToken.parse(token);
+
+        if (token.type === 'icrc') {
+          return {
+            ...baseToken,
+            type: 'icrc',
+            baseTokenCanisterId: token.baseTokenCanisterId,
+            iCRC2MinterCanisterId: token.iCRC2MinterCanisterId,
+            wrappedTokenAddress: wrappedAddress
+          } satisfies BridgeIcrcToken;
+        } else if (token.type === 'btc') {
+          return {
+            ...baseToken,
+            type: 'btc',
+            name: token.name,
+            wrappedTokenAddress: wrappedAddress,
+            btcBridgeCanisterId: token.btcBridgeCanisterId
+          } satisfies BridgeBtcToken;
+        } else {
+          return {
+            ...baseToken,
+            type: 'rune',
+            runeId: token.runeId,
+            runeBridgeCanisterId: token.runeBridgeCanisterId,
+            wrappedTokenAddress: wrappedAddress
+          } satisfies BridgeRuneToken;
+        }
+      })
+    );
+
+    const addedCount = this.addBridgedTokens(bridged.concat(deployed));
+
+    this.resetFetchedTokens();
+
+    this.createBridges();
+
+    return addedCount;
+  }
+
+  async fetch(tokensUrls: FetchUrl[]) {
+    const tokens: FetchedToken[] = (
       await Promise.all(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        Object.entries(this.bridges).map(([_, bridge]) => {
-          return bridge.icWhitelist();
+        tokensUrls.map(async (url) => {
+          url = FetchUrl.parse(url);
+
+          if (url.type === 'local') {
+            return url.tokens;
+          }
+
+          try {
+            const response = await fetch(url.src);
+
+            const json = await response.json();
+
+            return FetchRemoteSchema.parse(json).tokens;
+          } catch (err) {
+            console.error('Error fetching tokens url', err);
+          }
+
+          return [];
         })
       )
     ).flat();
 
-    await this.bitfinityWallet.requestConnect({ whitelist });
+    this.tokensFetched = this.tokensFetched.concat(tokens);
+
+    return tokens.length;
   }
 
-  getBridge<K extends keyof T>(type: K): T[K] {
-    return this.bridges[type];
+  async fetchLocal() {
+    return await this.fetch([FetchUrlLocal.parse({ type: 'local' })]);
+  }
+
+  async init() {
+    await Promise.all(this.bridges.map((bridge) => bridge.init()));
+  }
+
+  async icWhiteList() {
+    return (
+      await Promise.all(this.bridges.map((bridge) => bridge.icWhitelist()))
+    )
+      .flat()
+      .filter((v, i, a) => a.indexOf(v) === i);
+  }
+
+  async requestIcConnect(whitelist: string[] = []) {
+    await this.bitfinityWallet.requestConnect({
+      whitelist: whitelist.concat(await this.icWhiteList())
+    });
+  }
+
+  getBridge<T extends keyof Bridges>(id: string) {
+    const token = this.tokensBridged.find((b) => idStrMatch(id, b));
+
+    if (!token) {
+      throw new Error('Bridge not found');
+    }
+
+    const bridge = this.bridges.find((bridge) => bridge.idMatch(token)) as
+      | Bridges[T]
+      | undefined;
+
+    if (!bridge) {
+      throw new Error('Bridge not found');
+    }
+
+    return bridge;
+  }
+
+  getBridgedToken(id: string) {
+    return this.tokensBridged.find((token) => idStrMatch(id, token));
+  }
+
+  getBridgedTokens() {
+    return this.tokensBridged;
   }
 }

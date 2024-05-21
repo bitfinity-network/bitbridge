@@ -9,6 +9,7 @@ import { wait } from './utils';
 import { encodeBtcAddress } from './utils';
 import BFTBridgeABI from './abi/BFTBridge';
 import { Bridge } from './bridge';
+import { BridgeToken, idMatch } from './tokens';
 
 interface RuneBridgeOptions {
   wallet: ethers.Signer;
@@ -40,6 +41,14 @@ export class RuneBridge implements Bridge {
     this.bftBridge = this.getBftBridgeContract(bftAddress);
     this.icHost = icHost;
     this.runeBridgeCanisterId = runeBridgeCanisterId;
+  }
+
+  idMatch(token: BridgeToken) {
+    return idMatch(token, {
+      type: 'rune',
+      runeId: '',
+      wrappedTokenAddress: ''
+    });
   }
 
   async init() {
