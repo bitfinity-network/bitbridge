@@ -1,97 +1,43 @@
 import * as ethers from 'ethers';
 import { BitfinityWallet } from '@bitfinity-network/bitfinitywallet';
 
+import { Bridger, Bridges } from './bridger';
 import {
   BridgeBaseToken,
   BridgeBtcToken,
   BridgeIcrcToken,
   BridgeRuneToken,
-  BridgeToken,
-  idMatch,
-  idStrMatch
+  BridgeToken
 } from './tokens';
 import { FetchedToken, splitTokens } from './tokens-fetched';
 import { FetchRemoteSchema, FetchUrl, FetchUrlLocal } from './tokens-urls';
 
-import { IcrcBridge } from './icrc';
-import { RuneBridge } from './rune';
-import { BtcBridge } from './btc';
 import { Deployer } from './deployer';
 
-export type Bridges = {
-  icrc: IcrcBridge;
-  btc: BtcBridge;
-  rune: RuneBridge;
-};
-
-export interface BridgeOptions {
+export interface ConnectorOptions {
   wallet: ethers.Signer;
   bitfinityWallet: BitfinityWallet;
   deployer?: { address: string; deployer: Deployer };
 }
 
 export class Connector {
+  protected bridger: Bridger;
   protected deployers: Record<string, Deployer> = {};
   protected wallet: ethers.Signer;
   protected bitfinityWallet: BitfinityWallet;
-  protected bridges: Bridges[keyof Bridges][] = [];
-  protected tokensBridged: BridgeToken[] = [];
   protected tokensFetched: FetchedToken[] = [];
 
-  private constructor({ wallet, bitfinityWallet, deployer }: BridgeOptions) {
+  private constructor({ wallet, bitfinityWallet, deployer }: ConnectorOptions) {
     this.wallet = wallet;
     this.bitfinityWallet = bitfinityWallet;
     if (deployer) {
       this.deployers[deployer.address] = deployer.deployer;
     }
+    this.bridger = new Bridger({ wallet, bitfinityWallet });
   }
 
-  static create(options: BridgeOptions): Connector {
+  static create(options: ConnectorOptions): Connector {
     return new Connector(options);
-  }
-
-  protected createBridges() {
-    this.tokensBridged.forEach((token) => {
-      if (this.bridges.find((bridge) => bridge.idMatch(token))) {
-        return;
-      }
-
-      if (token.type === 'icrc') {
-        this.bridges.push(
-          new IcrcBridge({
-            wallet: this.wallet,
-            bitfinityWallet: this.bitfinityWallet,
-            bftAddress: token.bftAddress,
-            iCRC2MinterCanisterId: token.iCRC2MinterCanisterId,
-            baseTokenCanisterId: token.baseTokenCanisterId,
-            wrappedTokenAddress: token.wrappedTokenAddress
-          })
-        );
-      }
-
-      if (token.type === 'btc') {
-        this.bridges.push(
-          new BtcBridge({
-            wallet: this.wallet,
-            bitfinityWallet: this.bitfinityWallet,
-            bftAddress: token.bftAddress,
-            btcBridgeCanisterId: token.btcBridgeCanisterId,
-            wrappedTokenAddress: token.wrappedTokenAddress
-          })
-        );
-      }
-
-      if (token.type === 'rune') {
-        this.bridges.push(
-          new RuneBridge({
-            wallet: this.wallet,
-            bitfinityWallet: this.bitfinityWallet,
-            bftAddress: token.bftAddress,
-            runeBridgeCanisterId: token.runeBridgeCanisterId
-          })
-        );
-      }
-    });
   }
 
   protected getDeployer(bftAddress: string) {
@@ -109,18 +55,6 @@ export class Connector {
     return deployer;
   }
 
-  protected addBridgedTokens(tokens: BridgeToken[]) {
-    return tokens.reduce((total, t1) => {
-      if (this.tokensBridged.find((t2) => idMatch(t1, t2))) {
-        return total;
-      }
-
-      this.tokensBridged.push(t1);
-
-      return total + 1;
-    }, 0);
-  }
-
   protected resetFetchedTokens() {
     this.tokensFetched = [];
   }
@@ -128,11 +62,9 @@ export class Connector {
   bridge() {
     const [tokens] = splitTokens(this.tokensFetched);
 
-    const addedCount = this.addBridgedTokens(tokens);
+    const addedCount = this.bridger.addBridgedTokens(tokens);
 
     this.resetFetchedTokens();
-
-    this.createBridges();
 
     return addedCount;
   }
@@ -178,11 +110,9 @@ export class Connector {
       )
     ).filter((token) => !!token);
 
-    const addedCount = this.addBridgedTokens(bridged.concat(deployed));
+    const addedCount = this.bridger.addBridgedTokens(bridged.concat(deployed));
 
     this.resetFetchedTokens();
-
-    this.createBridges();
 
     return addedCount;
   }
@@ -222,46 +152,24 @@ export class Connector {
   }
 
   async init() {
-    await Promise.all(this.bridges.map((bridge) => bridge.init()));
-  }
-
-  async icWhiteList() {
-    return (
-      await Promise.all(this.bridges.map((bridge) => bridge.icWhitelist()))
-    )
-      .flat()
-      .filter((v, i, a) => a.indexOf(v) === i);
+    await this.bridger.init();
   }
 
   async requestIcConnect(whitelist: string[] = []) {
     await this.bitfinityWallet.requestConnect({
-      whitelist: whitelist.concat(await this.icWhiteList())
+      whitelist: whitelist.concat(await this.bridger.icWhiteList())
     });
   }
 
   getBridge<T extends keyof Bridges>(id: string) {
-    const token = this.tokensBridged.find((b) => idStrMatch(id, b));
-
-    if (!token) {
-      throw new Error('Bridge not found');
-    }
-
-    const bridge = this.bridges.find((bridge) => bridge.idMatch(token)) as
-      | Bridges[T]
-      | undefined;
-
-    if (!bridge) {
-      throw new Error('Bridge not found');
-    }
-
-    return bridge;
+    return this.bridger.getBridge<T>(id);
   }
 
   getBridgedToken(id: string) {
-    return this.tokensBridged.find((token) => idStrMatch(id, token));
+    return this.bridger.getBridgedToken(id);
   }
 
   getBridgedTokens() {
-    return this.tokensBridged;
+    return this.bridger.getBridgedTokens();
   }
 }

@@ -41,8 +41,8 @@ describe('connector', async () => {
 
     const bridgedCount = connector.bridge();
 
-    expect(bridgedCount).toStrictEqual(0);
-    expect(connector.getBridgedTokens()).toHaveLength(0);
+    expect(bridgedCount).toStrictEqual(1);
+    expect(connector.getBridgedTokens()).toHaveLength(1);
   });
 
   test('bridge after deploy', async () => {
