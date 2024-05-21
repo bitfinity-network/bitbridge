@@ -1,9 +1,13 @@
-import { Button, Flex } from "@chakra-ui/react";
+import { Button, Flex, useColorMode, useTheme } from "@chakra-ui/react";
 import { CustomModal } from "../../ui";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { WidgetForm } from "./WidgetForm";
 
 export function Widget() {
+  const { colorMode, setColorMode } = useColorMode();
+  const theme = useTheme();
+  const initialColorMode = theme?.config?.initialColorMode;
+
   const [isModalOpen, setModalOpen] = useState(false);
   const [isBridgingOrWalletOperation, setBridgingOrWalletOperation] =
     useState(false);
@@ -15,6 +19,12 @@ export function Widget() {
   const handleOpenModal = () => {
     setModalOpen(true);
   };
+
+  useEffect(() => {
+    if (colorMode !== initialColorMode) {
+      setColorMode(initialColorMode);
+    }
+  }, [colorMode, initialColorMode, setColorMode]);
 
   return (
     <Flex justifyContent="center" alignItems="center" h="90vh">
