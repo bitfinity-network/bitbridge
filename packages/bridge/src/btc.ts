@@ -15,7 +15,6 @@ interface BtcBridgeOptions {
   wallet: ethers.Signer;
   bitfinityWallet: BitfinityWallet;
   bftAddress: string;
-  icHost: string;
   wrappedTokenAddress: string;
   btcBridgeCanisterId: string;
 }
@@ -35,14 +34,12 @@ export class BtcBridge implements Bridge {
     wallet,
     bitfinityWallet,
     bftAddress,
-    icHost,
     wrappedTokenAddress,
     btcBridgeCanisterId
   }: BtcBridgeOptions) {
     this.wallet = wallet;
     this.bitfinityWallet = bitfinityWallet;
     this.bftBridge = this.getBftBridgeContract(bftAddress);
-    this.icHost = icHost;
     this.wrappedTokenAddress = wrappedTokenAddress;
     this.btcBridgeCanisterId = btcBridgeCanisterId;
   }

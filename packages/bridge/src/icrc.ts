@@ -23,7 +23,6 @@ export interface IcrcBridgeOptions {
   wallet: ethers.Signer;
   bitfinityWallet: BitfinityWallet;
   bftAddress: string;
-  icHost: string;
   iCRC2MinterCanisterId: string;
   baseTokenCanisterId: string;
   wrappedTokenAddress: string;
@@ -32,7 +31,6 @@ export interface IcrcBridgeOptions {
 export class IcrcBridge implements Bridge {
   protected bridgeId: string;
   protected bftBridge: ethers.Contract;
-  protected icHost: string;
   protected wallet: ethers.Signer;
   protected bitfinityWallet: BitfinityWallet;
   protected iCRC2MinterCanisterId: string;
@@ -44,7 +42,6 @@ export class IcrcBridge implements Bridge {
   } = {};
 
   constructor({
-    icHost,
     bftAddress,
     wallet,
     bitfinityWallet,
@@ -55,7 +52,6 @@ export class IcrcBridge implements Bridge {
     this.bridgeId = `${baseTokenCanisterId}`;
     this.wallet = wallet;
     this.bitfinityWallet = bitfinityWallet || window.ic.bitfinityWallet;
-    this.icHost = icHost;
     this.bftBridge = this.getBftBridgeContract(bftAddress);
     this.iCRC2MinterCanisterId = iCRC2MinterCanisterId;
     this.baseTokenCanisterId = baseTokenCanisterId;
@@ -76,7 +72,6 @@ export class IcrcBridge implements Bridge {
     >({
       canisterId: this.iCRC2MinterCanisterId,
       interfaceFactory: Icrc2MinterIdlFactory,
-      host: this.icHost
     });
   }
 
@@ -90,7 +85,6 @@ export class IcrcBridge implements Bridge {
     >({
       canisterId: this.baseTokenCanisterId,
       interfaceFactory: Icrc1IdlFactory,
-      host: this.icHost
     });
   }
 

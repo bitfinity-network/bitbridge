@@ -61,7 +61,6 @@ export class Connector {
           new IcrcBridge({
             wallet: this.wallet,
             bitfinityWallet: this.bitfinityWallet,
-            icHost: token.icHost,
             bftAddress: token.bftAddress,
             iCRC2MinterCanisterId: token.iCRC2MinterCanisterId,
             baseTokenCanisterId: token.baseTokenCanisterId,
@@ -75,7 +74,6 @@ export class Connector {
           new BtcBridge({
             wallet: this.wallet,
             bitfinityWallet: this.bitfinityWallet,
-            icHost: token.icHost,
             bftAddress: token.bftAddress,
             btcBridgeCanisterId: token.btcBridgeCanisterId,
             wrappedTokenAddress: token.wrappedTokenAddress
@@ -88,7 +86,6 @@ export class Connector {
           new RuneBridge({
             wallet: this.wallet,
             bitfinityWallet: this.bitfinityWallet,
-            icHost: token.icHost,
             bftAddress: token.bftAddress,
             runeBridgeCanisterId: token.runeBridgeCanisterId
           })

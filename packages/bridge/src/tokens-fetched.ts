@@ -9,14 +9,12 @@ import {
 import {
   BFT_ETH_ADDRESS,
   BTC_BRIDGE_CANISTER_ID,
-  IC_HOST,
   ICRC2_MINTER_CANISTER_ID,
   ICRC2_TOKEN_CANISTER_ID,
   RUNE_BRIDGE_CANISTER_ID
 } from './constants';
 
 export const DeployBaseToken = z.object({
-  icHost: z.string().url().default(IC_HOST),
   bftAddress: z.string().default(BFT_ETH_ADDRESS)
 });
 

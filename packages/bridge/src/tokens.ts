@@ -1,7 +1,6 @@
 import z from 'zod';
 
 export const BridgeBaseToken = z.object({
-  icHost: z.string().url(),
   bftAddress: z.string()
 });
 
