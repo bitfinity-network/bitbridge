@@ -9,7 +9,7 @@ export const NETWORK_SYMBOLS = {
   IC: "IC",
   BTC: "BTC",
   BITFINITY: "BFT",
-};
+} as const;
 
 export const NETWORKS = [
   {

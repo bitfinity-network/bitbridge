@@ -22,9 +22,15 @@ import { NetworkListModal } from "../NetworkListModal";
 import { useBridge } from "../../hooks/useBridge";
 import { useWallets } from "../../hooks/useWallets";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { useBridgeContext } from "../../provider/BridgeProvider";
 
 export function Widget() {
-  const [network, setNetwork] = useState(NETWORKS[0]);
+  const { defaultNetwork } = useBridgeContext();
+  const selectedDefaultNetwork =
+    NETWORKS.find(
+      (item) => item.symbol.toLowerCase() === defaultNetwork?.toLowerCase()
+    ) || NETWORKS[0];
+  const [network, setNetwork] = useState(selectedDefaultNetwork);
   const { bridgeFn, amount, setAmount, token, setToken } = useBridge({
     network: network?.symbol,
   });

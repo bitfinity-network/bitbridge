@@ -20,6 +20,9 @@ export const BridgeProvider = ({
   icHost = "http://localhost:4943",
   rpcUrl = "http://127.0.0.1:8545",
   allowTokenImport = true,
+  jsonRpcSigner,
+  iCRC2MinterCanisterId,
+  bftAddress,
   ...rest
 }: TBridgeProvider) => {
   const [wallet, setWallet] = useState<JsonRpcSigner | undefined>();
@@ -36,19 +39,22 @@ export const BridgeProvider = ({
 
   const getIcrcBridge = async (baseTokenCanisterId: string) => {
     try {
-      if (!icrcBridge) {
-        const evmWallet = await getEthWallet();
+      const evmWallet = jsonRpcSigner ? jsonRpcSigner : await getEthWallet();
+
+      if (!icrcBridge && evmWallet) {
         const connector = Connector.create({
           bridges: ["icrc"],
           wallet: evmWallet,
           bitfinityWallet: window.ic.bitfinityWallet,
           network: {
             icHost,
-            bftAddress: "0x3bd7f6a9305001fe6dce63d942f4e739440f6151",
+            bftAddress:
+              bftAddress || "0x3bd7f6a9305001fe6dce63d942f4e739440f6151",
             icrc: {
               baseTokenCanisterId:
                 baseTokenCanisterId || "bkyz2-fmaaa-aaaaa-qaaaq-cai",
-              iCRC2MinterCanisterId: "br5f7-7uaaa-aaaaa-qaaca-cai",
+              iCRC2MinterCanisterId:
+                iCRC2MinterCanisterId || "br5f7-7uaaa-aaaaa-qaaca-cai",
             },
           },
         });

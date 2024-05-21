@@ -17,9 +17,15 @@ const BRIDGE_STEPS = [
 ];
 
 export const useBridge = ({ network }: TBridingHookProps) => {
-  const { successFn, getIcrcBridge, getEthWallet, allowTokenImport, rpcUrl } =
-    useBridgeContext();
-  const [amount, setAmount] = useState<number>(0);
+  const {
+    onSuccess,
+    defaultAmount,
+    getIcrcBridge,
+    getEthWallet,
+    allowTokenImport,
+    rpcUrl,
+  } = useBridgeContext();
+  const [amount, setAmount] = useState<number>(defaultAmount || 0);
   const [, setMessage] = useState("");
   const [token, setToken] = useState<TokenProp>({ name: "", symbol: "" });
   const amtInBigInt = BigInt(fromDecimal(amount, token.decimals || 8));
@@ -37,8 +43,8 @@ export const useBridge = ({ network }: TBridingHookProps) => {
       await icrcBricdge.bridgeToEvmc(amt, userAddress || "");
       // const balance = await wrappedToken.balanceOf(userAddress);
       setMessage(`${BRIDGE_STEPS[3]}`);
-      if (successFn) {
-        successFn("bridging was successfully");
+      if (onSuccess) {
+        onSuccess("bridging was successfully");
       }
       if (allowTokenImport) {
         console.log("allowTo", wrappedToken);
@@ -58,8 +64,8 @@ export const useBridge = ({ network }: TBridingHookProps) => {
       const icWalletPrincipal = icWallet?.principal;
       if (icWalletPrincipal) {
         await icrcBricdge.bridgeFromEvmc(icWalletPrincipal.toText(), amt);
-        if (successFn) {
-          successFn("bridging was successfully");
+        if (onSuccess) {
+          onSuccess("bridging was successfully");
         }
       }
     } catch (error) {
