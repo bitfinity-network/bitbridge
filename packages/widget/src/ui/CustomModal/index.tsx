@@ -18,21 +18,24 @@ import "react-spring-bottom-sheet/dist/style.css";
 import "./style.css";
 import { IoClose } from "react-icons/io5";
 
+type ModalHeaderProps = {
+  title?: string;
+  onClose: () => void;
+  disableClose?: boolean;
+};
 type CustomModalProps = {
   isOpen: boolean;
-  title?: string;
-  onClose: () => void;
   children: ReactNode;
   modalContentProps?: ModalContentProps;
+  modalHeaderProps?: Pick<ModalHeaderProps, "title" | "disableClose">;
 };
 
-const ModalHeader = ({
-  title,
-  onClose,
-}: {
-  title?: string;
-  onClose: () => void;
-}) => {
+const ModalHeader = ({ title, onClose, disableClose }: ModalHeaderProps) => {
+  const iconColor = useColorModeValue(
+    disableClose ? "light.text.disabled" : "light.text.main",
+    disableClose ? "dark.text.disabled" : "dark.text.main"
+  );
+
   if (title) {
     return (
       <HStack justifyContent="space-between">
@@ -40,11 +43,11 @@ const ModalHeader = ({
           {title}
         </Text>
         <Icon
-          color="secondary.100"
+          color={iconColor}
           h="28px"
           w="28px"
-          onClick={onClose}
-          cursor="pointer"
+          onClick={!disableClose ? onClose : undefined}
+          cursor={disableClose ? "default" : "pointer"}
           size="48px"
           as={IoClose}
         />
@@ -56,14 +59,16 @@ const ModalHeader = ({
 
 const CustomModal = ({
   isOpen,
-  title,
   onClose,
   children,
   modalContentProps,
+  modalHeaderProps,
   ...rest
 }: CustomModalProps & ModalProps) => {
   const breakpoint = useBreakpointValue({ base: "base", md: "md", lg: "lg" });
   const modalBgColor = useColorModeValue("light.bg.modal", "dark.bg.modal");
+
+  const { title, disableClose } = modalHeaderProps || {};
 
   if (breakpoint === "base") {
     return (
@@ -73,7 +78,13 @@ const CustomModal = ({
         style={{ background: "none" }}
       >
         <Box bg="bg.300" p={6}>
-          {title ? <ModalHeader title={title} onClose={onClose} /> : null}
+          {title ? (
+            <ModalHeader
+              title={title}
+              onClose={onClose}
+              disableClose={disableClose}
+            />
+          ) : null}
           {children}
         </Box>
       </BottomSheet>
@@ -90,7 +101,13 @@ const CustomModal = ({
         borderRadius={0}
         {...modalContentProps}
       >
-        {title ? <ModalHeader onClose={onClose} title={title} /> : null}
+        {title ? (
+          <ModalHeader
+            onClose={onClose}
+            title={title}
+            disableClose={disableClose}
+          />
+        ) : null}
         <ModalBody p={0}>{children}</ModalBody>
       </ModalContent>
     </Modal>

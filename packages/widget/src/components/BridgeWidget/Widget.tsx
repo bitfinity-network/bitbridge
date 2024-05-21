@@ -5,6 +5,8 @@ import { WidgetForm } from "./WidgetForm";
 
 export function Widget() {
   const [isModalOpen, setModalOpen] = useState(false);
+  const [isBridgingOrWalletOperation, setBridgingOrWalletOperation] =
+    useState(false);
 
   const handleCloseModal = () => {
     setModalOpen(false);
@@ -18,7 +20,10 @@ export function Widget() {
     <Flex justifyContent="center" alignItems="center" h="90vh">
       <Button onClick={handleOpenModal}>Bridge Now</Button>
       <CustomModal
-        title="Bridge Token"
+        modalHeaderProps={{
+          title: "Bridge Token",
+          disableClose: isBridgingOrWalletOperation,
+        }}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         size="lg"
@@ -29,7 +34,9 @@ export function Widget() {
           borderRadius: "20px",
         }}
       >
-        <WidgetForm />
+        <WidgetForm
+          setBridgingOrWalletOperation={setBridgingOrWalletOperation}
+        />
       </CustomModal>
     </Flex>
   );

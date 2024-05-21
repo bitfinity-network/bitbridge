@@ -13,7 +13,7 @@ import {
 import { DropdownMenu, LabelValuePair } from "../../ui";
 import { TokenListModal } from "../TokenListModal";
 import { NetworkListModal } from "../NetworkListModal";
-import { useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { NETWORKS, NETWORK_SYMBOLS } from "../../utils";
 import { useBridge } from "../../hooks/useBridge";
 import {
@@ -26,7 +26,12 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { NetworkProp, TokenProp } from "../../types";
 import { useBridgeContext } from "../../provider/BridgeProvider";
 
-export const WidgetForm = () => {
+type WidgetFormProps = {
+  setBridgingOrWalletOperation?: Dispatch<SetStateAction<boolean>>;
+};
+export const WidgetForm = ({
+  setBridgingOrWalletOperation,
+}: WidgetFormProps) => {
   const enhancedFormControlBg = useColorModeValue(
     "light.secondary.alpha4",
     "dark.secondary.alpha4"
@@ -95,6 +100,12 @@ export const WidgetForm = () => {
       marginY: 4,
     },
   });
+
+  useEffect(() => {
+    if (setBridgingOrWalletOperation) {
+      setBridgingOrWalletOperation(isPendingBridgeOrWalletOperation);
+    }
+  }, [isPendingBridgeOrWalletOperation, setBridgingOrWalletOperation]);
 
   return (
     <Box>

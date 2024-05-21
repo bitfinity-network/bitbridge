@@ -48,7 +48,6 @@ export const BridgeWidget = ({
 
   React.useEffect(() => {
     if (!customColorMode) return;
-    console.log("customColorMode", customColorMode, setColorMode);
     if (colorMode !== customColorMode && setColorMode) {
       setColorMode(customColorMode);
     }

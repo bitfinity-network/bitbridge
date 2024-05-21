@@ -94,7 +94,7 @@ export const themeColors = {
       white: "#FFFFFF",
       white60: "rgba(255, 255, 255, 0.60)",
       black: "#010302",
-      disabled: "rgba(255, 255, 255, 0.72)",
+      disabled: "rgba(0, 0, 0, 0.16)",
     },
     misc: {
       red: "#fd4084",
