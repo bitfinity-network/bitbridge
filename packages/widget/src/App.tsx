@@ -1,4 +1,4 @@
-import { Box, Flex } from "@chakra-ui/react";
+import { Flex } from "@chakra-ui/react";
 import { BridgeWidget } from "./components/BridgeWidget";
 
 function App() {
