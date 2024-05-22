@@ -9,8 +9,8 @@ import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { WagmiProvider } from "wagmi";
 import { BITFINITY_LOCAL_CHAIN } from "../../utils/network";
 import "@rainbow-me/rainbowkit/styles.css";
-import { TBridgeWidget } from "../../types";
-import { extendDefaultTheme, ThemeType } from "../../theme/Theme";
+import { CustomThemeType, TBridgeWidget } from "../../types";
+import { extendDefaultTheme } from "../../theme/Theme";
 import { ChakraProvider } from "@chakra-ui/react";
 
 const persister = createSyncStoragePersister({
@@ -28,7 +28,7 @@ export const BridgeWidget = ({
     chains: [BITFINITY_LOCAL_CHAIN, ...chains],
   });
 
-  const customTheme: Partial<ThemeType> | undefined = theme;
+  const customTheme: CustomThemeType | undefined = theme;
   const extendedTheme = extendDefaultTheme(customTheme);
 
   return (

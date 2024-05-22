@@ -19,9 +19,7 @@ export const themeColors = {
       alpha60: "rgba(255, 255, 255, 0.60)",
       alpha72: "rgba(255, 255, 255, 0.72)",
     },
-    success: {
-      500: "#05D7B7",
-    },
+    success: "#05D7B7",
     gradients: {
       primary:
         "linear-gradient(0deg, #03FEFF 0%, rgba(99, 179, 237, 0.04) 100%)",
