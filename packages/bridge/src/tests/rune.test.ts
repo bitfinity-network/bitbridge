@@ -1,15 +1,17 @@
-import 'dotenv/config';
 import { describe, expect, test } from 'vitest';
 
-import { RuneBridge } from '../rune';
+import { Connector } from '../';
 import {
+  createAgent,
+  createBitfinityWallet,
   execBitcoinCmd,
   execOrdReceive,
   execOrdSend,
   mintNativeToken,
-  randomWallet,
-  wait
+  randomWallet
 } from './utils';
+import { wait } from '../utils';
+import { RUNE_TOKEN_ID } from '../constants';
 
 describe.sequential(
   'rune',
@@ -18,14 +20,31 @@ describe.sequential(
 
     const wallet = randomWallet();
 
+    const { agent } = createAgent(wallet.privateKey);
+    const bitfinityWallet = createBitfinityWallet(agent);
+
     await mintNativeToken(wallet.address, '10000000000000000');
 
-    const runeBridge = new RuneBridge({ provider: wallet });
+    await wait(1000);
+
+    const connector = Connector.create({
+      wallet,
+      bitfinityWallet
+    });
+
+    await connector.fetchLocal();
+    await connector.bridgeAfterDeploy();
+
+    await wait(1000);
+
+    await connector.init();
+
+    await connector.requestIcConnect();
+
+    const runeBridge = connector.getBridge<'rune'>(RUNE_TOKEN_ID);
 
     test('bridge to evm', async () => {
-      const toAddress = wallet.address as `0x${string}`;
-
-      console.log(toAddress);
+      const toAddress = wallet.address;
 
       const address = await runeBridge.getDepositAddress(toAddress);
 
@@ -43,9 +62,11 @@ describe.sequential(
         `generatetoaddress 1 bcrt1q7xzw9nzmsvwnvfrx6vaq5npkssqdylczjk8cts`
       );
 
-      await runeBridge.bridgeBtc(toAddress);
+      await wait(1000);
 
-      await wait(15000);
+      await runeBridge.bridgeToEvmc(toAddress);
+
+      await wait(5000);
 
       const wrappedBalance2 =
         await runeBridge.getWrappedTokenBalance(toAddress);
@@ -56,12 +77,12 @@ describe.sequential(
     test('bridge from evm', async () => {
       const toAddress = await execOrdReceive();
 
-      await runeBridge.bridgeEVMc(toAddress, 100);
+      await runeBridge.bridgeFromEvmc(toAddress, 100);
 
-      await wait(15000);
+      await wait(1000);
 
       const wrappedBalance = await runeBridge.getWrappedTokenBalance(
-        wallet.address as `0x${string}`
+        wallet.address
       );
       expect(wrappedBalance).toStrictEqual(900n);
     });

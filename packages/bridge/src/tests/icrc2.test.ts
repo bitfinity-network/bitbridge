@@ -1,75 +1,74 @@
-import { expect, test } from 'vitest';
-import { createAgent, generateWallet, identityFromSeed, wait } from './utils';
-import { IcrcBridge } from '../icrc';
-import { LOCAL_TEST_SEED_PHRASE } from '../constants';
+import { describe, expect, test } from 'vitest';
 
-(BigInt as any).prototype.toJSON = function () {
-  return this.toString();
-};
+import { Connector } from '../';
+import {
+  createAgent,
+  createBitfinityWallet,
+  execSendIcrcToken,
+  mintNativeToken,
+  randomWallet
+} from './utils';
+import { ICRC2_TOKEN_CANISTER_ID } from '../constants';
+import { wait } from '../utils';
 
-test('bridge icrc2 token to evm', async () => {
-  const wallet = generateWallet();
+describe.sequential(
+  'icrc2',
+  async () => {
+    const wallet = randomWallet();
 
-  const agent = createAgent();
+    const { agent, identity } = createAgent(wallet.privateKey);
+    const bitfinityWallet = createBitfinityWallet(agent);
 
-  const icrcBricdge = await IcrcBridge.create({
-    wallet,
-    agent
-  });
+    await mintNativeToken(wallet.address, '10000000000000000');
+    await execSendIcrcToken(identity.getPrincipal().toText(), 1000000);
 
-  await icrcBricdge.deployBftWrappedToken('AUX', 'AUX');
+    await wait(1000);
 
-  await wait(5000);
+    const connector = Connector.create({
+      wallet,
+      bitfinityWallet
+    });
 
-  const wrappedToken = await icrcBricdge.getWrappedTokenContract();
+    await connector.fetchLocal();
+    await connector.bridgeAfterDeploy();
 
-  let balance = await wrappedToken.balanceOf(wallet.address);
+    await wait(1000);
 
-  console.log('ibalance', balance);
+    await connector.init();
 
-  const amount = 100000n;
+    await connector.requestIcConnect();
 
-  console.log('wallet.address', wallet.address);
+    const icrcBricdge = connector.getBridge<'icrc'>(ICRC2_TOKEN_CANISTER_ID);
 
-  await icrcBricdge.bridgeIcrc2ToEmvc(amount, wallet.address);
+    test('bridge icrc2 token to evm', async () => {
+      const amount = 100000n;
 
-  await wait(10000);
+      await icrcBricdge.bridgeToEvmc(amount, wallet.address);
 
-  // const wrappedToken = await icrcBricdge.getWrappedTokenContract();
+      await wait(10000);
 
-  balance = await wrappedToken.balanceOf(wallet.address);
+      const balance = await icrcBricdge.getWrappedTokenBalance(wallet.address);
+      expect(balance).toStrictEqual(amount);
+    });
 
-  console.log('out', { balance, amount });
+    test('bridge evmc tokens to icrc2', async () => {
+      const amount = 1000n;
 
-  expect(balance).toBeGreaterThan(0n);
-}, 30000);
+      const balance = await icrcBricdge.getBaseTokenBalance(
+        identity.getPrincipal().toText()
+      );
+      expect(balance).toStrictEqual(899980n);
 
-test('bridge evmc tokens to icrc2', async () => {
-  const amount = 1000n;
+      await icrcBricdge.bridgeFromEvmc(
+        identity.getPrincipal().toText(),
+        amount
+      );
 
-  const wallet = generateWallet();
-
-  const agent = createAgent();
-
-  const icrcBricdge = await IcrcBridge.create({
-    wallet,
-    agent
-  });
-
-  const identity = identityFromSeed(LOCAL_TEST_SEED_PHRASE);
-  const userPrincipal = (await identity).getPrincipal();
-
-  const initialBalance = await icrcBricdge.baseToken.icrc1_balance_of({
-    owner: userPrincipal,
-    subaccount: []
-  });
-
-  await icrcBricdge.bridgeEmvcToIcrc2(amount, userPrincipal);
-
-  const finalBalance = await icrcBricdge.baseToken.icrc1_balance_of({
-    owner: (await identity).getPrincipal(),
-    subaccount: []
-  });
-
-  expect(finalBalance).toBeGreaterThan(initialBalance);
-}, 15000);
+      const balance2 = await icrcBricdge.getBaseTokenBalance(
+        identity.getPrincipal().toText()
+      );
+      expect(balance2).toStrictEqual(901960n);
+    });
+  },
+  180000
+);

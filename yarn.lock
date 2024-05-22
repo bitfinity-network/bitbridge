@@ -1019,6 +1019,15 @@
     "@babel/helper-validator-identifier" "^7.24.5"
     to-fast-properties "^2.0.0"
 
+"@bitfinity-network/bitfinitywallet@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@bitfinity-network/bitfinitywallet/-/bitfinitywallet-0.3.0.tgz#03c755e30ad67935b25d935f53da99f0dbad666b"
+  integrity sha512-233ARWfBd+Z7MzzwkgG+4WFou+iMbCbm26YSsZdfu/5dsLBr/lQ28DcK72lZUL/5jZena4TSOfW8uq+vU3tUqA==
+  dependencies:
+    "@dfinity/agent" "^1.3.0"
+    "@dfinity/candid" "^1.3.0"
+    "@dfinity/principal" "^1.3.0"
+
 "@chakra-ui/accordion@2.3.1":
   version "2.3.1"
   resolved "https://registry.yarnpkg.com/@chakra-ui/accordion/-/accordion-2.3.1.tgz#a326509e286a5c4e8478de9bc2b4b05017039e6b"
@@ -1825,7 +1834,7 @@
   resolved "https://registry.yarnpkg.com/@chakra-ui/visually-hidden/-/visually-hidden-2.2.0.tgz#9b0ecef8f01263ab808ba3bda7b36a0d91b4d5c1"
   integrity sha512-KmKDg01SrQ7VbTD3+cPWf/UfpF5MSwm3v7MWi0n5t8HnnadT13MF0MJCDSXbBWnzLv1ZKJ6zlyAOeARWX+DpjQ==
 
-"@dfinity/agent@^1.2.0", "@dfinity/agent@^1.3.0":
+"@dfinity/agent@^1.3.0":
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/@dfinity/agent/-/agent-1.3.0.tgz#4b5d50eb72b021b6bcc19ba52e4c4bbacf1b442d"
   integrity sha512-gFc2CqjWURv/Th+vxwHIb7Y39TpRZccjyRm8c51LtyAGLYSpSwJDWbzM/y66h++DSSc3A+1DjN/dRT+6ik3xLw==
@@ -1837,12 +1846,12 @@
     buffer "^6.0.3"
     simple-cbor "^0.4.1"
 
-"@dfinity/candid@^1.2.0":
+"@dfinity/candid@^1.3.0":
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/@dfinity/candid/-/candid-1.3.0.tgz#ac170ba491be2641d46c62ce066c3c035b24d1da"
   integrity sha512-tt5NYfpv8C+3iKS3Awbi+NAIxjwjIRUOLT+1ys/xpA+6DNEqwgfU8WZu0+bKnf/xlASCyJXUmoMzQ6I01GBp9A==
 
-"@dfinity/identity-secp256k1@^1.2.0":
+"@dfinity/identity-secp256k1@^1.3.0":
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/@dfinity/identity-secp256k1/-/identity-secp256k1-1.3.0.tgz#3566d674fdebaaddf65b9347712657e33125f2e7"
   integrity sha512-DzUYmW7yC+HH1lLz99Xbn+8ekVhEaD4tmTuCi5ytm3WnBFjcmN2KnyhrjIFYw1CpL4+lX+BYGH3H7SIexlV5ng==
@@ -1855,7 +1864,7 @@
     bs58check "^3.0.1"
     hdkey "^2.1.0"
 
-"@dfinity/identity@^1.2.0":
+"@dfinity/identity@^1.3.0":
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/@dfinity/identity/-/identity-1.3.0.tgz#15cdf569c241d535c6d91d0bccfa6d46ed25ae4b"
   integrity sha512-DAqb+dYV20wqJBfMv6RFEyDNPg8FSUVPjK3kXP/gXEDM+w2Viq4/oQdMqm0lWTK8t4+TuxvUS74ULAS7wCYuVQ==
@@ -1864,7 +1873,7 @@
     "@noble/hashes" "^1.3.1"
     borc "^2.1.1"
 
-"@dfinity/principal@^1.2.0":
+"@dfinity/principal@^1.3.0":
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/@dfinity/principal/-/principal-1.3.0.tgz#ce8511fdae75ea5f9622111df7c380b093def094"
   integrity sha512-04Ly9/VxztgmSk3LeUv1H+aA/8zCfed5gzgydVKBv9U0pk2lcCjUOMhv3G+1UCUSd8GwzrWaSwIsrzrAcHZm/g==

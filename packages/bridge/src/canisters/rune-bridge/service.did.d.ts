@@ -3,12 +3,8 @@ import type { ActorMethod } from '@dfinity/agent';
 import type { IDL } from '@dfinity/candid';
 
 export interface BftBridgeConfig {
-  'decimals' : number,
-  'token_symbol' : Uint8Array | number[],
-  'token_address' : string,
   'bridge_address' : string,
   'erc20_chain_id' : number,
-  'token_name' : Uint8Array | number[],
 }
 export type BitcoinNetwork = { 'mainnet' : null } |
   { 'regtest' : null } |
@@ -68,7 +64,7 @@ export interface MetricsMap {
   'history_length_nanos' : bigint,
 }
 export interface MetricsStorage { 'metrics' : MetricsMap }
-export type Result = { 'Ok' : Erc20MintStatus } |
+export type Result = { 'Ok' : Array<Erc20MintStatus> } |
   { 'Err' : DepositError };
 export type Result_1 = { 'Ok' : string } |
   { 'Err' : GetAddressError };
@@ -77,13 +73,11 @@ export interface RuneBridgeConfig {
   'signing_strategy' : SigningStrategy,
   'indexer_url' : string,
   'evm_link' : EvmLink,
-  'rune_info' : RuneInfo,
   'network' : BitcoinNetwork,
   'min_confirmations' : number,
   'log_settings' : LogSettings,
   'deposit_fee' : bigint,
 }
-export interface RuneInfo { 'tx' : number, 'name' : string, 'block' : bigint }
 export type SigningKeyId = { 'Dfx' : null } |
   { 'Production' : null } |
   { 'Test' : null } |

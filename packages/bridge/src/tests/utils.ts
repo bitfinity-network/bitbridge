@@ -1,42 +1,29 @@
-import hdkey from 'hdkey';
 import { ethers } from 'ethers';
-import { mnemonicToSeed } from 'bip39';
-import { HttpAgent } from '@dfinity/agent';
+import { Actor, HttpAgent } from '@dfinity/agent';
 import { exec } from 'child_process';
 import { Secp256k1KeyIdentity } from '@dfinity/identity-secp256k1';
 import {
   CHAIN_ID,
   IC_HOST,
-  LOCAL_TEST_SEED_PHRASE,
+  ICRC2_TOKEN_CANISTER_ID,
   RPC_URL
 } from '../constants';
+import { fromHexString } from '@dfinity/candid';
+import { BitfinityWallet } from '@bitfinity-network/bitfinitywallet';
 
-export const createAnnonAgent = () => {
-  return new HttpAgent({
-    host: IC_HOST
-  });
-};
-
-export const createAgent = () => {
-  const identity = identityFromSeed(LOCAL_TEST_SEED_PHRASE);
+export const createAgent = (key: string) => {
+  const identity = Secp256k1KeyIdentity.fromSecretKey(
+    fromHexString(key.replace(/^0x/, ''))
+  );
 
   const agent = new HttpAgent({
     host: IC_HOST,
     identity
   });
 
-  return agent;
-};
+  agent.fetchRootKey();
 
-export const identityFromSeed = async (
-  phrase: string
-): Promise<Secp256k1KeyIdentity> => {
-  const seed = await mnemonicToSeed(phrase);
-  const root = hdkey.fromMasterSeed(seed);
-  const addrnode = root.derive("m/44'/223'/0'/0/0");
-
-  const id = Secp256k1KeyIdentity.fromSecretKey(addrnode.privateKey);
-  return id;
+  return { agent, identity };
 };
 
 export const generateOperationId = () => {
@@ -53,14 +40,6 @@ export const getProvider = () => {
   });
 };
 
-export const generateWallet = () => {
-  const wallet = ethers.Wallet.fromPhrase(LOCAL_TEST_SEED_PHRASE);
-
-  const provider = getProvider();
-
-  return wallet.connect(provider);
-};
-
 export const randomWallet = () => {
   const wallet = ethers.Wallet.createRandom();
 
@@ -73,10 +52,6 @@ export const getContract = (address: string, abi: any) => {
   const provider = getProvider();
   const contract = new ethers.Contract(address, abi, provider);
   return contract;
-};
-
-export const wait = (ms: number) => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
 export const execCmd = (cmd: string): Promise<string> => {
@@ -127,6 +102,12 @@ export const execOrdReceive = async () => {
   }
 };
 
+export const execSendIcrcToken = async (principal: string, amount: number) => {
+  return await execCmd(
+    `dfx canister call ${ICRC2_TOKEN_CANISTER_ID} icrc1_transfer '(record {to=record {owner = principal "${principal}"; }; fee=null; memo=null; from_subaccount=null; created_at_time=null; amount=${amount}})' --network ${IC_HOST}`
+  );
+};
+
 export async function mintNativeToken(toAddress: string, amount: string) {
   const response = await fetch(process.env.RPC_URL!, {
     method: 'POST',
@@ -147,3 +128,34 @@ export async function mintNativeToken(toAddress: string, amount: string) {
 
   return response.json();
 }
+
+export const createBitfinityWallet = (agent: HttpAgent) => {
+  return {
+    async requestConnect(args) {
+      return {};
+    },
+    async createActor(args) {
+      return Actor.createActor(args.interfaceFactory, {
+        agent,
+        canisterId: args.canisterId
+      });
+    },
+    async batchTransactions(transactions) {
+      for (const tr of transactions) {
+        const actor: any = await this.createActor({
+          canisterId: tr.canisterId,
+          interfaceFactory: tr.idl
+        });
+
+        try {
+          const result = await actor[tr.methodName](...tr.args);
+          await tr.onSuccess(result);
+        } catch (err) {
+          await tr.onFail(err);
+        }
+      }
+
+      return true;
+    }
+  } as BitfinityWallet;
+};
