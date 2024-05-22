@@ -28,6 +28,23 @@ export const BridgeWidget = ({
     chains: [BITFINITY_LOCAL_CHAIN, ...chains],
   });
 
+  /**
+   * Example custom theme:
+   * {
+      colors: {
+        primary: "#FFD700",
+        secondary: "#FFD7000",
+        mainBg: "#000000",
+        modalBg: "#333333",
+        primaryText: "#FFFFFF",
+        secondaryText: "#000000",
+      },
+      config: {
+        colorMode: "dark",
+        useSystemColorMode: false,
+      },
+    };
+   */
   const customTheme: CustomThemeType | undefined = theme;
   const extendedTheme = extendDefaultTheme(customTheme);
 
