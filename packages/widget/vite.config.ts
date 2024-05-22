@@ -1,9 +1,14 @@
 import react from "@vitejs/plugin-react";
+import svgr from "vite-plugin-svgr";
 import { resolve } from "path";
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  plugins: [react()],
+  define: {
+    "process.env": process.env,
+    global: "window",
+  },
+  plugins: [react(), svgr()],
   build: {
     lib: {
       entry: resolve(__dirname, "lib/index.ts"),
@@ -13,6 +18,7 @@ export default defineConfig({
     rollupOptions: {
       external: ["react", "react-dom"],
       output: {
+        format: "es",
         globals: {
           react: "React",
           "react-dom": "React-dom",
