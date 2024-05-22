@@ -26,6 +26,35 @@ export const DefaultTheme = extendTheme(defaultThemeObject);
 
 type ThemeModeType = "light" | "dark";
 
+/**
+ * Darken a color by a certain amount
+ * @param color The color to darken
+ * @param amount The amount to darken the color by
+ * @returns The darkened color
+ */
+const darkenColor = (color: string, amount: number): string => {
+  const usePound = color[0] === "#";
+  const num = parseInt(color.slice(1), 16);
+
+  let r = (num >> 16) - amount;
+  let g = ((num >> 8) & 0x00ff) - amount;
+  let b = (num & 0x0000ff) - amount;
+
+  r = r < 0 ? 0 : r;
+  g = g < 0 ? 0 : g;
+  b = b < 0 ? 0 : b;
+
+  return (
+    (usePound ? "#" : "") +
+    (r < 16 ? "0" : "") +
+    r.toString(16) +
+    (g < 16 ? "0" : "") +
+    g.toString(16) +
+    (b < 16 ? "0" : "") +
+    b.toString(16)
+  );
+};
+
 const consolidateCustomThemeWithDefault = (customTheme?: CustomThemeType) => {
   if (!customTheme) return defaultThemeObject;
 
@@ -33,48 +62,36 @@ const consolidateCustomThemeWithDefault = (customTheme?: CustomThemeType) => {
   const themeMode =
     config?.colorMode ?? defaultThemeObject.config.initialColorMode;
 
+  const defaultThemColors =
+    defaultThemeObject.colors[themeMode as ThemeModeType];
+
   const mergedColors = colors
     ? {
         ...defaultThemeObject.colors,
         [themeMode]: {
-          ...defaultThemeObject.colors[themeMode as ThemeModeType],
+          ...defaultThemColors,
           primary: {
-            ...defaultThemeObject.colors[themeMode as ThemeModeType].primary,
-            main:
-              colors.primary ??
-              defaultThemeObject.colors[themeMode as ThemeModeType].primary
-                .main,
+            ...defaultThemColors.primary,
+            main: colors.primary ?? defaultThemColors.primary.main,
+            hover: colors.primary
+              ? darkenColor(colors.primary, 10)
+              : defaultThemColors.primary.hover,
           },
           secondary: {
-            ...defaultThemeObject.colors[themeMode as ThemeModeType].secondary,
-            main:
-              colors.secondary ??
-              defaultThemeObject.colors[themeMode as ThemeModeType].secondary
-                .main,
+            ...defaultThemColors.secondary,
+            main: colors.secondary ?? defaultThemColors.secondary.main,
           },
           bg: {
-            ...defaultThemeObject.colors[themeMode as ThemeModeType].bg,
-            main:
-              colors.mainBg ??
-              defaultThemeObject.colors[themeMode as ThemeModeType].bg.main,
-            modal:
-              colors.modalBg ??
-              defaultThemeObject.colors[themeMode as ThemeModeType].bg.modal,
+            ...defaultThemColors.bg,
+            main: colors.mainBg ?? defaultThemColors.bg.main,
+            modal: colors.modalBg ?? defaultThemColors.bg.modal,
           },
           text: {
-            ...defaultThemeObject.colors[themeMode as ThemeModeType].text,
-            primary:
-              colors.primaryText ??
-              defaultThemeObject.colors[themeMode as ThemeModeType].text
-                .primary,
-            secondary:
-              colors.secondaryText ??
-              defaultThemeObject.colors[themeMode as ThemeModeType].text
-                .secondary,
+            ...defaultThemColors.text,
+            primary: colors.primaryText ?? defaultThemColors.text.primary,
+            secondary: colors.secondaryText ?? defaultThemColors.text.secondary,
           },
-          success:
-            colors.success ??
-            defaultThemeObject.colors[themeMode as ThemeModeType].success,
+          success: colors.success ?? defaultThemColors.success,
         },
       }
     : defaultThemeObject.colors;
