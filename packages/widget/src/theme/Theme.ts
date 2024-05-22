@@ -29,63 +29,72 @@ type ThemeModeType = "light" | "dark";
 const consolidateCustomThemeWithDefault = (customTheme?: CustomThemeType) => {
   if (!customTheme) return defaultThemeObject;
 
-  const defaultTheme = { ...defaultThemeObject };
   const { colors, config } = customTheme;
-  const themeMode = config?.colorMode ?? defaultTheme.config.initialColorMode;
+  const themeMode =
+    config?.colorMode ?? defaultThemeObject.config.initialColorMode;
 
-  if (colors) {
-    defaultTheme.colors = {
-      ...defaultTheme.colors,
-      [themeMode]: {
-        ...defaultTheme.colors[themeMode as ThemeModeType],
-        primary: {
-          ...defaultTheme.colors[themeMode as ThemeModeType].primary,
-          main:
-            colors.primary ??
-            defaultTheme.colors[themeMode as ThemeModeType].primary.main,
+  const mergedColors = colors
+    ? {
+        ...defaultThemeObject.colors,
+        [themeMode]: {
+          ...defaultThemeObject.colors[themeMode as ThemeModeType],
+          primary: {
+            ...defaultThemeObject.colors[themeMode as ThemeModeType].primary,
+            main:
+              colors.primary ??
+              defaultThemeObject.colors[themeMode as ThemeModeType].primary
+                .main,
+          },
+          secondary: {
+            ...defaultThemeObject.colors[themeMode as ThemeModeType].secondary,
+            main:
+              colors.secondary ??
+              defaultThemeObject.colors[themeMode as ThemeModeType].secondary
+                .main,
+          },
+          bg: {
+            ...defaultThemeObject.colors[themeMode as ThemeModeType].bg,
+            main:
+              colors.mainBg ??
+              defaultThemeObject.colors[themeMode as ThemeModeType].bg.main,
+            modal:
+              colors.modalBg ??
+              defaultThemeObject.colors[themeMode as ThemeModeType].bg.modal,
+          },
+          text: {
+            ...defaultThemeObject.colors[themeMode as ThemeModeType].text,
+            primary:
+              colors.primaryText ??
+              defaultThemeObject.colors[themeMode as ThemeModeType].text
+                .primary,
+            secondary:
+              colors.secondaryText ??
+              defaultThemeObject.colors[themeMode as ThemeModeType].text
+                .secondary,
+          },
+          success:
+            colors.success ??
+            defaultThemeObject.colors[themeMode as ThemeModeType].success,
         },
-        secondary: {
-          ...defaultTheme.colors[themeMode as ThemeModeType].secondary,
-          main:
-            colors.secondary ??
-            defaultTheme.colors[themeMode as ThemeModeType].secondary.main,
-        },
-        bg: {
-          ...defaultTheme.colors[themeMode as ThemeModeType].bg,
-          main:
-            colors.mainBg ??
-            defaultTheme.colors[themeMode as ThemeModeType].bg.main,
-          modal:
-            colors.modalBg ??
-            defaultTheme.colors[themeMode as ThemeModeType].bg.modal,
-        },
-        text: {
-          ...defaultTheme.colors[themeMode as ThemeModeType].text,
-          primary:
-            colors.primaryText ??
-            defaultTheme.colors[themeMode as ThemeModeType].text.primary,
-          secondary:
-            colors.secondaryText ??
-            defaultTheme.colors[themeMode as ThemeModeType].text.secondary,
-        },
-        success:
-          colors.success ??
-          defaultTheme.colors[themeMode as ThemeModeType].success,
-      },
-    };
-  }
+      }
+    : defaultThemeObject.colors;
 
-  if (config) {
-    defaultTheme.config = {
-      ...defaultTheme.config,
-      initialColorMode:
-        config.colorMode ?? defaultTheme.config.initialColorMode,
-      useSystemColorMode:
-        config.useSystemColorMode ?? defaultTheme.config.useSystemColorMode,
-    };
-  }
+  const mergedConfig = config
+    ? {
+        ...defaultThemeObject.config,
+        initialColorMode:
+          config.colorMode ?? defaultThemeObject.config.initialColorMode,
+        useSystemColorMode:
+          config.useSystemColorMode ??
+          defaultThemeObject.config.useSystemColorMode,
+      }
+    : defaultThemeObject.config;
 
-  return defaultTheme;
+  return {
+    ...defaultThemeObject,
+    colors: mergedColors,
+    config: mergedConfig,
+  };
 };
 
 export const extendDefaultTheme = (customTheme?: CustomThemeType) => {
