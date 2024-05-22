@@ -57,7 +57,8 @@ export const reactQueryClient = new QueryClient({
   defaultOptions: {
     queries: {
       gcTime: TANSTACK_GARBAGE_COLLECTION_TIME,
-      staleTime: 60 * 1000,
+      staleTime: Infinity,
+      refetchOnWindowFocus: false,
     },
   },
 });

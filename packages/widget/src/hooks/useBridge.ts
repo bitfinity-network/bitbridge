@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useBridgeContext } from "../provider/BridgeProvider";
 import { NETWORK_SYMBOLS, fromDecimal, importToken } from "../utils";
 import { TokenProp } from "../types";
-import { IcrcBridge } from "@bitfinity-network/bridge";
+import { Connector, IcrcBridge } from "@bitfinity-network/bridge";
 import { getIcWallet } from "./useWallets";
 
 type TBridingHookProps = {
@@ -23,8 +23,10 @@ export const useBridge = ({ network }: TBridingHookProps) => {
     getIcrcBridge,
     getEthWallet,
     allowTokenImport,
+    getConnector,
     rpcUrl,
     onError,
+    connector,
   } = useBridgeContext();
   const [amount, setAmount] = useState<number>(defaultAmount || 0);
   const [, setMessage] = useState("");
@@ -40,16 +42,21 @@ export const useBridge = ({ network }: TBridingHookProps) => {
   ) => {
     try {
       setMessage(BRIDGE_STEPS[1]);
-      await icrcBricdge.deployBftWrappedToken(token.name, token.name);
-      const wrappedToken = await icrcBricdge.getWrappedTokenContract();
       setMessage(`${BRIDGE_STEPS[2]} ${token.name}`);
       await icrcBricdge.bridgeToEvmc(amt, userAddress || "");
       setMessage(`${BRIDGE_STEPS[3]}`);
       if (onSuccess) {
         onSuccess("bridging was successfully");
       }
-      if (allowTokenImport) {
-        await importToken(wrappedToken.target as string, rpcUrl!);
+      //const connector = await getConnector();
+      console.log("we are here", connector);
+
+      if (connector && allowTokenImport) {
+        const bridgedToken = await connector.getBridgedToken(token.id!);
+        console.log("bridgedToken", bridgedToken);
+        if (bridgedToken) {
+          await importToken(bridgedToken.wrappedTokenAddress, rpcUrl!);
+        }
       }
     } catch (error) {
       if (onError) {

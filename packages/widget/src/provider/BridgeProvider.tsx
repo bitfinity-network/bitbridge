@@ -3,10 +3,7 @@ import { createContext, useContext, useState } from "react";
 import { getEvmWallet } from "../utils";
 import { TBridgeOptions, TBridgeProvider } from "../types";
 import {
-  BFT_ETH_ADDRESS,
   Connector,
-  ICRC2_MINTER_CANISTER_ID,
-  ICRC2_TOKEN_CANISTER_ID,
   IC_HOST,
   IcrcBridge,
   RPC_URL,
@@ -15,11 +12,13 @@ import {
 type TBridgeContext = {
   getEthWallet: () => Promise<JsonRpcSigner | undefined>;
   getIcrcBridge: (baseTokenId: string) => Promise<IcrcBridge | undefined>;
+  getConnector: () => Promise<Connector | undefined>;
 } & TBridgeOptions;
 
 const defaultValue: TBridgeContext = {
   getEthWallet: async () => undefined,
   getIcrcBridge: async () => undefined,
+  getConnector: async () => undefined,
 };
 const BridgeContext = createContext<TBridgeContext>(defaultValue);
 
@@ -29,12 +28,11 @@ export const BridgeProvider = ({
   rpcUrl = RPC_URL,
   allowTokenImport = true,
   jsonRpcSigner,
-  iCRC2MinterCanisterId,
-  bftAddress,
   ...rest
 }: TBridgeProvider) => {
   const [wallet, setWallet] = useState<JsonRpcSigner | undefined>();
   const [icrcBridge, setIcrcBridge] = useState<IcrcBridge>();
+  const [connector, setConnector] = useState<Connector>();
 
   const getEthWallet = async () => {
     if (jsonRpcSigner) {
@@ -48,35 +46,43 @@ export const BridgeProvider = ({
     return wallet;
   };
 
+  const getConnector = async () => {
+    if (!connector) {
+      console.log("new connectors", connector);
+      const evmWallet = await getEthWallet();
+
+      if (evmWallet) {
+        const con = Connector.create({
+          wallet: evmWallet,
+          bitfinityWallet: window.ic.bitfinityWallet,
+        });
+        setConnector(con);
+        return con;
+      }
+    }
+    console.log("old connectors");
+
+    return connector;
+  };
+
   const getIcrcBridge = async (baseTokenCanisterId: string) => {
     try {
       const evmWallet = await getEthWallet();
 
       if (!icrcBridge && evmWallet) {
-        const connector = Connector.create({
-          bridges: ["icrc"],
-          wallet: evmWallet,
-          bitfinityWallet: window.ic.bitfinityWallet,
-          network: {
-            icHost,
-            bftAddress: bftAddress || BFT_ETH_ADDRESS,
-            icrc: {
-              baseTokenCanisterId:
-                baseTokenCanisterId || ICRC2_TOKEN_CANISTER_ID,
-              iCRC2MinterCanisterId:
-                iCRC2MinterCanisterId || ICRC2_MINTER_CANISTER_ID,
-            },
-          },
-        });
-        await connector.init();
+        const connector = await getConnector();
+        if (connector) {
+          await connector.fetchLocal();
+          await connector.bridgeAfterDeploy();
+          await connector.init();
 
-        await connector.requestIcConnect();
-
-        const bridge = connector.getBridge("icrc");
-        ///
-
-        setIcrcBridge(bridge);
-        return bridge;
+          await connector.requestIcConnect();
+          const bridge = connector.getBridge<"icrc">(
+            baseTokenCanisterId || "bkyz2-fmaaa-aaaaa-qaaaq-cai"
+          );
+          setIcrcBridge(bridge);
+          return bridge;
+        }
       }
       return icrcBridge;
     } catch (error) {
@@ -87,10 +93,13 @@ export const BridgeProvider = ({
   return (
     <BridgeContext.Provider
       value={{
+        connector,
+        getConnector,
         getEthWallet,
         getIcrcBridge,
         allowTokenImport,
         rpcUrl,
+        icHost,
         ...rest,
       }}
     >
