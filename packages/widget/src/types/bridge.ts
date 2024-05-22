@@ -16,10 +16,28 @@ export type TBridgeOptions = {
   iCRC2MinterCanisterId?: string;
 };
 
+export type CustomThemeType = {
+  colors?: {
+    primary?: string;
+    secondary?: string;
+    success?: string;
+    mainBg?: string;
+    modalBg?: string;
+    primaryText?: string;
+    secondaryText?: string;
+  };
+  config?: {
+    colorMode?: "light" | "dark";
+    useSystemColorMode?: boolean;
+  };
+};
+
 export type TBridgeWidget = {
   chains?: Chain[];
+  theme?: CustomThemeType;
 } & TBridgeOptions;
 
 export type TBridgeProvider = {
   children: ReactNode;
+  theme?: CustomThemeType;
 } & TBridgeOptions;

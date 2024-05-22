@@ -99,4 +99,5 @@ export const BridgeProvider = ({
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useBridgeContext = () => useContext(BridgeContext);

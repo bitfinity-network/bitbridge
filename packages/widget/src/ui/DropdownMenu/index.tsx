@@ -11,7 +11,7 @@ import {
 import { BsCheckLg } from "react-icons/bs";
 import { MdKeyboardArrowDown } from "react-icons/md";
 import { SelectedItem } from "./SelectedItem";
-import { DropdownProps } from "../../types";
+import { DropDownItemProp, DropdownProps } from "../../types";
 
 export function DropdownMenu({
   value,
@@ -22,7 +22,7 @@ export function DropdownMenu({
   ...boxProps
 }: DropdownProps & BoxProps) {
   const { isOpen, onClose, onOpen } = useDisclosure();
-  const onItemSelect = (e: any) => {
+  const onItemSelect = (e: DropDownItemProp) => {
     if (handleChange) {
       handleChange(e);
     }
