@@ -7,6 +7,7 @@ import { AddressWithChainID } from './address';
 export class Id256Factory {
   static PRINCIPAL_MARK = 0;
   static EVM_ADDRESS_MARK = 1;
+  static BTC_TX_MARK = 2;
 
   static chainIdFromId256(buffer: Id256): number {
     if (buffer.readUIntBE(0, 1) !== Id256Factory.EVM_ADDRESS_MARK) {
@@ -38,6 +39,22 @@ export class Id256Factory {
     ];
   }
 
+  static toBtcTxIndex(id: Id256): [bigint, number]
+  {
+    if (id[0] !== Id256Factory.BTC_TX_MARK) {
+      throw Error('Wrong rune id mark in Id256');
+    }
+
+    if (id.slice(1, 9).byteLength !== 8) {
+      throw new Error('Unexpected tx id length, must be 8 bytes');
+    }
+
+    return [
+      id.slice(1, 9).readBigInt64BE(),
+      id.slice(9, 14).readUInt32BE(),
+    ];
+  }
+
   static fromPrincipal(principal: Principal): Id256 {
     const buf = Buffer.alloc(32);
     buf[0] = Id256Factory.PRINCIPAL_MARK;
@@ -50,36 +67,21 @@ export class Id256Factory {
     return buf;
   }
 
-  // static hexToPrincipal(hexString: string): Principal {
-  //   const cleanHexString = hexString.replace('0x', '');
-  //   const buf = Buffer.from(cleanHexString, 'hex');
-  //   const length = buf.readUInt8(1);
-  //   const principalData = Buffer.alloc(length);
-  //   buf.copy(principalData, 0, 2, 2 + length);
-  //
-  //   return Principal.fromUint8Array(Uint8Array.from(principalData));
-  // }
-  //
-  // static principalToBytes32(principal: Principal): Uint8Array {
-  //   const oldBuffer = principal.toUint8Array();
-  //
-  //   const newBuffer = new ArrayBuffer(32);
-  //   const buf = new Uint8Array(newBuffer);
-  //   buf[0] = oldBuffer.length;
-  //   buf.set(oldBuffer, 1);
-  //
-  //   return buf;
-  // }
-  //
-  // static principalToBytes(principal: Principal): Uint8Array {
-  //   const oldBuffer = principal.toUint8Array();
-  //   const newBuffer = new ArrayBuffer(oldBuffer.length + 1);
-  //   const buf = new Uint8Array(newBuffer);
-  //   buf[0] = oldBuffer.length;
-  //   buf.set(oldBuffer, 1);
-  //
-  //   return buf;
-  // }
+  static fromBtcTxIndex(blockId: bigint, txId: number): Id256 {
+    const buf = Buffer.alloc(32);
+
+    buf[0] = Id256Factory.BTC_TX_MARK;
+
+    const blockIdBuf = Buffer.alloc(8);
+    blockIdBuf.writeBigUInt64BE(blockId);
+    blockIdBuf.copy(buf, 1, 0, 8);
+
+    const txIdBuf = Buffer.alloc(4);
+    txIdBuf.writeUInt32BE(txId);
+    txIdBuf.copy(buf, 9, 0, 4);
+
+    return buf;
+  }
 
   static fromAddress(input: AddressWithChainID): Id256 {
     const buf = Buffer.alloc(32); // Create a buffer with 32 bytes

@@ -4,8 +4,9 @@ import {
   FetchedToken,
   DeployedIcrcToken,
   DeployedBtcToken,
-  DeployedRuneToken
+  // DeployedRuneToken
 } from './tokens-fetched';
+import { TOKENS_MAIN_NET_URL, TOKENS_TESTN_ET_URL } from './constants';
 
 export const defaultDeployedTokens = [
   DeployedIcrcToken.parse({}),
@@ -14,14 +15,14 @@ export const defaultDeployedTokens = [
 ];
 
 export const FetchUrlLocal = z.object({
-  type: z.literal('local'),
+  type: z.literal('local').default('local'),
   tokens: z.array(FetchedToken).default(defaultDeployedTokens)
 });
 
 export type FetchUrlLocal = z.infer<typeof FetchUrlLocal>;
 
 export const FetchUrlRemote = z.object({
-  type: z.literal('remote'),
+  type: z.literal('remote').default('remote'),
   src: z.string()
 });
 
@@ -37,3 +38,8 @@ export type FetchUrl = z.infer<typeof FetchUrl>;
 export const FetchRemoteSchema = z.object({
   tokens: z.array(FetchedToken)
 });
+
+export const remoteUrls = {
+  testnet: TOKENS_TESTN_ET_URL,
+  mainnet: TOKENS_MAIN_NET_URL
+};

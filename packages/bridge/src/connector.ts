@@ -4,15 +4,13 @@ import { BitfinityWallet } from '@bitfinity-network/bitfinitywallet';
 import { Bridger, Bridges } from './bridger';
 import {
   BridgeBaseToken,
-  BridgeBtcToken,
   BridgeIcrcToken,
   BridgeRuneToken,
   BridgeToken
 } from './tokens';
-import { FetchedToken, splitTokens } from './tokens-fetched';
-import { FetchRemoteSchema, FetchUrl, FetchUrlLocal } from './tokens-urls';
-
+import { FetchUrl, remoteUrls } from './tokens-urls';
 import { Deployer } from './deployer';
+import { Fetcher } from './fetcher';
 
 export interface ConnectorOptions {
   wallet: ethers.Signer;
@@ -21,11 +19,11 @@ export interface ConnectorOptions {
 }
 
 export class Connector {
-  protected bridger: Bridger;
-  protected deployers: Record<string, Deployer> = {};
   protected wallet: ethers.Signer;
   protected bitfinityWallet: BitfinityWallet;
-  protected tokensFetched: FetchedToken[] = [];
+  protected bridger: Bridger;
+  protected fetcher: Fetcher;
+  protected deployers: Record<string, Deployer> = {};
 
   private constructor({ wallet, bitfinityWallet, deployer }: ConnectorOptions) {
     this.wallet = wallet;
@@ -33,6 +31,7 @@ export class Connector {
     if (deployer) {
       this.deployers[deployer.address] = deployer.deployer;
     }
+    this.fetcher = new Fetcher();
     this.bridger = new Bridger({ wallet, bitfinityWallet });
   }
 
@@ -55,41 +54,33 @@ export class Connector {
     return deployer;
   }
 
-  protected resetFetchedTokens() {
-    this.tokensFetched = [];
-  }
-
   bridge() {
-    const [tokens] = splitTokens(this.tokensFetched);
+    const tokens = this.fetcher.getTokensBridged();
 
-    const addedCount = this.bridger.addBridgedTokens(tokens);
-
-    this.resetFetchedTokens();
-
-    return addedCount;
+    return this.bridger.addBridgedTokens(tokens);
   }
 
   async bridgeAfterDeploy() {
-    const [bridged, toBeDeployed] = splitTokens(this.tokensFetched);
+    const [bridged, toDeploy] = this.fetcher.getTokensAll();
 
     const deployed: BridgeToken[] = (
       await Promise.all(
-        toBeDeployed.map(async (token) => {
+        toDeploy.map(async (token) => {
           if (token.type === 'btc') {
             return undefined!;
           }
 
           const deployer = this.getDeployer(token.bftAddress);
 
-          const wrappedAddress = await deployer.deployBftWrappedToken(
-            'baseTokenCanisterId' in token ? token.baseTokenCanisterId : '', // todo: RUNE! !!!
-            token.name,
-            token.symbol
-          );
-
           const baseToken = BridgeBaseToken.parse(token);
 
           if (token.type === 'icrc') {
+            const wrappedAddress = await deployer.deployIcrcWrappedToken(
+              token.baseTokenCanisterId,
+              token.name,
+              token.symbol
+            );
+
             return {
               ...baseToken,
               type: 'icrc',
@@ -98,6 +89,11 @@ export class Connector {
               wrappedTokenAddress: wrappedAddress
             } satisfies BridgeIcrcToken;
           } else {
+            const wrappedAddress = await deployer.deployRuneWrappedToken(
+              token.runeId,
+              token.name
+            );
+
             return {
               ...baseToken,
               type: 'rune',
@@ -110,45 +106,19 @@ export class Connector {
       )
     ).filter((token) => !!token);
 
-    const addedCount = this.bridger.addBridgedTokens(bridged.concat(deployed));
-
-    this.resetFetchedTokens();
-
-    return addedCount;
+    return this.bridger.addBridgedTokens(bridged.concat(deployed));
   }
 
   async fetch(tokensUrls: FetchUrl[]) {
-    const tokens: FetchedToken[] = (
-      await Promise.all(
-        tokensUrls.map(async (url) => {
-          url = FetchUrl.parse(url);
-
-          if (url.type === 'local') {
-            return url.tokens;
-          }
-
-          try {
-            const response = await fetch(url.src);
-
-            const json = await response.json();
-
-            return FetchRemoteSchema.parse(json).tokens;
-          } catch (err) {
-            console.error('Error fetching tokens url', err);
-          }
-
-          return [];
-        })
-      )
-    ).flat();
-
-    this.tokensFetched = this.tokensFetched.concat(tokens);
-
-    return tokens.length;
+    return await this.fetcher.fetch(tokensUrls);
   }
 
   async fetchLocal() {
-    return await this.fetch([FetchUrlLocal.parse({ type: 'local' })]);
+    return await this.fetcher.fetchLocal();
+  }
+
+  async fetchDefault(network: keyof typeof remoteUrls) {
+    return await this.fetcher.fetchDefault(network);
   }
 
   async init() {

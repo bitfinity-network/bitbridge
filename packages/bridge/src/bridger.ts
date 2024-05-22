@@ -66,7 +66,8 @@ export class Bridger {
             wallet: this.wallet,
             bitfinityWallet: this.bitfinityWallet,
             bftAddress: token.bftAddress,
-            runeBridgeCanisterId: token.runeBridgeCanisterId
+            runeBridgeCanisterId: token.runeBridgeCanisterId,
+            wrappedTokenAddress: token.wrappedTokenAddress
           })
         );
       }

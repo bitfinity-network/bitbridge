@@ -9,12 +9,13 @@ import { wait } from './utils';
 import { encodeBtcAddress } from './utils';
 import BFTBridgeABI from './abi/BFTBridge';
 import { Bridge } from './bridge';
-import { BridgeToken, idMatch } from './tokens';
+import { BridgeToken, idStrMatch } from './tokens';
 
 interface RuneBridgeOptions {
   wallet: ethers.Signer;
   bitfinityWallet: BitfinityWallet;
   bftAddress: string;
+  wrappedTokenAddress: string;
   runeBridgeCanisterId: string;
 }
 
@@ -23,6 +24,7 @@ export class RuneBridge implements Bridge {
   protected wallet: ethers.Signer;
   protected bftBridge: ethers.Contract;
   protected runeBridgeCanisterId: string;
+  protected wrappedTokenAddress: string;
   protected walletActors: {
     runeActor?: typeof RuneActor;
   } = {};
@@ -31,20 +33,18 @@ export class RuneBridge implements Bridge {
     wallet,
     bitfinityWallet,
     bftAddress,
+    wrappedTokenAddress,
     runeBridgeCanisterId
   }: RuneBridgeOptions) {
     this.wallet = wallet;
     this.bitfinityWallet = bitfinityWallet;
     this.bftBridge = this.getBftBridgeContract(bftAddress);
+    this.wrappedTokenAddress = wrappedTokenAddress;
     this.runeBridgeCanisterId = runeBridgeCanisterId;
   }
 
   idMatch(token: BridgeToken) {
-    return idMatch(token, {
-      type: 'rune',
-      runeId: '',
-      wrappedTokenAddress: ''
-    });
+    return idStrMatch(this.wrappedTokenAddress, token);
   }
 
   async init() {
@@ -64,8 +64,7 @@ export class RuneBridge implements Bridge {
       typeof RuneActor
     >({
       canisterId: this.runeBridgeCanisterId,
-      interfaceFactory: RuneBridgeIdlFactory,
-      host: this.icHost
+      interfaceFactory: RuneBridgeIdlFactory
     });
   }
 

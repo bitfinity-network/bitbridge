@@ -21,20 +21,25 @@ export class Deployer {
     return new ethers.Contract(address, BftBridgeABI, this.wallet);
   }
 
-  protected baseTokenId256(baseTokenCanisterId: string): Id256 {
+  protected idFromCanister(baseTokenCanisterId: string): Id256 {
     return Id256Factory.fromPrincipal(Principal.fromText(baseTokenCanisterId));
   }
 
-  async deployBftWrappedToken(
+  protected idFromRune(runeId: string) {
+    const [b, t] = runeId.split(':');
+    return Id256Factory.fromBtcTxIndex(BigInt(b), parseInt(t, 10));
+  }
+
+  async deployIcrcWrappedToken(
     baseTokenCanisterId: string,
     name: string,
     symbol: string
   ): Promise<string> {
-    const id256 = this.baseTokenId256(baseTokenCanisterId);
-
-    let wrappedTokenAddress = await this.bftBridge.getWrappedToken(id256);
+    let wrappedTokenAddress =
+      await this.getWrappedTokenAddress(baseTokenCanisterId);
 
     if (wrappedTokenAddress && new Address(wrappedTokenAddress).isZero()) {
+      const id256 = this.idFromCanister(baseTokenCanisterId);
       const tx = await this.bftBridge.deployERC20(name, symbol, id256);
       wrappedTokenAddress = await tx.wait(2);
     }
@@ -42,15 +47,21 @@ export class Deployer {
     return wrappedTokenAddress;
   }
 
-  async getWrappedTokenAddress(baseTokenCanisterId: string): Promise<string> {
-    const wrappedTokenAddress = await this.bftBridge.getWrappedToken(
-      this.baseTokenId256(baseTokenCanisterId)
-    );
+  async deployRuneWrappedToken(runeId: string, name: string): Promise<string> {
+    let wrappedTokenAddress = await this.getWrappedTokenAddress(runeId);
 
-    if (new Address(wrappedTokenAddress).isZero()) {
-      throw new Error('Invalid Address');
+    if (wrappedTokenAddress && new Address(wrappedTokenAddress).isZero()) {
+      const id256 = this.idFromRune(runeId);
+      const tx = await this.bftBridge.deployERC20(name, name, id256);
+      wrappedTokenAddress = await tx.wait(2);
     }
 
     return wrappedTokenAddress;
+  }
+
+  async getWrappedTokenAddress(id: string): Promise<string> {
+    return await this.bftBridge.getWrappedToken(
+      id.includes(':') ? this.idFromRune(id) : this.idFromCanister(id)
+    );
   }
 }
