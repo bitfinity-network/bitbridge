@@ -70,6 +70,17 @@ export class Connector {
             return undefined!;
           }
 
+          const id =
+            'baseTokenCanisterId' in token
+              ? token.baseTokenCanisterId
+              : 'runeId' in token
+                ? token.runeId
+                : '';
+
+          if (this.bridger.getBridgedToken(id)) {
+            return undefined!;
+          }
+
           const deployer = this.getDeployer(token.bftAddress);
 
           const baseToken = BridgeBaseToken.parse(token);

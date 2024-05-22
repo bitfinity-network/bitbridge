@@ -35,28 +35,29 @@ export class Deployer {
     name: string,
     symbol: string
   ): Promise<string> {
-    let wrappedTokenAddress =
+    const wrappedTokenAddress =
       await this.getWrappedTokenAddress(baseTokenCanisterId);
 
     if (wrappedTokenAddress && new Address(wrappedTokenAddress).isZero()) {
       const id256 = this.idFromCanister(baseTokenCanisterId);
       const tx = await this.bftBridge.deployERC20(name, symbol, id256);
-      wrappedTokenAddress = await tx.wait(2);
+      await tx.wait(2);
     }
 
-    return wrappedTokenAddress;
+    return await this.getWrappedTokenAddress(baseTokenCanisterId);
   }
 
   async deployRuneWrappedToken(runeId: string, name: string): Promise<string> {
-    let wrappedTokenAddress = await this.getWrappedTokenAddress(runeId);
+    const wrappedTokenAddress = await this.getWrappedTokenAddress(runeId);
 
     if (wrappedTokenAddress && new Address(wrappedTokenAddress).isZero()) {
       const id256 = this.idFromRune(runeId);
+
       const tx = await this.bftBridge.deployERC20(name, name, id256);
-      wrappedTokenAddress = await tx.wait(2);
+      await tx.wait(2);
     }
 
-    return wrappedTokenAddress;
+    return await this.getWrappedTokenAddress(runeId);
   }
 
   async getWrappedTokenAddress(id: string): Promise<string> {

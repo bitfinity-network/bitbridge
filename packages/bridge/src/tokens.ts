@@ -42,9 +42,9 @@ export const id = (token: BridgeToken) => {
   const id1 = token.wrappedTokenAddress.toLowerCase();
 
   if (token.type === 'icrc') {
-    return `${id1}:${token.baseTokenCanisterId.replace('-', '').toLowerCase()}`;
+    return `${id1}_${token.baseTokenCanisterId.replace('-', '').toLowerCase()}`;
   } else if (token.type === 'rune') {
-    return `${id1}:${token.runeId.toLowerCase()}`;
+    return `${id1}_${token.runeId.toLowerCase()}`;
   }
 
   return id1;
@@ -55,7 +55,7 @@ export const idMatch = (t1: BridgeToken, t2: BridgeToken) => {
 };
 
 export const idStrMatch = (str: string, token: BridgeToken) => {
-  const ids = id(token).split(':');
+  const ids = id(token).split('_');
 
   return ids.includes(str.replace('-', '').toLowerCase());
 };

@@ -7,10 +7,11 @@ import {
   mintNativeToken,
   randomWallet
 } from './utils';
-import { defaultDeployedTokens } from '../tokens-urls';
+// import { defaultDeployedTokens } from '../tokens-urls';
 import { BridgeIcrcToken } from '../tokens';
+import { wait } from '../utils';
 
-const deployedTokensCount = defaultDeployedTokens.length;
+// const deployedTokensCount = defaultDeployedTokens.length;
 
 describe('connector', async () => {
   const wallet = randomWallet();
@@ -19,6 +20,8 @@ describe('connector', async () => {
   const bitfinityWallet = createBitfinityWallet(agent);
 
   await mintNativeToken(wallet.address, '10000000000000000');
+
+  await wait(1000);
 
   test('create', async () => {
     const connector = Connector.create({ wallet, bitfinityWallet });
@@ -31,7 +34,7 @@ describe('connector', async () => {
 
     const fetchedCount = await connector.fetchLocal();
 
-    expect(fetchedCount).toStrictEqual(deployedTokensCount);
+    expect(fetchedCount).toStrictEqual(3);
   });
 
   test('bridge local without deploy', async () => {
@@ -48,19 +51,19 @@ describe('connector', async () => {
   test('bridge after deploy', async () => {
     const connector = Connector.create({ wallet, bitfinityWallet });
 
-    await connector.fetchLocal();
+    const fetchedCount = await connector.fetchLocal();
+    expect(fetchedCount).toStrictEqual(3);
 
     const bridgedCount = await connector.bridgeAfterDeploy();
-
-    expect(bridgedCount).toStrictEqual(deployedTokensCount);
+    expect(bridgedCount).toStrictEqual(3);
 
     const bridgedCount2 = await connector.bridgeAfterDeploy();
     expect(bridgedCount2).toStrictEqual(0);
 
-    expect(connector.getBridgedTokens()).toHaveLength(deployedTokensCount);
+    expect(connector.getBridgedTokens()).toHaveLength(3);
 
-    const fetchedCount = await connector.fetchLocal();
-    expect(fetchedCount).toStrictEqual(deployedTokensCount);
+    const fetchedCount2 = await connector.fetchLocal();
+    expect(fetchedCount2).toStrictEqual(3);
 
     const bridgedCount3 = await connector.bridgeAfterDeploy();
     expect(bridgedCount3).toStrictEqual(0);
