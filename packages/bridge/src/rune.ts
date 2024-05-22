@@ -9,12 +9,12 @@ import { wait } from './utils';
 import { encodeBtcAddress } from './utils';
 import BFTBridgeABI from './abi/BFTBridge';
 import { Bridge } from './bridge';
+import { BridgeToken, idMatch } from './tokens';
 
 interface RuneBridgeOptions {
   wallet: ethers.Signer;
   bitfinityWallet: BitfinityWallet;
   bftAddress: string;
-  icHost: string;
   runeBridgeCanisterId: string;
 }
 
@@ -22,7 +22,6 @@ export class RuneBridge implements Bridge {
   protected bitfinityWallet: BitfinityWallet;
   protected wallet: ethers.Signer;
   protected bftBridge: ethers.Contract;
-  protected icHost: string;
   protected runeBridgeCanisterId: string;
   protected walletActors: {
     runeActor?: typeof RuneActor;
@@ -32,14 +31,20 @@ export class RuneBridge implements Bridge {
     wallet,
     bitfinityWallet,
     bftAddress,
-    icHost,
     runeBridgeCanisterId
   }: RuneBridgeOptions) {
     this.wallet = wallet;
     this.bitfinityWallet = bitfinityWallet;
     this.bftBridge = this.getBftBridgeContract(bftAddress);
-    this.icHost = icHost;
     this.runeBridgeCanisterId = runeBridgeCanisterId;
+  }
+
+  idMatch(token: BridgeToken) {
+    return idMatch(token, {
+      type: 'rune',
+      runeId: '',
+      wrappedTokenAddress: ''
+    });
   }
 
   async init() {

@@ -6,6 +6,7 @@ import { BitfinityWallet } from '@bitfinity-network/bitfinitywallet';
 import { Bridge } from './bridge';
 import { BtcActor, BtcBridgeIdlFactory } from './ic';
 import { encodeBtcAddress, ethAddrToSubaccount } from './utils';
+import { BridgeToken, idStrMatch } from './tokens';
 import WrappedTokenABI from './abi/WrappedToken';
 import BFTBridgeABI from './abi/BFTBridge';
 import { wait } from './utils';
@@ -14,7 +15,6 @@ interface BtcBridgeOptions {
   wallet: ethers.Signer;
   bitfinityWallet: BitfinityWallet;
   bftAddress: string;
-  icHost: string;
   wrappedTokenAddress: string;
   btcBridgeCanisterId: string;
 }
@@ -23,9 +23,8 @@ export class BtcBridge implements Bridge {
   protected bitfinityWallet: BitfinityWallet;
   protected wallet: ethers.Signer;
   protected bftBridge: ethers.Contract;
-  protected icHost: string;
   protected btcBridgeCanisterId: string;
-  public wrappedTokenAddress: string;
+  protected wrappedTokenAddress: string;
   protected walletActors: {
     btcActor?: typeof BtcActor;
   } = {};
@@ -34,16 +33,18 @@ export class BtcBridge implements Bridge {
     wallet,
     bitfinityWallet,
     bftAddress,
-    icHost,
     wrappedTokenAddress,
     btcBridgeCanisterId
   }: BtcBridgeOptions) {
     this.wallet = wallet;
     this.bitfinityWallet = bitfinityWallet;
     this.bftBridge = this.getBftBridgeContract(bftAddress);
-    this.icHost = icHost;
     this.wrappedTokenAddress = wrappedTokenAddress;
     this.btcBridgeCanisterId = btcBridgeCanisterId;
+  }
+
+  idMatch(token: BridgeToken) {
+    return idStrMatch(this.wrappedTokenAddress, token);
   }
 
   async init() {
@@ -63,8 +64,7 @@ export class BtcBridge implements Bridge {
       typeof BtcActor
     >({
       canisterId: this.btcBridgeCanisterId,
-      interfaceFactory: BtcBridgeIdlFactory,
-      host: this.icHost
+      interfaceFactory: BtcBridgeIdlFactory
     });
   }
 

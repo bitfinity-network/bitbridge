@@ -8,6 +8,7 @@ import {
   mintNativeToken,
   randomWallet
 } from './utils';
+import { ICRC2_TOKEN_CANISTER_ID } from '../constants';
 import { wait } from '../utils';
 
 describe.sequential(
@@ -19,44 +20,32 @@ describe.sequential(
     const bitfinityWallet = createBitfinityWallet(agent);
 
     await mintNativeToken(wallet.address, '10000000000000000');
+    await execSendIcrcToken(identity.getPrincipal().toText(), 1000000);
+
+    await wait(1000);
 
     const connector = Connector.create({
-      bridges: ['icrc'],
       wallet,
       bitfinityWallet
     });
+
+    await connector.fetchLocal();
+    await connector.bridgeAfterDeploy();
+
+    await wait(1000);
+
     await connector.init();
 
     await connector.requestIcConnect();
 
-    const icrcBricdge = connector.getBridge('icrc');
-
-    test('deploy wrapped contract', async () => {
-      await execSendIcrcToken(identity.getPrincipal().toText(), 1000000);
-
-      await wait(5000);
-
-      await icrcBricdge.deployBftWrappedToken('AUX', 'AUX');
-
-      await wait(5000);
-
-      const baseBalance = await icrcBricdge.getBaseTokenBalance(
-        identity.getPrincipal().toText()
-      );
-      expect(baseBalance).toStrictEqual(1000000n);
-
-      const wrappedBalance = await icrcBricdge.getWrappedTokenBalance(
-        wallet.address
-      );
-      expect(wrappedBalance).toStrictEqual(0n);
-    });
+    const icrcBricdge = connector.getBridge<'icrc'>(ICRC2_TOKEN_CANISTER_ID);
 
     test('bridge icrc2 token to evm', async () => {
       const amount = 100000n;
 
-      console.log(await icrcBricdge.bridgeToEvmc(amount, wallet.address));
+      await icrcBricdge.bridgeToEvmc(amount, wallet.address);
 
-      await wait(15000);
+      await wait(10000);
 
       const balance = await icrcBricdge.getWrappedTokenBalance(wallet.address);
       expect(balance).toStrictEqual(amount);
@@ -70,12 +59,15 @@ describe.sequential(
       );
       expect(balance).toStrictEqual(899980n);
 
-      console.log('balance', balance);
-
       await icrcBricdge.bridgeFromEvmc(
         identity.getPrincipal().toText(),
         amount
       );
+
+      const balance2 = await icrcBricdge.getBaseTokenBalance(
+        identity.getPrincipal().toText()
+      );
+      expect(balance2).toStrictEqual(901960n);
     });
   },
   180000
