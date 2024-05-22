@@ -24,16 +24,23 @@ describe.sequential(
 
     await mintNativeToken(wallet.address, '10000000000000000');
 
+    await wait(1000);
+
     const connector = Connector.create({
-      bridges: ['rune'],
       wallet,
       bitfinityWallet
     });
+
+    await connector.fetchLocal();
+    await connector.bridgeAfterDeploy();
+
+    await wait(1000);
+
     await connector.init();
 
     await connector.requestIcConnect();
 
-    const runeBridge = connector.getBridge('rune');
+    const runeBridge = connector.getBridge<'rune'>('rune');
 
     test('bridge to evm', async () => {
       const toAddress = wallet.address;

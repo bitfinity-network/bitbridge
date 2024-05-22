@@ -43,6 +43,8 @@ export const id = (token: BridgeToken) => {
 
   if (token.type === 'icrc') {
     return `${id1}:${token.baseTokenCanisterId.replace('-', '').toLowerCase()}`;
+  } else if (token.type === 'rune') {
+    return `${id1}:${token.runeId.toLowerCase()}`;
   }
 
   return id1;

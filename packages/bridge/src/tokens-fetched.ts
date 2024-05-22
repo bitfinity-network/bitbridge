@@ -49,7 +49,6 @@ export const DeployedRuneToken = DeployBaseToken.extend({
   type: z.literal('rune').default('rune'),
   runeId: z.string().default('RUNERUNERUNERUNE'),
   name: z.string().default('RUNERUNERUNERUNE'),
-  symbol: z.string().default('R'),
   runeBridgeCanisterId: z.string().default(RUNE_BRIDGE_CANISTER_ID)
 });
 

@@ -7,10 +7,6 @@ import { BTC_TOKEN_WRAPPED_ADDRESS } from './constants';
 
 export { BtcBridge, IcrcBridge, RuneBridge, BTC_TOKEN_WRAPPED_ADDRESS };
 
-export {
-  Connector,
-  BridgeConfig,
-  BridgeOptions,
-  Bridges,
-  BridgeNetwork
-} from './connector';
+export { Connector, ConnectorOptions } from './connector';
+
+export { Bridger, BridgerOptions, Bridges } from './bridger';
