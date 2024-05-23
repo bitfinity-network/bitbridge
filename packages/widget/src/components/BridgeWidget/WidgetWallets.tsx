@@ -8,6 +8,7 @@ import {
   Slide,
   Text,
   VStack,
+  useBreakpointValue,
   useColorModeValue,
 } from "@chakra-ui/react";
 import { IoClose } from "react-icons/io5";
@@ -85,6 +86,8 @@ export const WidgetWallets = ({ isOpen, onClose }: WidgetWalletsProps) => {
     isConnecting: isEthConnecting,
   } = useAccount();
 
+  const breakpoint = useBreakpointValue({ base: "base", md: "md", lg: "lg" });
+  const isBaseBreakpoint = breakpoint === "base";
   const closeIconColor = useColorModeValue("light.text.main", "dark.text.main");
   const pannelBgColor = useColorModeValue(
     "light.secondary.main",
@@ -141,8 +144,8 @@ export const WidgetWallets = ({ isOpen, onClose }: WidgetWalletsProps) => {
           left={0}
           w="full"
           h="full"
-          bg="light.secondary.alpha60"
-          backdropFilter="blur(32px)"
+          bg={`light.secondary.alpha${isBaseBreakpoint ? "16" : "60"}`}
+          backdropFilter={`blur(${isBaseBreakpoint ? "16px" : "32px"})`}
           onClick={onClose}
         />
       )}

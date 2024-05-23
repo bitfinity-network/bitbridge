@@ -111,6 +111,8 @@ const CustomModal = ({
               title={title}
               onClose={onClose}
               disableClose={disableClose}
+              iconPrefix={iconPrefix}
+              onIconPrefixClick={onIconPrefixClick}
             />
           ) : null}
           {children}
