@@ -28,8 +28,20 @@ export const RUNE_BRIDGE_CANISTER_ID = str.parse(
   process.env.RUNE_BRIDGE_CANISTER_ID
 );
 
+export const RUNE_TOKEN_ID = str.parse(
+  process.env.RUNE_TOKEN_ID
+);
+
 export const BFT_ETH_ADDRESS = str.parse(process.env.BFT_ETH_ADDRESS);
 
 export const BTC_TOKEN_WRAPPED_ADDRESS = str.parse(
   process.env.BTC_TOKEN_WRAPPED_ADDRESS
 );
+
+export const TOKENS_MAIN_NET_URL = str
+  .url()
+  .parse(process.env.TOKENS_MAINNET_URL || 'https://example.com');
+
+export const TOKENS_TEST_NET_URL = str
+  .url()
+  .parse(process.env.TOKENS_MAINNET_URL || 'https://example.com');

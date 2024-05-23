@@ -11,11 +11,6 @@ export const idlFactory = ({ IDL }) => {
     'ManagementCanister' : IDL.Record({ 'key_id' : SigningKeyId }),
   });
   const EvmLink = IDL.Variant({ 'Ic' : IDL.Principal, 'Http' : IDL.Text });
-  const RuneInfo = IDL.Record({
-    'tx' : IDL.Nat32,
-    'name' : IDL.Text,
-    'block' : IDL.Nat64,
-  });
   const BitcoinNetwork = IDL.Variant({
     'mainnet' : IDL.Null,
     'regtest' : IDL.Null,
@@ -31,19 +26,14 @@ export const idlFactory = ({ IDL }) => {
     'signing_strategy' : SigningStrategy,
     'indexer_url' : IDL.Text,
     'evm_link' : EvmLink,
-    'rune_info' : RuneInfo,
     'network' : BitcoinNetwork,
     'min_confirmations' : IDL.Nat32,
     'log_settings' : LogSettings,
     'deposit_fee' : IDL.Nat64,
   });
   const BftBridgeConfig = IDL.Record({
-    'decimals' : IDL.Nat8,
-    'token_symbol' : IDL.Vec(IDL.Nat8),
-    'token_address' : IDL.Text,
     'bridge_address' : IDL.Text,
     'erc20_chain_id' : IDL.Nat32,
-    'token_name' : IDL.Vec(IDL.Nat8),
   });
   const CreateEdictTxArgs = IDL.Record({
     'destination' : IDL.Text,
@@ -77,7 +67,10 @@ export const idlFactory = ({ IDL }) => {
       'min_confirmations' : IDL.Nat32,
     }),
   });
-  const Result = IDL.Variant({ 'Ok' : Erc20MintStatus, 'Err' : DepositError });
+  const Result = IDL.Variant({
+    'Ok' : IDL.Vec(Erc20MintStatus),
+    'Err' : DepositError,
+  });
   const MetricsData = IDL.Record({
     'stable_memory_size' : IDL.Nat64,
     'cycles' : IDL.Nat64,
@@ -127,11 +120,6 @@ export const init = ({ IDL }) => {
     'ManagementCanister' : IDL.Record({ 'key_id' : SigningKeyId }),
   });
   const EvmLink = IDL.Variant({ 'Ic' : IDL.Principal, 'Http' : IDL.Text });
-  const RuneInfo = IDL.Record({
-    'tx' : IDL.Nat32,
-    'name' : IDL.Text,
-    'block' : IDL.Nat64,
-  });
   const BitcoinNetwork = IDL.Variant({
     'mainnet' : IDL.Null,
     'regtest' : IDL.Null,
@@ -147,7 +135,6 @@ export const init = ({ IDL }) => {
     'signing_strategy' : SigningStrategy,
     'indexer_url' : IDL.Text,
     'evm_link' : EvmLink,
-    'rune_info' : RuneInfo,
     'network' : BitcoinNetwork,
     'min_confirmations' : IDL.Nat32,
     'log_settings' : LogSettings,

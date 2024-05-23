@@ -19,14 +19,23 @@ describe('id256 factory', () => {
     expect(Id256Factory.toPrincipal(id).toText()).toStrictEqual(principalStr);
   });
 
-  test('chainIdFromId256', () => {
+  test('address with chain round trip', () => {
     const id = Id256Factory.from(addressWithChain);
 
-    const [c, a] = Id256Factory.toEvmAddress(id)
+    const [c, a] = Id256Factory.toEvmAddress(id);
 
     expect(c).toEqual(chainId);
     expect(a).toEqual(address.toLowerCase());
 
     expect(Id256Factory.chainIdFromId256(id)).toStrictEqual(chainId);
+  });
+
+  test('from btc tx index', () => {
+    const id = Id256Factory.fromBtcTxIndex(113n, 55);
+
+    const [b, t] = Id256Factory.toBtcTxIndex(id);
+
+    expect(b).toEqual(113n);
+    expect(t).toEqual(55);
   });
 });
