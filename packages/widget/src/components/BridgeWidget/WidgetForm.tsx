@@ -66,7 +66,7 @@ export const WidgetForm = ({
   const isPendingBridgeOrWalletOperation = isBridging || isFethcingICWallet;
 
   const isICOrEthWalletConnected =
-    icWallet?.principal && ethAddress && isEthConnected;
+    icWallet?.principal || (ethAddress && isEthConnected);
 
   const getBalance = () => {
     if (network.symbol === NETWORK_SYMBOLS.ETHEREUM) {
