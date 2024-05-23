@@ -25,6 +25,7 @@ import { useWallets } from "../../hooks/useWallets";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { NetworkProp, TokenProp } from "../../types";
 import { useBridgeContext } from "../../provider/BridgeProvider";
+import { useAccount } from "wagmi";
 
 type WidgetFormProps = {
   setBridgingOrWalletOperation?: Dispatch<SetStateAction<boolean>>;
@@ -37,6 +38,7 @@ export const WidgetForm = ({
     "dark.secondary.alpha4"
   );
 
+  const { address: ethAddress, isConnected: isEthConnected } = useAccount();
   const { defaultNetwork } = useBridgeContext();
   const selectedDefaultNetwork =
     NETWORKS.find(
@@ -54,10 +56,17 @@ export const WidgetForm = ({
     token?.address as `0x${string}`
   );
   const { balance: icBalance } = useIcTokenBalance(token);
-  const { connectToIcWallet, isFetching: isFethcingICWallet } = useWallets();
+  const {
+    connectToIcWallet,
+    isFetching: isFethcingICWallet,
+    icWallet,
+  } = useWallets();
   const { openConnectModal } = useConnectModal();
 
   const isPendingBridgeOrWalletOperation = isBridging || isFethcingICWallet;
+
+  const isICOrEthWalletConnected =
+    icWallet?.principal && ethAddress && isEthConnected;
 
   const getBalance = () => {
     if (network.symbol === NETWORK_SYMBOLS.ETHEREUM) {
@@ -78,7 +87,7 @@ export const WidgetForm = ({
     setShowNetworkList(false);
   };
 
-  const bridgeToken = async () => {
+  const connectWallets = async () => {
     if (
       network.symbol === NETWORK_SYMBOLS.BITFINITY ||
       network.symbol === NETWORK_SYMBOLS.IC
@@ -88,6 +97,9 @@ export const WidgetForm = ({
       }
       await connectToIcWallet();
     }
+  };
+
+  const bridgeToken = async () => {
     await bridgeFn();
   };
 
@@ -167,9 +179,9 @@ export const WidgetForm = ({
           <Button
             isLoading={isPendingBridgeOrWalletOperation}
             w="full"
-            onClick={bridgeToken}
+            onClick={isICOrEthWalletConnected ? bridgeToken : connectWallets}
           >
-            Bridge
+            {isICOrEthWalletConnected ? "Bridge" : "Connect Wallets"}
           </Button>
         </Box>
       </form>
