@@ -56,6 +56,12 @@ export const BridgeProvider = ({
           wallet: evmWallet,
           bitfinityWallet: window.ic.bitfinityWallet,
         });
+
+        // TODO fetchlocal only for dev or local network
+        await con.fetchLocal();
+        await con.bridgeAfterDeploy();
+        await con.init();
+
         setConnector(con);
         return con;
       }
@@ -72,10 +78,6 @@ export const BridgeProvider = ({
       if (!icrcBridge && evmWallet) {
         const connector = await getConnector();
         if (connector) {
-          await connector.fetchLocal();
-          await connector.bridgeAfterDeploy();
-          await connector.init();
-
           await connector.requestIcConnect();
           const bridge = connector.getBridge<"icrc">(
             baseTokenCanisterId || "bkyz2-fmaaa-aaaaa-qaaaq-cai"
