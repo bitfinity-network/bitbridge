@@ -1,6 +1,6 @@
 :root {
   --rsbs-backdrop-filter: blur(24px);
-  --rsbs-bg: #010302;
+  --rsbs-bg: none;
 }
 
 div[data-rsbs-backdrop] {
