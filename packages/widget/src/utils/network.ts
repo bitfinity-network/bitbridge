@@ -15,3 +15,16 @@ export const BITFINITY_LOCAL_CHAIN = {
   },
   //blockExplorerUrls: []
 } as const satisfies Chain;
+
+export const shortenAddress = (
+  address: string,
+  prefix: number = 4,
+  suffix: number = 4
+) => {
+  if (address) {
+    const p = address.substr(0, prefix);
+    const s = address.substr(-suffix);
+    return `${p}...${s}`;
+  }
+  return "";
+};

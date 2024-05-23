@@ -1,6 +1,5 @@
 import { BottomSheet } from "react-spring-bottom-sheet";
 import {
-  As,
   Box,
   HStack,
   Icon,
