@@ -26,6 +26,16 @@ export const createAgent = (key: string) => {
   return { agent, identity };
 };
 
+export const createAnnonAgent = () => {
+  const agent = new HttpAgent({
+    host: IC_HOST
+  });
+
+  agent.fetchRootKey();
+
+  return { agent };
+};
+
 export const generateOperationId = () => {
   const timestamp = Date.now();
   const randomNum = Math.floor(Math.random() * 0x100000000);

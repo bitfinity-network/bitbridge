@@ -1,5 +1,6 @@
 import * as ethers from 'ethers';
 import { BitfinityWallet } from '@bitfinity-network/bitfinitywallet';
+import { Agent } from '@dfinity/agent';
 
 import { Bridger, Bridges } from './bridger';
 import {
@@ -14,25 +15,38 @@ import { Fetcher } from './fetcher';
 
 export interface ConnectorOptions {
   wallet: ethers.Signer;
-  bitfinityWallet: BitfinityWallet;
+  agent: Agent;
+  // bitfinityWallet?: BitfinityWallet;
   deployer?: { address: string; deployer: Deployer };
 }
 
 export class Connector {
   protected wallet: ethers.Signer;
-  protected bitfinityWallet: BitfinityWallet;
+  protected bitfinityWallet?: BitfinityWallet;
+  // protected agent: Agent;
   protected bridger: Bridger;
   protected fetcher: Fetcher;
   protected deployers: Record<string, Deployer> = {};
 
-  private constructor({ wallet, bitfinityWallet, deployer }: ConnectorOptions) {
+  private constructor({
+    wallet,
+    agent,
+    // bitfinityWallet,
+    deployer
+  }: ConnectorOptions) {
+    // this.agent = agent;
     this.wallet = wallet;
-    this.bitfinityWallet = bitfinityWallet;
+    // this.bitfinityWallet = bitfinityWallet;
     if (deployer) {
       this.deployers[deployer.address] = deployer.deployer;
     }
     this.fetcher = new Fetcher();
-    this.bridger = new Bridger({ wallet, bitfinityWallet });
+    this.bridger = new Bridger({ wallet, agent });
+  }
+
+  connectBitfinityWallet(bitfinityWallet: BitfinityWallet) {
+    this.bitfinityWallet = bitfinityWallet;
+    this.bridger.connectBitfinityWallet(bitfinityWallet);
   }
 
   static create(options: ConnectorOptions): Connector {
@@ -137,7 +151,7 @@ export class Connector {
   }
 
   async requestIcConnect(whitelist: string[] = []) {
-    await this.bitfinityWallet.requestConnect({
+    await this.bitfinityWallet?.requestConnect({
       whitelist: whitelist.concat(await this.bridger.icWhiteList())
     });
   }
