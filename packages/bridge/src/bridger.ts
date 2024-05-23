@@ -1,5 +1,6 @@
 import * as ethers from 'ethers';
 import { BitfinityWallet } from '@bitfinity-network/bitfinitywallet';
+import type { Agent } from '@dfinity/agent';
 
 import { BridgeToken, idMatch, idStrMatch } from './tokens';
 
@@ -15,17 +16,22 @@ export type Bridges = {
 
 export interface BridgerOptions {
   wallet: ethers.Signer;
-  bitfinityWallet: BitfinityWallet;
+  agent: Agent;
 }
 
 export class Bridger {
   protected wallet: ethers.Signer;
-  protected bitfinityWallet: BitfinityWallet;
+  protected bitfinityWallet?: BitfinityWallet;
+  protected agent: Agent;
   protected bridges: Bridges[keyof Bridges][] = [];
   protected tokensBridged: BridgeToken[] = [];
 
-  constructor({ wallet, bitfinityWallet }: BridgerOptions) {
+  constructor({ wallet, agent }: BridgerOptions) {
     this.wallet = wallet;
+    this.agent = agent;
+  }
+
+  connectBitfinityWallet(bitfinityWallet: BitfinityWallet) {
     this.bitfinityWallet = bitfinityWallet;
   }
 
@@ -36,9 +42,14 @@ export class Bridger {
       }
 
       if (token.type === 'icrc') {
+        if (!this.bitfinityWallet) {
+          throw new Error('No IC wallet is connected');
+        }
+
         this.bridges.push(
           new IcrcBridge({
             wallet: this.wallet,
+            agent: this.agent,
             bitfinityWallet: this.bitfinityWallet,
             bftAddress: token.bftAddress,
             iCRC2MinterCanisterId: token.iCRC2MinterCanisterId,
@@ -52,7 +63,7 @@ export class Bridger {
         this.bridges.push(
           new BtcBridge({
             wallet: this.wallet,
-            bitfinityWallet: this.bitfinityWallet,
+            agent: this.agent,
             bftAddress: token.bftAddress,
             btcBridgeCanisterId: token.btcBridgeCanisterId,
             wrappedTokenAddress: token.wrappedTokenAddress
@@ -64,7 +75,7 @@ export class Bridger {
         this.bridges.push(
           new RuneBridge({
             wallet: this.wallet,
-            bitfinityWallet: this.bitfinityWallet,
+            agent: this.agent,
             bftAddress: token.bftAddress,
             runeBridgeCanisterId: token.runeBridgeCanisterId,
             wrappedTokenAddress: token.wrappedTokenAddress,

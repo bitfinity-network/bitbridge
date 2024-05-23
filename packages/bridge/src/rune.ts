@@ -1,8 +1,8 @@
 import * as ethers from 'ethers';
 import { Id256Factory } from '@bitfinity-network/id256';
-import { BitfinityWallet } from '@bitfinity-network/bitfinitywallet';
+import type { Agent } from '@dfinity/agent';
 
-import { RuneActor, RuneBridgeIdlFactory } from './ic';
+import { RuneActor, createRuneBridgeActor } from './ic';
 import WrappedTokenABI from './abi/WrappedToken';
 import { wait } from './utils';
 import { encodeBtcAddress } from './utils';
@@ -12,7 +12,7 @@ import { BridgeToken, idStrMatch } from './tokens';
 
 interface RuneBridgeOptions {
   wallet: ethers.Signer;
-  bitfinityWallet: BitfinityWallet;
+  agent: Agent;
   bftAddress: string;
   wrappedTokenAddress: string;
   runeBridgeCanisterId: string;
@@ -20,7 +20,7 @@ interface RuneBridgeOptions {
 }
 
 export class RuneBridge implements Bridge {
-  protected bitfinityWallet: BitfinityWallet;
+  protected agent: Agent;
   protected wallet: ethers.Signer;
   protected bftBridge: ethers.Contract;
   protected runeBridgeCanisterId: string;
@@ -32,14 +32,14 @@ export class RuneBridge implements Bridge {
 
   constructor({
     wallet,
-    bitfinityWallet,
+    agent,
     bftAddress,
     wrappedTokenAddress,
     runeBridgeCanisterId,
     runeId
   }: RuneBridgeOptions) {
     this.wallet = wallet;
-    this.bitfinityWallet = bitfinityWallet;
+    this.agent = agent;
     this.bftBridge = this.getBftBridgeContract(bftAddress);
     this.wrappedTokenAddress = wrappedTokenAddress;
     this.runeBridgeCanisterId = runeBridgeCanisterId;
@@ -63,12 +63,10 @@ export class RuneBridge implements Bridge {
       return this.walletActors.runeActor;
     }
 
-    this.walletActors.runeActor = await this.bitfinityWallet.createActor<
-      typeof RuneActor
-    >({
-      canisterId: this.runeBridgeCanisterId,
-      interfaceFactory: RuneBridgeIdlFactory
-    });
+    this.walletActors.runeActor = createRuneBridgeActor(
+      this.runeBridgeCanisterId,
+      { agent: this.agent }
+    );
   }
 
   get runeActor() {
