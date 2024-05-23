@@ -1,10 +1,9 @@
-import { IcrcBridge } from "@bitfinity/js-client";
-import { Widget } from "@bitfinity/widget";
+import { BridgeWidget } from "@bitfinity-network/bridge-widget";
 
 function App() {
   return (
     <>
-      <Widget />
+      <BridgeWidget theme={{}}/>
     </>
   );
 }

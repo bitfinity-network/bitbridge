@@ -1,5 +1,8 @@
 import { Buffer } from 'buffer';
+import { HttpAgent } from '@dfinity/agent';
 import { fromHexString } from '@dfinity/candid';
+import { Secp256k1KeyIdentity } from '@dfinity/identity-secp256k1';
+import { IC_HOST } from './constants';
 
 export const ethAddrToSubaccount = (ethAddr: string) => {
   ethAddr = ethAddr.replace(/^0x/, '');
@@ -25,4 +28,20 @@ export const isBrowser = () => {
 
 export const wait = (ms: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
+};
+
+export const createAgent = (
+  host = IC_HOST,
+  key: string | undefined = undefined
+) => {
+  const identity = key
+    ? Secp256k1KeyIdentity.fromSecretKey(fromHexString(key.replace(/^0x/, '')))
+    : undefined;
+
+  const agent = new HttpAgent({
+    host,
+    identity
+  });
+
+  return { agent, identity };
 };

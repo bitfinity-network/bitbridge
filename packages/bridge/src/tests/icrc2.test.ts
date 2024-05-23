@@ -26,8 +26,10 @@ describe.sequential(
 
     const connector = Connector.create({
       wallet,
-      bitfinityWallet
+      agent
     });
+
+    connector.connectBitfinityWallet(bitfinityWallet);
 
     await connector.fetchLocal();
     await connector.bridgeAfterDeploy();

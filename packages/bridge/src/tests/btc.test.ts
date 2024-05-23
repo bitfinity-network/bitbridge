@@ -6,8 +6,7 @@ import {
   randomWallet,
   mintNativeToken,
   execBitcoinCmd,
-  createAgent,
-  createBitfinityWallet
+  createAnnonAgent,
 } from './utils';
 import { wait } from '../utils';
 
@@ -16,8 +15,7 @@ describe.sequential(
   async () => {
     const wallet = randomWallet();
 
-    const { agent } = createAgent(wallet.privateKey);
-    const bitfinityWallet = createBitfinityWallet(agent);
+    const { agent } = createAnnonAgent();
 
     await mintNativeToken(wallet.address, '10000000000000000');
 
@@ -25,7 +23,7 @@ describe.sequential(
 
     const connector = Connector.create({
       wallet,
-      bitfinityWallet
+      agent
     });
 
     await connector.fetchLocal();

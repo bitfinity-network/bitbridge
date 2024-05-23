@@ -1,10 +1,12 @@
-import { Widget } from "./components/Widget";
+import { BridgeWidget } from "./components/BridgeWidget";
 
 function App() {
   return (
-    <>
-      <Widget />
-    </>
+    <BridgeWidget
+      defaultNetwork="IC"
+      defaultAmount={1}
+      onSuccess={(e) => console.log(e)}
+    />
   );
 }
 

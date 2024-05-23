@@ -1,1 +1,1 @@
-export * from "../src/components/Widget";
+export * from "../src/components/BridgeWidget";

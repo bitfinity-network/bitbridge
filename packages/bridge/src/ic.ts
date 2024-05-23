@@ -20,7 +20,7 @@ export {
 export {
   BtcActor,
   idlFactory as BtcBridgeIdlFactory,
-  createActor as createBtcBridgeActor,
+  createActor as createBtcBridgeActor
 } from './canisters/btc-bridge';
 
 export {
