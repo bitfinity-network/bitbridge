@@ -9,6 +9,9 @@ import {
   Text,
   chakra,
   useColorModeValue,
+  VStack,
+  useDisclosure,
+  Collapse,
 } from "@chakra-ui/react";
 import { DropdownMenu, LabelValuePair } from "../../ui";
 import { TokenListModal } from "../TokenListModal";
@@ -37,7 +40,6 @@ export const WidgetForm = ({
     "light.secondary.alpha4",
     "dark.secondary.alpha4"
   );
-
   const { address: ethAddress, isConnected: isEthConnected } = useAccount();
   const { defaultNetwork } = useBridgeContext();
   const selectedDefaultNetwork =
@@ -45,10 +47,17 @@ export const WidgetForm = ({
       (item) => item.symbol.toLowerCase() === defaultNetwork?.toLowerCase()
     ) || NETWORKS[0];
   const [network, setNetwork] = useState(selectedDefaultNetwork);
-  const { bridgeFn, amount, setAmount, token, setToken, isBridging } =
-    useBridge({
-      network: network?.symbol,
-    });
+  const {
+    bridgeFn,
+    amount,
+    setAmount,
+    token,
+    setToken,
+    isBridging,
+    bridgingMesssage,
+  } = useBridge({
+    network: network?.symbol,
+  });
   const tokens = useTokens(network.symbol);
   const [showTokenList, setShowTokenList] = useState(false);
   const [showNetworkList, setShowNetworkList] = useState(false);
@@ -62,6 +71,11 @@ export const WidgetForm = ({
     icWallet,
   } = useWallets();
   const { openConnectModal } = useConnectModal();
+  const {
+    isOpen: isBridgingMessageOpen,
+    onOpen: onBridgingMessageOpen,
+    onClose: onBridgingMessageClose,
+  } = useDisclosure();
 
   const isPendingBridgeOrWalletOperation = isBridging || isFethcingICWallet;
 
@@ -119,6 +133,19 @@ export const WidgetForm = ({
     }
   }, [isPendingBridgeOrWalletOperation, setBridgingOrWalletOperation]);
 
+  useEffect(() => {
+    if (bridgingMesssage && isBridging) {
+      onBridgingMessageOpen();
+    } else {
+      onBridgingMessageClose();
+    }
+  }, [
+    bridgingMesssage,
+    onBridgingMessageOpen,
+    onBridgingMessageClose,
+    isBridging,
+  ]);
+
   return (
     <Box>
       <form>
@@ -175,7 +202,24 @@ export const WidgetForm = ({
           />
           <LabelValuePair label="Service fee">0.000</LabelValuePair>
         </EnhancedFormControl>
-        <Box pt={2}>
+
+        <Collapse in={isBridgingMessageOpen} animateOpacity>
+          <VStack
+            width="full"
+            alignItems="center"
+            justifyContent="center"
+            bg={enhancedFormControlBg}
+            borderRadius="12px"
+            padding={4}
+            marginY={4}
+          >
+            <Text textStyle="h6" color="secondary.alpha72">
+              {bridgingMesssage}
+            </Text>
+          </VStack>
+        </Collapse>
+
+        <Box width="full" pt={2}>
           <Button
             isLoading={isPendingBridgeOrWalletOperation}
             w="full"
