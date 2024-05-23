@@ -29,7 +29,7 @@ export const useBridge = ({ network }: TBridingHookProps) => {
     connector,
   } = useBridgeContext();
   const [amount, setAmount] = useState<number>(defaultAmount || 0);
-  const [, setMessage] = useState("");
+  const [message, setMessage] = useState("");
   const [token, setToken] = useState<TokenProp>({ name: "", symbol: "" });
   const amtInBigInt = BigInt(fromDecimal(amount, token.decimals || 8));
 
@@ -59,6 +59,7 @@ export const useBridge = ({ network }: TBridingHookProps) => {
         }
       }
     } catch (error) {
+      setMessage("");
       if (onError) {
         onError(error);
       }
@@ -101,5 +102,13 @@ export const useBridge = ({ network }: TBridingHookProps) => {
     setBridgingStatus(false);
   };
 
-  return { bridgeFn, amount, setAmount, token, setToken, isBridging };
+  return {
+    bridgeFn,
+    amount,
+    setAmount,
+    token,
+    setToken,
+    isBridging,
+    bridgingMesssage: message,
+  };
 };

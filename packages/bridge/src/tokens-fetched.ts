@@ -12,7 +12,8 @@ import {
   ICRC2_MINTER_CANISTER_ID,
   ICRC2_TOKEN_CANISTER_ID,
   RUNE_BRIDGE_CANISTER_ID,
-  BTC_TOKEN_WRAPPED_ADDRESS
+  BTC_TOKEN_WRAPPED_ADDRESS,
+  RUNE_TOKEN_ID
 } from './constants';
 
 export const DeployBaseToken = z.object({
@@ -47,9 +48,9 @@ export type FetchedBtcToken = z.infer<typeof FetchedBtcToken>;
 
 export const DeployedRuneToken = DeployBaseToken.extend({
   type: z.literal('rune').default('rune'),
-  runeId: z.string().default('RUNERUNERUNERUNE'),
-  name: z.string().default('RUNERUNERUNERUNE'),
-  runeBridgeCanisterId: z.string().default(RUNE_BRIDGE_CANISTER_ID)
+  runeId: z.string().default(RUNE_TOKEN_ID),
+  runeBridgeCanisterId: z.string().default(RUNE_BRIDGE_CANISTER_ID),
+  name: z.string().default('RUNERUNERUNERUNE')
 });
 
 export const FetchedRuneToken = z.union([BridgeRuneToken, DeployedRuneToken]);
@@ -88,7 +89,7 @@ export const splitTokens = (
       bridged.push(token);
     } else if (token.type === 'icrc' && 'symbol' in token) {
       deployed.push(token);
-    } else if (token.type === 'rune' && 'symbol' in token) {
+    } else if (token.type === 'rune' && 'name' in token) {
       deployed.push(token);
     }
   });

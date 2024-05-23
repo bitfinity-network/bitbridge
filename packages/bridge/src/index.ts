@@ -1,3 +1,5 @@
+import 'dotenv/config';
+
 import { BtcBridge } from './btc';
 import { IcrcBridge } from './icrc';
 import { RuneBridge } from './rune';

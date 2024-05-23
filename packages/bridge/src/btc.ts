@@ -9,7 +9,6 @@ import { encodeBtcAddress, ethAddrToSubaccount } from './utils';
 import { BridgeToken, idStrMatch } from './tokens';
 import WrappedTokenABI from './abi/WrappedToken';
 import BFTBridgeABI from './abi/BFTBridge';
-import { wait } from './utils';
 
 interface BtcBridgeOptions {
   wallet: ethers.Signer;
@@ -123,14 +122,11 @@ export class BtcBridge implements Bridge {
     );
     await approveTx.wait(2);
 
-    await wait(10000);
-
     const burnTx = await this.bftBridge.burn(
       satoshis,
       this.wrappedTokenAddress,
       `0x${encodeBtcAddress(address)}`
     );
-
     await burnTx.wait(2);
   }
 }

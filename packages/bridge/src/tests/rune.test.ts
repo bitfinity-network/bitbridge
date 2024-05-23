@@ -11,6 +11,7 @@ import {
   randomWallet
 } from './utils';
 import { wait } from '../utils';
+import { RUNE_TOKEN_ID } from '../constants';
 
 describe.sequential(
   'rune',
@@ -40,7 +41,7 @@ describe.sequential(
 
     await connector.requestIcConnect();
 
-    const runeBridge = connector.getBridge<'rune'>('rune');
+    const runeBridge = connector.getBridge<'rune'>(RUNE_TOKEN_ID);
 
     test('bridge to evm', async () => {
       const toAddress = wallet.address;
@@ -61,9 +62,11 @@ describe.sequential(
         `generatetoaddress 1 bcrt1q7xzw9nzmsvwnvfrx6vaq5npkssqdylczjk8cts`
       );
 
+      await wait(1000);
+
       await runeBridge.bridgeToEvmc(toAddress);
 
-      await wait(15000);
+      await wait(5000);
 
       const wrappedBalance2 =
         await runeBridge.getWrappedTokenBalance(toAddress);
@@ -76,7 +79,7 @@ describe.sequential(
 
       await runeBridge.bridgeFromEvmc(toAddress, 100);
 
-      await wait(15000);
+      await wait(1000);
 
       const wrappedBalance = await runeBridge.getWrappedTokenBalance(
         wallet.address

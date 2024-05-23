@@ -9,6 +9,9 @@ import {
   Text,
   chakra,
   useColorModeValue,
+  VStack,
+  useDisclosure,
+  Collapse,
 } from "@chakra-ui/react";
 import { DropdownMenu, LabelValuePair } from "../../ui";
 import { TokenListModal } from "../TokenListModal";
@@ -25,6 +28,7 @@ import { useWallets } from "../../hooks/useWallets";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { NetworkProp, TokenProp } from "../../types";
 import { useBridgeContext } from "../../provider/BridgeProvider";
+import { useAccount } from "wagmi";
 
 type WidgetFormProps = {
   setBridgingOrWalletOperation?: Dispatch<SetStateAction<boolean>>;
@@ -36,17 +40,24 @@ export const WidgetForm = ({
     "light.secondary.alpha4",
     "dark.secondary.alpha4"
   );
-
+  const { address: ethAddress, isConnected: isEthConnected } = useAccount();
   const { defaultNetwork } = useBridgeContext();
   const selectedDefaultNetwork =
     NETWORKS.find(
       (item) => item.symbol.toLowerCase() === defaultNetwork?.toLowerCase()
     ) || NETWORKS[0];
   const [network, setNetwork] = useState(selectedDefaultNetwork);
-  const { bridgeFn, amount, setAmount, token, setToken, isBridging } =
-    useBridge({
-      network: network?.symbol,
-    });
+  const {
+    bridgeFn,
+    amount,
+    setAmount,
+    token,
+    setToken,
+    isBridging,
+    bridgingMesssage,
+  } = useBridge({
+    network: network?.symbol,
+  });
   const tokens = useTokens(network.symbol);
   const [showTokenList, setShowTokenList] = useState(false);
   const [showNetworkList, setShowNetworkList] = useState(false);
@@ -54,10 +65,22 @@ export const WidgetForm = ({
     token?.address as `0x${string}`
   );
   const { balance: icBalance } = useIcTokenBalance(token);
-  const { connectToIcWallet, isFetching: isFethcingICWallet } = useWallets();
+  const {
+    connectToIcWallet,
+    isFetching: isFethcingICWallet,
+    icWallet,
+  } = useWallets();
   const { openConnectModal } = useConnectModal();
+  const {
+    isOpen: isBridgingMessageOpen,
+    onOpen: onBridgingMessageOpen,
+    onClose: onBridgingMessageClose,
+  } = useDisclosure();
 
   const isPendingBridgeOrWalletOperation = isBridging || isFethcingICWallet;
+
+  const isICOrEthWalletConnected =
+    icWallet?.principal || (ethAddress && isEthConnected);
 
   const getBalance = () => {
     if (network.symbol === NETWORK_SYMBOLS.ETHEREUM) {
@@ -78,7 +101,7 @@ export const WidgetForm = ({
     setShowNetworkList(false);
   };
 
-  const bridgeToken = async () => {
+  const connectWallets = async () => {
     if (
       network.symbol === NETWORK_SYMBOLS.BITFINITY ||
       network.symbol === NETWORK_SYMBOLS.IC
@@ -88,6 +111,9 @@ export const WidgetForm = ({
       }
       await connectToIcWallet();
     }
+  };
+
+  const bridgeToken = async () => {
     await bridgeFn();
   };
 
@@ -106,6 +132,19 @@ export const WidgetForm = ({
       setBridgingOrWalletOperation(isPendingBridgeOrWalletOperation);
     }
   }, [isPendingBridgeOrWalletOperation, setBridgingOrWalletOperation]);
+
+  useEffect(() => {
+    if (bridgingMesssage && isBridging) {
+      onBridgingMessageOpen();
+    } else {
+      onBridgingMessageClose();
+    }
+  }, [
+    bridgingMesssage,
+    onBridgingMessageOpen,
+    onBridgingMessageClose,
+    isBridging,
+  ]);
 
   return (
     <Box>
@@ -163,13 +202,30 @@ export const WidgetForm = ({
           />
           <LabelValuePair label="Service fee">0.000</LabelValuePair>
         </EnhancedFormControl>
-        <Box pt={2}>
+
+        <Collapse in={isBridgingMessageOpen} animateOpacity>
+          <VStack
+            width="full"
+            alignItems="center"
+            justifyContent="center"
+            bg={enhancedFormControlBg}
+            borderRadius="12px"
+            padding={4}
+            marginY={4}
+          >
+            <Text textStyle="h6" color="secondary.alpha72">
+              {bridgingMesssage}
+            </Text>
+          </VStack>
+        </Collapse>
+
+        <Box width="full" pt={2}>
           <Button
             isLoading={isPendingBridgeOrWalletOperation}
             w="full"
-            onClick={bridgeToken}
+            onClick={isICOrEthWalletConnected ? bridgeToken : connectWallets}
           >
-            Bridge
+            {isICOrEthWalletConnected ? "Bridge" : "Connect Wallets"}
           </Button>
         </Box>
       </form>
