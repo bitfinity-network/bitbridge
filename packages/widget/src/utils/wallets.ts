@@ -1,29 +1,8 @@
-// import { useDisclosure } from "@chakra-ui/react";
-// import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-// import { Principal } from "@dfinity/principal";
 import { BitfinityWallet } from "@bitfinity-network/bitfinitywallet";
 
-import { BITFINITY_INSTALLATION_URL, queryKeys } from "../utils";
-// import { useAccount } from "wagmi";
+import { BITFINITY_INSTALLATION_URL } from "./constants.ts";
 
-// type IcWalletType = {
-//   principal: Principal | null;
-//   accountId: string | null;
-// };
-// type IcType = {
-//   getPrincipal: () => Promise<Principal>;
-//   getAccountID: () => Promise<string>;
-// };
-//
 const icWalletId = "bitfinityWallet";
-// // const emptyIcWallet: IcWalletType = { principal: null, accountId: null };
-//
-// const getPrincipalAndAccountId = async (): Promise<IcWalletType> => {
-//   // const principal = await payload.getPrincipal();
-//   // const accountId = await (window as any).ic[icWalletId].getAccountID();
-//
-//   return { principal, accountId };
-// };
 
 export const getIcWallet = (): BitfinityWallet => {
   const currentWallet = window.ic?.[icWalletId];

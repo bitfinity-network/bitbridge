@@ -46,7 +46,8 @@
     "react-spring-bottom-sheet": "3.5.0-alpha.0",
     "viem": "2.x",
     "vite-plugin-svgr": "^4.2.0",
-    "wagmi": "^2.8.1"
+    "wagmi": "^2.8.1",
+    "@bitfinity-network/bitfinitywallet": "^0.3.0"
   },
   "devDependencies": {
     "@tanstack/react-query-devtools": "^5.24.0",

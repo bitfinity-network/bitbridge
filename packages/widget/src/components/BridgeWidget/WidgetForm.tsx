@@ -2,18 +2,15 @@ import {
   Box,
   Button,
   Divider,
-  FormControl as ChakraFormControl,
   FormLabel,
   HStack,
   Input,
   Text,
-  chakra,
-  useColorModeValue,
   VStack,
-  useDisclosure,
   Collapse,
+  useDisclosure,
 } from "@chakra-ui/react";
-import { DropdownMenu, LabelValuePair } from "../../ui";
+import { DropdownMenu, LabelValuePair, EnhancedFormControl } from "../../ui";
 import { TokenListModal } from "../TokenListModal";
 import { NetworkListModal } from "../NetworkListModal";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
@@ -36,15 +33,11 @@ type WidgetFormProps = {
 export const WidgetForm = ({
   setBridgingOrWalletOperation,
 }: WidgetFormProps) => {
-  const enhancedFormControlBg = useColorModeValue(
-    "light.secondary.alpha4",
-    "dark.secondary.alpha4"
-  );
   const { address: ethAddress, isConnected: isEthConnected } = useAccount();
   const { defaultNetwork } = useBridgeContext();
   const selectedDefaultNetwork =
     NETWORKS.find(
-      (item) => item.symbol.toLowerCase() === defaultNetwork?.toLowerCase()
+      (item) => item.symbol.toLowerCase() === defaultNetwork?.toLowerCase(),
     ) || NETWORKS[0];
   const [network, setNetwork] = useState(selectedDefaultNetwork);
   const {
@@ -62,7 +55,7 @@ export const WidgetForm = ({
   const [showTokenList, setShowTokenList] = useState(false);
   const [showNetworkList, setShowNetworkList] = useState(false);
   const { balance: ethBalance } = useErc20TokenBalance(
-    token?.address as `0x${string}`
+    token?.address as `0x${string}`,
   );
   const { balance: icBalance } = useIcTokenBalance(token);
   const {
@@ -116,16 +109,6 @@ export const WidgetForm = ({
   const bridgeToken = async () => {
     await bridgeFn();
   };
-
-  const EnhancedFormControl = chakra(ChakraFormControl, {
-    baseStyle: {
-      width: "100%",
-      borderRadius: "12px",
-      bg: enhancedFormControlBg,
-      padding: 4,
-      marginY: 4,
-    },
-  });
 
   useEffect(() => {
     if (setBridgingOrWalletOperation) {

@@ -1,17 +1,19 @@
 import { Fragment } from "react";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
+import { ChakraProvider } from "@chakra-ui/react";
+import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { WagmiProvider } from "wagmi";
+
 import { BridgeProvider } from "../../provider/BridgeProvider";
 import { Widget } from "./Widget";
 import { reactQueryClient } from "../../utils";
-import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
-import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
-import { WagmiProvider } from "wagmi";
 import { BITFINITY_LOCAL_CHAIN } from "../../utils/network";
-import "@rainbow-me/rainbowkit/styles.css";
-import { CustomThemeType, TBridgeWidget } from "../../types";
+import { TBridgeWidget } from "../../types";
 import { extendDefaultTheme } from "../../theme/Theme";
-import { ChakraProvider } from "@chakra-ui/react";
+
+import "@rainbow-me/rainbowkit/styles.css";
 
 const persister = createSyncStoragePersister({
   storage: window.localStorage,
@@ -28,25 +30,7 @@ export const BridgeWidget = ({
     chains: [BITFINITY_LOCAL_CHAIN, ...chains],
   });
 
-  /**
-   * Example custom theme:
-   * {
-      colors: {
-        primary: "#FFD700",
-        secondary: "#FFD7000",
-        mainBg: "#000000",
-        modalBg: "#333333",
-        primaryText: "#FFFFFF",
-        secondaryText: "#000000",
-      },
-      config: {
-        colorMode: "dark",
-        useSystemColorMode: false,
-      },
-    };
-   */
-  const customTheme: CustomThemeType | undefined = theme;
-  const extendedTheme = extendDefaultTheme(customTheme);
+  const extendedTheme = extendDefaultTheme(theme);
 
   return (
     <Fragment>

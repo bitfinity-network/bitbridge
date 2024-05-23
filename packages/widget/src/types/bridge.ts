@@ -1,6 +1,5 @@
 import { Chain } from "@rainbow-me/rainbowkit";
 import { JsonRpcSigner } from "ethers";
-import { ReactNode } from "react";
 import { NetworkType } from "./network";
 
 export type TBridgeOptions = {
@@ -34,10 +33,5 @@ export type CustomThemeType = {
 
 export type TBridgeWidget = {
   chains?: Chain[];
-  theme?: CustomThemeType;
-} & TBridgeOptions;
-
-export type TBridgeProvider = {
-  children: ReactNode;
   theme?: CustomThemeType;
 } & TBridgeOptions;
