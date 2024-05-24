@@ -10,3 +10,6 @@ export { BtcBridge, IcrcBridge, RuneBridge, BTC_TOKEN_WRAPPED_ADDRESS };
 export { Connector, ConnectorOptions } from './connector';
 
 export { Bridger, BridgerOptions, Bridges } from './bridger';
+
+export * from './ic';
+export * from './constants';
