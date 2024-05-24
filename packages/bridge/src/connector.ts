@@ -16,27 +16,18 @@ import { Fetcher } from './fetcher';
 export interface ConnectorOptions {
   wallet: ethers.Signer;
   agent: Agent;
-  // bitfinityWallet?: BitfinityWallet;
   deployer?: { address: string; deployer: Deployer };
 }
 
 export class Connector {
   protected wallet: ethers.Signer;
   protected bitfinityWallet?: BitfinityWallet;
-  // protected agent: Agent;
   protected bridger: Bridger;
   protected fetcher: Fetcher;
   protected deployers: Record<string, Deployer> = {};
 
-  private constructor({
-    wallet,
-    agent,
-    // bitfinityWallet,
-    deployer
-  }: ConnectorOptions) {
-    // this.agent = agent;
+  private constructor({ wallet, agent, deployer }: ConnectorOptions) {
     this.wallet = wallet;
-    // this.bitfinityWallet = bitfinityWallet;
     if (deployer) {
       this.deployers[deployer.address] = deployer.deployer;
     }
@@ -91,8 +82,14 @@ export class Connector {
                 ? token.runeId
                 : '';
 
-          if (this.bridger.getBridgedToken(id)) {
+          if (this.bridger.isBridge(id)) {
             return undefined!;
+          }
+
+          const prevDeployed = this.getBridgedToken(id);
+
+          if (prevDeployed) {
+            return prevDeployed
           }
 
           const deployer = this.getDeployer(token.bftAddress);

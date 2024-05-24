@@ -6,7 +6,7 @@ import type { Agent } from '@dfinity/agent';
 import { Bridge } from './bridge';
 import { BtcActor, createBtcBridgeActor } from './ic';
 import { encodeBtcAddress, ethAddrToSubaccount } from './utils';
-import { BridgeToken, idStrMatch } from './tokens';
+import { BridgeToken } from './tokens';
 import WrappedTokenABI from './abi/WrappedToken';
 import BFTBridgeABI from './abi/BFTBridge';
 
@@ -43,7 +43,7 @@ export class BtcBridge implements Bridge {
   }
 
   idMatch(token: BridgeToken) {
-    return idStrMatch(this.wrappedTokenAddress, token);
+    return this.wrappedTokenAddress === token.wrappedTokenAddress;
   }
 
   async init() {

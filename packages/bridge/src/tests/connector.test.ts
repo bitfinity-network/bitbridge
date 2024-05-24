@@ -7,11 +7,8 @@ import {
   mintNativeToken,
   randomWallet
 } from './utils';
-// import { defaultDeployedTokens } from '../tokens-urls';
 import { BridgeIcrcToken } from '../tokens';
 import { wait } from '../utils';
-
-// const deployedTokensCount = defaultDeployedTokens.length;
 
 describe('connector', async () => {
   const wallet = randomWallet();
@@ -24,13 +21,13 @@ describe('connector', async () => {
   await wait(1000);
 
   test('create', async () => {
-    const connector = Connector.create({ wallet, bitfinityWallet });
+    const connector = Connector.create({ wallet, agent });
 
     expect(connector.getBridgedTokens()).toHaveLength(0);
   });
 
   test('fetch local', async () => {
-    const connector = Connector.create({ wallet, bitfinityWallet });
+    const connector = Connector.create({ wallet, agent });
 
     const fetchedCount = await connector.fetchLocal();
 
@@ -38,7 +35,7 @@ describe('connector', async () => {
   });
 
   test('bridge local without deploy', async () => {
-    const connector = Connector.create({ wallet, bitfinityWallet });
+    const connector = Connector.create({ wallet, agent });
 
     await connector.fetchLocal();
 
@@ -49,28 +46,32 @@ describe('connector', async () => {
   });
 
   test('bridge after deploy', async () => {
-    const connector = Connector.create({ wallet, bitfinityWallet });
+    const connector = Connector.create({ wallet, agent });
 
     const fetchedCount = await connector.fetchLocal();
     expect(fetchedCount).toStrictEqual(3);
 
     const bridgedCount = await connector.bridgeAfterDeploy();
-    expect(bridgedCount).toStrictEqual(3);
+    expect(bridgedCount).toStrictEqual(2);
 
     const bridgedCount2 = await connector.bridgeAfterDeploy();
     expect(bridgedCount2).toStrictEqual(0);
 
     expect(connector.getBridgedTokens()).toHaveLength(3);
 
+    connector.connectBitfinityWallet(bitfinityWallet);
+
     const fetchedCount2 = await connector.fetchLocal();
     expect(fetchedCount2).toStrictEqual(3);
 
-    const bridgedCount3 = await connector.bridgeAfterDeploy();
-    expect(bridgedCount3).toStrictEqual(0);
+    const bridgedCount3 = await connector.bridgeAfterDeploy(true);
+    expect(bridgedCount3).toStrictEqual(1);
   });
 
   test('testing custom local urls', async () => {
-    const connector = Connector.create({ wallet, bitfinityWallet });
+    const connector = Connector.create({ wallet, agent });
+
+    connector.connectBitfinityWallet(bitfinityWallet);
 
     const icrcToken = BridgeIcrcToken.parse({
       icHost: 'http://localhost:9001',
