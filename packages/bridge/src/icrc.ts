@@ -15,7 +15,7 @@ import {
   ICRC1,
   ICRC2Minter
 } from './ic';
-import { BridgeToken, idStrMatch } from './tokens';
+import { BridgeToken } from './tokens';
 import { generateOperationId } from './tests/utils';
 import BftBridgeABI from './abi/BFTBridge';
 import WrappedTokenABI from './abi/WrappedToken';
@@ -64,7 +64,7 @@ export class IcrcBridge implements Bridge {
   }
 
   idMatch(token: BridgeToken) {
-    return idStrMatch(this.wrappedTokenAddress, token);
+    return this.wrappedTokenAddress === token.wrappedTokenAddress;
   }
 
   protected async initICRC2Minter() {

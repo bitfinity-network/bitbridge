@@ -50,10 +50,6 @@ export const id = (token: BridgeToken) => {
   return id1;
 };
 
-export const idMatch = (t1: BridgeToken, t2: BridgeToken) => {
-  return id(t1) === id(t2);
-};
-
 export const idStrMatch = (str: string, token: BridgeToken) => {
   const ids = id(token).split('_');
 
