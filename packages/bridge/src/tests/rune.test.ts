@@ -2,8 +2,7 @@ import { describe, expect, test } from 'vitest';
 
 import { Connector } from '../';
 import {
-  createAgent,
-  createBitfinityWallet,
+  createAnnonAgent,
   execBitcoinCmd,
   execOrdReceive,
   execOrdSend,
@@ -20,8 +19,7 @@ describe.sequential(
 
     const wallet = randomWallet();
 
-    const { agent } = createAgent(wallet.privateKey);
-    const bitfinityWallet = createBitfinityWallet(agent);
+    const { agent } = createAnnonAgent();
 
     await mintNativeToken(wallet.address, '10000000000000000');
 
@@ -29,7 +27,7 @@ describe.sequential(
 
     const connector = Connector.create({
       wallet,
-      bitfinityWallet
+      agent
     });
 
     await connector.fetchLocal();

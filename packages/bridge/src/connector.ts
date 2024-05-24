@@ -1,5 +1,6 @@
 import * as ethers from 'ethers';
 import { BitfinityWallet } from '@bitfinity-network/bitfinitywallet';
+import { Agent } from '@dfinity/agent';
 
 import { Bridger, Bridges } from './bridger';
 import {
@@ -14,25 +15,29 @@ import { Fetcher } from './fetcher';
 
 export interface ConnectorOptions {
   wallet: ethers.Signer;
-  bitfinityWallet: BitfinityWallet;
+  agent: Agent;
   deployer?: { address: string; deployer: Deployer };
 }
 
 export class Connector {
   protected wallet: ethers.Signer;
-  protected bitfinityWallet: BitfinityWallet;
+  protected bitfinityWallet?: BitfinityWallet;
   protected bridger: Bridger;
   protected fetcher: Fetcher;
   protected deployers: Record<string, Deployer> = {};
 
-  private constructor({ wallet, bitfinityWallet, deployer }: ConnectorOptions) {
+  private constructor({ wallet, agent, deployer }: ConnectorOptions) {
     this.wallet = wallet;
-    this.bitfinityWallet = bitfinityWallet;
     if (deployer) {
       this.deployers[deployer.address] = deployer.deployer;
     }
     this.fetcher = new Fetcher();
-    this.bridger = new Bridger({ wallet, bitfinityWallet });
+    this.bridger = new Bridger({ wallet, agent });
+  }
+
+  connectBitfinityWallet(bitfinityWallet: BitfinityWallet) {
+    this.bitfinityWallet = bitfinityWallet;
+    this.bridger.connectBitfinityWallet(bitfinityWallet);
   }
 
   static create(options: ConnectorOptions): Connector {
@@ -77,8 +82,14 @@ export class Connector {
                 ? token.runeId
                 : '';
 
-          if (this.bridger.getBridgedToken(id)) {
+          if (this.bridger.isBridge(id)) {
             return undefined!;
+          }
+
+          const prevDeployed = this.getBridgedToken(id);
+
+          if (prevDeployed) {
+            return prevDeployed
           }
 
           const deployer = this.getDeployer(token.bftAddress);
@@ -137,7 +148,7 @@ export class Connector {
   }
 
   async requestIcConnect(whitelist: string[] = []) {
-    await this.bitfinityWallet.requestConnect({
+    await this.bitfinityWallet?.requestConnect({
       whitelist: whitelist.concat(await this.bridger.icWhiteList())
     });
   }

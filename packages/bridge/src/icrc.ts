@@ -6,6 +6,7 @@ import {
   BitfinityWallet,
   Transaction
 } from '@bitfinity-network/bitfinitywallet';
+import type { Agent } from '@dfinity/agent';
 
 import { Bridge } from './bridge';
 import {
@@ -14,12 +15,13 @@ import {
   ICRC1,
   ICRC2Minter
 } from './ic';
-import { BridgeToken, idStrMatch } from './tokens';
+import { BridgeToken } from './tokens';
 import { generateOperationId } from './tests/utils';
 import BftBridgeABI from './abi/BFTBridge';
 import WrappedTokenABI from './abi/WrappedToken';
 
 export interface IcrcBridgeOptions {
+  agent: Agent;
   wallet: ethers.Signer;
   bitfinityWallet: BitfinityWallet;
   bftAddress: string;
@@ -33,6 +35,7 @@ export class IcrcBridge implements Bridge {
   protected bftBridge: ethers.Contract;
   protected wallet: ethers.Signer;
   protected bitfinityWallet: BitfinityWallet;
+  protected agent: Agent;
   protected iCRC2MinterCanisterId: string;
   protected baseTokenCanisterId: string;
   protected wrappedTokenAddress: string;
@@ -45,6 +48,7 @@ export class IcrcBridge implements Bridge {
     bftAddress,
     wallet,
     bitfinityWallet,
+    agent,
     iCRC2MinterCanisterId,
     baseTokenCanisterId,
     wrappedTokenAddress
@@ -56,10 +60,11 @@ export class IcrcBridge implements Bridge {
     this.iCRC2MinterCanisterId = iCRC2MinterCanisterId;
     this.baseTokenCanisterId = baseTokenCanisterId;
     this.wrappedTokenAddress = wrappedTokenAddress;
+    this.agent = agent;
   }
 
   idMatch(token: BridgeToken) {
-    return idStrMatch(this.wrappedTokenAddress, token);
+    return this.wrappedTokenAddress === token.wrappedTokenAddress;
   }
 
   protected async initICRC2Minter() {
@@ -71,7 +76,7 @@ export class IcrcBridge implements Bridge {
       typeof ICRC2Minter
     >({
       canisterId: this.iCRC2MinterCanisterId,
-      interfaceFactory: Icrc2MinterIdlFactory,
+      interfaceFactory: Icrc2MinterIdlFactory
     });
   }
 
@@ -84,7 +89,7 @@ export class IcrcBridge implements Bridge {
       typeof ICRC1
     >({
       canisterId: this.baseTokenCanisterId,
-      interfaceFactory: Icrc1IdlFactory,
+      interfaceFactory: Icrc1IdlFactory
     });
   }
 
@@ -152,8 +157,6 @@ export class IcrcBridge implements Bridge {
     return new Promise((resolve, reject) => {
       (async () => {
         try {
-          // this.wallet.
-
           const fee = await this.baseToken.icrc1_fee();
 
           const trRes: unknown[] = [];

@@ -1,25 +1,25 @@
 import { Actor } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
 import * as ethers from 'ethers';
-import { BitfinityWallet } from '@bitfinity-network/bitfinitywallet';
+import type { Agent } from '@dfinity/agent';
 
 import { Bridge } from './bridge';
-import { BtcActor, BtcBridgeIdlFactory } from './ic';
+import { BtcActor, createBtcBridgeActor } from './ic';
 import { encodeBtcAddress, ethAddrToSubaccount } from './utils';
-import { BridgeToken, idStrMatch } from './tokens';
+import { BridgeToken } from './tokens';
 import WrappedTokenABI from './abi/WrappedToken';
 import BFTBridgeABI from './abi/BFTBridge';
 
 interface BtcBridgeOptions {
   wallet: ethers.Signer;
-  bitfinityWallet: BitfinityWallet;
+  agent: Agent;
   bftAddress: string;
   wrappedTokenAddress: string;
   btcBridgeCanisterId: string;
 }
 
 export class BtcBridge implements Bridge {
-  protected bitfinityWallet: BitfinityWallet;
+  protected agent: Agent;
   protected wallet: ethers.Signer;
   protected bftBridge: ethers.Contract;
   protected btcBridgeCanisterId: string;
@@ -30,20 +30,20 @@ export class BtcBridge implements Bridge {
 
   constructor({
     wallet,
-    bitfinityWallet,
+    agent,
     bftAddress,
     wrappedTokenAddress,
     btcBridgeCanisterId
   }: BtcBridgeOptions) {
     this.wallet = wallet;
-    this.bitfinityWallet = bitfinityWallet;
+    this.agent = agent;
     this.bftBridge = this.getBftBridgeContract(bftAddress);
     this.wrappedTokenAddress = wrappedTokenAddress;
     this.btcBridgeCanisterId = btcBridgeCanisterId;
   }
 
   idMatch(token: BridgeToken) {
-    return idStrMatch(this.wrappedTokenAddress, token);
+    return this.wrappedTokenAddress === token.wrappedTokenAddress;
   }
 
   async init() {
@@ -59,12 +59,10 @@ export class BtcBridge implements Bridge {
       return this.walletActors.btcActor;
     }
 
-    this.walletActors.btcActor = await this.bitfinityWallet.createActor<
-      typeof BtcActor
-    >({
-      canisterId: this.btcBridgeCanisterId,
-      interfaceFactory: BtcBridgeIdlFactory
-    });
+    this.walletActors.btcActor = createBtcBridgeActor(
+      this.btcBridgeCanisterId,
+      { agent: this.agent }
+    );
   }
 
   get btcActor() {
