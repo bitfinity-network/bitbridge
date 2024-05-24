@@ -79,7 +79,7 @@ export const WidgetWallets = ({ isOpen, onClose }: WidgetWalletsProps) => {
     disconnectIcWallet,
   } = useWallets();
   const {
-    address: ethAddress,
+    addresses: ethAddresses,
     isConnected: isEthConnected,
     connector,
     isConnecting: isEthConnecting,
@@ -107,18 +107,10 @@ export const WidgetWallets = ({ isOpen, onClose }: WidgetWalletsProps) => {
     await connectToIcWallet();
   };
 
-  const hasWallets = !!icWallet?.principal || (ethAddress && isEthConnected);
+  const hasWallets =
+    !!icWallet?.principal || (ethAddresses?.length && isEthConnected);
 
   const allWallets: WalletItemType[] = [
-    ...(ethAddress && isEthConnected
-      ? [
-          {
-            network: "BITFINITY" as const,
-            address: shortenAddress(ethAddress.toLocaleLowerCase() || ""),
-            onDisconnect: disconnectEthWallet,
-          },
-        ]
-      : []),
     ...(icWallet?.principal
       ? [
           {
@@ -131,6 +123,13 @@ export const WidgetWallets = ({ isOpen, onClose }: WidgetWalletsProps) => {
         ]
       : []),
   ];
+  ethAddresses?.forEach((address) => {
+    allWallets.push({
+      network: "BITFINITY" as const,
+      address: shortenAddress(address.toLocaleLowerCase() || ""),
+      onDisconnect: disconnectEthWallet,
+    });
+  });
 
   return (
     <Fragment>
