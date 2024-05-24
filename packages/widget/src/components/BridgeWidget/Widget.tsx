@@ -2,6 +2,8 @@ import { Button, Flex, useColorMode, useTheme } from "@chakra-ui/react";
 import { CustomModal } from "../../ui";
 import { useEffect, useState } from "react";
 import { WidgetForm } from "./WidgetForm";
+import { IoWallet } from "react-icons/io5";
+import { WidgetWallets } from "./WidgetWallets";
 
 export function Widget() {
   const { colorMode, setColorMode } = useColorMode();
@@ -9,6 +11,7 @@ export function Widget() {
   const initialColorMode = theme?.config?.initialColorMode;
 
   const [isModalOpen, setModalOpen] = useState(false);
+  const [shouldOpenWalletPannel, setOpenWalletPannel] = useState(false);
   const [isBridgingOrWalletOperation, setBridgingOrWalletOperation] =
     useState(false);
 
@@ -18,6 +21,13 @@ export function Widget() {
 
   const handleOpenModal = () => {
     setModalOpen(true);
+  };
+
+  const handleWalletPannelClose = () => {
+    setOpenWalletPannel(false);
+  };
+  const handleToggleWalletPannel = () => {
+    setOpenWalletPannel(!shouldOpenWalletPannel);
   };
 
   useEffect(() => {
@@ -33,6 +43,8 @@ export function Widget() {
         modalHeaderProps={{
           title: "Bridge Token",
           disableClose: isBridgingOrWalletOperation,
+          iconPrefix: IoWallet,
+          onIconPrefixClick: handleToggleWalletPannel,
         }}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
@@ -42,10 +54,15 @@ export function Widget() {
         modalContentProps={{
           width: "500px",
           borderRadius: "20px",
+          overflowY: "hidden",
         }}
       >
         <WidgetForm
           setBridgingOrWalletOperation={setBridgingOrWalletOperation}
+        />
+        <WidgetWallets
+          isOpen={shouldOpenWalletPannel}
+          onClose={handleWalletPannelClose}
         />
       </CustomModal>
     </Flex>
