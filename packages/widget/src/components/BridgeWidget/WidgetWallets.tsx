@@ -13,7 +13,7 @@ import {
 import { IoClose } from "react-icons/io5";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useWallets } from "../../hooks/useWallets";
-import { useAccount } from "wagmi";
+import { useAccount, useConnections, useDisconnect } from "wagmi";
 import { NETWORKS, NETWORK_SYMBOLS } from "../../utils";
 import { shortenAddress } from "../../utils/network";
 import { NetworkProp } from "../../types";
@@ -72,18 +72,17 @@ type WidgetWalletsProps = {
 };
 export const WidgetWallets = ({ isOpen, onClose }: WidgetWalletsProps) => {
   const { openConnectModal } = useConnectModal();
+  const ethConnections = useConnections();
+
   const {
     connectToIcWallet,
     isFetching: isFethcingICWallet,
     icWallet,
     disconnectIcWallet,
   } = useWallets();
-  const {
-    addresses: ethAddresses,
-    isConnected: isEthConnected,
-    connector,
-    isConnecting: isEthConnecting,
-  } = useAccount();
+  const { isConnected: isEthConnected, isConnecting: isEthConnecting } =
+    useAccount();
+  const { disconnect, connectors: ethConnectors } = useDisconnect();
 
   const closeIconColor = useColorModeValue("light.text.main", "dark.text.main");
   const pannelBgColor = useColorModeValue(
@@ -96,8 +95,15 @@ export const WidgetWallets = ({ isOpen, onClose }: WidgetWalletsProps) => {
   const disconnectICWallet = async () => {
     await disconnectIcWallet();
   };
-  const disconnectEthWallet = async () => {
-    await connector?.disconnect();
+  const disconnectEthWallet = async (connectorIndex?: number) => {
+    if (connectorIndex !== undefined) {
+      await ethConnectors[connectorIndex]?.disconnect();
+    }
+    await disconnect();
+  };
+  const disconnectAllWallets = async () => {
+    await disconnectICWallet();
+    await disconnectEthWallet();
   };
 
   const connectWallets = async () => {
@@ -108,7 +114,8 @@ export const WidgetWallets = ({ isOpen, onClose }: WidgetWalletsProps) => {
   };
 
   const hasWallets =
-    !!icWallet?.principal || (ethAddresses?.length && isEthConnected);
+    !!icWallet?.principal || (ethConnections?.length && isEthConnected);
+  const isAllWalletTypesConnected = !!icWallet?.principal && isEthConnected;
 
   const allWallets: WalletItemType[] = [
     ...(icWallet?.principal
@@ -123,11 +130,11 @@ export const WidgetWallets = ({ isOpen, onClose }: WidgetWalletsProps) => {
         ]
       : []),
   ];
-  ethAddresses?.forEach((address) => {
+  ethConnections?.forEach((connection, index) => {
     allWallets.push({
       network: "BITFINITY" as const,
-      address: shortenAddress(address.toLocaleLowerCase() || ""),
-      onDisconnect: disconnectEthWallet,
+      address: shortenAddress(connection.accounts[0]?.toLowerCase() || ""),
+      onDisconnect: () => disconnectEthWallet(index),
     });
   });
 
@@ -150,9 +157,10 @@ export const WidgetWallets = ({ isOpen, onClose }: WidgetWalletsProps) => {
           width="full"
           gap="16px"
           padding={4}
-          maxHeight={300}
+          maxHeight={500}
           bg={pannelBgColor}
           boxShadow={isOpen ? "0 -16px 20px 0px rgba(0, 0, 0, 0.24)" : "none"}
+          overflowY="auto"
         >
           <HStack width="full" justifyContent="space-between">
             <Text color="brand.100" fontWeight={600} fontSize="20px">
@@ -196,14 +204,21 @@ export const WidgetWallets = ({ isOpen, onClose }: WidgetWalletsProps) => {
                 })}
               </VStack>
             )}
-            <Button
-              isLoading={isWalletsPending}
-              variant="solid"
-              width="full"
-              onClick={connectWallets}
-            >
-              Connect Wallets
-            </Button>
+            <HStack width="full" gap="8px">
+              {!isAllWalletTypesConnected && hasWallets && (
+                <Button variant="solid" width="full" onClick={connectWallets}>
+                  Connect Wallet
+                </Button>
+              )}
+              <Button
+                isLoading={isWalletsPending}
+                variant={hasWallets ? "outline" : "solid"}
+                width="full"
+                onClick={hasWallets ? disconnectAllWallets : connectWallets}
+              >
+                {hasWallets ? "Disconnect all wallets" : "Connect Wallets"}
+              </Button>
+            </HStack>
           </VStack>
         </VStack>
       </Slide>
