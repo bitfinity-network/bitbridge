@@ -21,55 +21,29 @@ describe('connector', async () => {
   await wait(1000);
 
   test('create', async () => {
-    const connector = Connector.create({ wallet, agent });
+    const connector = Connector.create({ agent });
 
     expect(connector.getBridgedTokens()).toHaveLength(0);
   });
 
-  test('fetch local', async () => {
-    const connector = Connector.create({ wallet, agent });
+  test('bridges created properly on wallets connection', async () => {
+    const connector = Connector.create({ agent });
 
     const fetchedCount = await connector.fetchLocal();
-
     expect(fetchedCount).toStrictEqual(3);
-  });
 
-  test('bridge local without deploy', async () => {
-    const connector = Connector.create({ wallet, agent });
+    await connector.bridge();
 
-    await connector.fetchLocal();
-
-    const bridgedCount = connector.bridge();
-
-    expect(bridgedCount).toStrictEqual(1);
     expect(connector.getBridgedTokens()).toHaveLength(1);
-  });
 
-  test('bridge after deploy', async () => {
-    const connector = Connector.create({ wallet, agent });
+    connector.connectEthWallet(wallet);
 
-    const fetchedCount = await connector.fetchLocal();
-    expect(fetchedCount).toStrictEqual(3);
-
-    const bridgedCount = await connector.bridgeAfterDeploy();
-    expect(bridgedCount).toStrictEqual(2);
-
-    const bridgedCount2 = await connector.bridgeAfterDeploy();
-    expect(bridgedCount2).toStrictEqual(0);
-
+    await connector.bridge();
     expect(connector.getBridgedTokens()).toHaveLength(3);
-
-    connector.connectBitfinityWallet(bitfinityWallet);
-
-    const fetchedCount2 = await connector.fetchLocal();
-    expect(fetchedCount2).toStrictEqual(3);
-
-    const bridgedCount3 = await connector.bridgeAfterDeploy(true);
-    expect(bridgedCount3).toStrictEqual(1);
   });
 
   test('testing custom local urls', async () => {
-    const connector = Connector.create({ wallet, agent });
+    const connector = Connector.create({ agent });
 
     connector.connectBitfinityWallet(bitfinityWallet);
 
@@ -83,8 +57,7 @@ describe('connector', async () => {
 
     await connector.fetch([{ type: 'local', tokens: [icrcToken] }]);
 
-    const bridgedCount = connector.bridge();
-    expect(bridgedCount).toStrictEqual(1);
+    await connector.bridge();
 
     expect(connector.getBridgedTokens()).toHaveLength(1);
 

@@ -25,19 +25,14 @@ describe.sequential(
 
     await wait(1000);
 
-    const connector = Connector.create({
-      wallet,
-      agent
-    });
+    const connector = Connector.create({ agent });
+
+    connector.connectEthWallet(wallet);
 
     await connector.fetchLocal();
-    await connector.bridgeAfterDeploy();
+    await connector.bridge();
 
     await wait(1000);
-
-    await connector.init();
-
-    await connector.requestIcConnect();
 
     const runeBridge = connector.getBridge<'rune'>(RUNE_TOKEN_ID);
 

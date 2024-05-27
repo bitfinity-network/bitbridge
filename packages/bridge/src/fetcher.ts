@@ -5,7 +5,8 @@ import {
   FetchUrlRemote,
   remoteUrls
 } from './tokens-urls';
-import { FetchedToken, splitTokens } from './tokens-fetched';
+import { FetchedToken, id, splitTokens } from './tokens-fetched';
+import { BridgeToken, idStrMatch } from './tokens';
 
 export class Fetcher {
   protected tokensFetched: FetchedToken[] = [];
@@ -50,18 +51,14 @@ export class Fetcher {
     ]);
   }
 
-  getTokensBridged() {
-    const [bridged, toBeDeployed] = splitTokens(this.tokensFetched);
-
-    this.tokensFetched = toBeDeployed;
-
-    return bridged;
+  removeDeployedTokens(deployed: BridgeToken[]) {
+    this.tokensFetched = this.tokensFetched.filter((fetched) => {
+      return !deployed.some((token) => idStrMatch(id(fetched), token));
+    });
   }
 
   getTokensAll() {
     const [bridged, toDeploy] = splitTokens(this.tokensFetched);
-
-    this.tokensFetched = [];
 
     return [bridged, toDeploy] as const;
   }

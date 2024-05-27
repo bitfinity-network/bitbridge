@@ -96,3 +96,13 @@ export const splitTokens = (
 
   return [bridged, deployed];
 };
+
+export const id = (token: FetchedToken) => {
+  if (token.type === 'icrc') {
+    return token.baseTokenCanisterId.replace(/-/g, '').toLowerCase();
+  } else if (token.type === 'btc') {
+    return token.wrappedTokenAddress.toLowerCase();
+  } else {
+    return token.runeId.toLowerCase();
+  }
+};

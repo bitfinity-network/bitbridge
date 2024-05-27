@@ -14,30 +14,37 @@ import { Deployer } from './deployer';
 import { Fetcher } from './fetcher';
 
 export interface ConnectorOptions {
-  wallet: ethers.Signer;
   agent: Agent;
   deployer?: { address: string; deployer: Deployer };
 }
 
 export class Connector {
-  protected wallet: ethers.Signer;
-  protected bitfinityWallet?: BitfinityWallet;
+  protected wallet?: ethers.Signer;
   protected bridger: Bridger;
   protected fetcher: Fetcher;
   protected deployers: Record<string, Deployer> = {};
 
-  private constructor({ wallet, agent, deployer }: ConnectorOptions) {
-    this.wallet = wallet;
-    if (deployer) {
-      this.deployers[deployer.address] = deployer.deployer;
-    }
+  private constructor({ agent }: ConnectorOptions) {
     this.fetcher = new Fetcher();
-    this.bridger = new Bridger({ wallet, agent });
+    this.bridger = new Bridger({ agent });
+  }
+
+  connectEthWallet(wallet: ethers.Signer) {
+    this.wallet = wallet;
+    this.bridger.connectEthWallet(wallet);
+  }
+
+  disconnectEthWallet() {
+    this.wallet = undefined;
+    this.bridger.connectEthWallet(undefined);
   }
 
   connectBitfinityWallet(bitfinityWallet: BitfinityWallet) {
-    this.bitfinityWallet = bitfinityWallet;
     this.bridger.connectBitfinityWallet(bitfinityWallet);
+  }
+
+  disconnectBitfinityWallet() {
+    this.bridger.connectBitfinityWallet(undefined);
   }
 
   static create(options: ConnectorOptions): Connector {
@@ -45,6 +52,11 @@ export class Connector {
   }
 
   protected getDeployer(bftAddress: string) {
+    if (!this.wallet) {
+      this.deployers = {};
+      return undefined;
+    }
+
     if (this.deployers[bftAddress]) {
       return this.deployers[bftAddress];
     }
@@ -59,13 +71,7 @@ export class Connector {
     return deployer;
   }
 
-  bridge() {
-    const tokens = this.fetcher.getTokensBridged();
-
-    return this.bridger.addBridgedTokens(tokens);
-  }
-
-  async bridgeAfterDeploy() {
+  async bridge() {
     const [bridged, toDeploy] = this.fetcher.getTokensAll();
 
     const deployed: BridgeToken[] = (
@@ -89,10 +95,14 @@ export class Connector {
           const prevDeployed = this.getBridgedToken(id);
 
           if (prevDeployed) {
-            return prevDeployed
+            return prevDeployed;
           }
 
           const deployer = this.getDeployer(token.bftAddress);
+
+          if (!deployer) {
+            return undefined!;
+          }
 
           const baseToken = BridgeBaseToken.parse(token);
 
@@ -128,7 +138,11 @@ export class Connector {
       )
     ).filter((token) => !!token);
 
-    return this.bridger.addBridgedTokens(bridged.concat(deployed));
+    const deployedTokens = bridged.concat(deployed)
+
+    this.bridger.addBridgedTokens(deployedTokens);
+    this.fetcher.removeDeployedTokens(deployedTokens);
+
   }
 
   async fetch(tokensUrls: FetchUrl[]) {
@@ -143,14 +157,8 @@ export class Connector {
     return await this.fetcher.fetchDefault(network);
   }
 
-  async init() {
-    await this.bridger.init();
-  }
-
-  async requestIcConnect(whitelist: string[] = []) {
-    await this.bitfinityWallet?.requestConnect({
-      whitelist: whitelist.concat(await this.bridger.icWhiteList())
-    });
+  icWhiteList() {
+    return this.bridger.icWhiteList();
   }
 
   getBridge<T extends keyof Bridges>(id: string) {

@@ -11,7 +11,6 @@ import WrappedTokenABI from './abi/WrappedToken';
 import BFTBridgeABI from './abi/BFTBridge';
 
 interface BtcBridgeOptions {
-  wallet: ethers.Signer;
   agent: Agent;
   bftAddress: string;
   wrappedTokenAddress: string;
@@ -20,57 +19,73 @@ interface BtcBridgeOptions {
 
 export class BtcBridge implements Bridge {
   protected agent: Agent;
-  protected wallet: ethers.Signer;
-  protected bftBridge: ethers.Contract;
+  protected bftAddress: string;
   protected btcBridgeCanisterId: string;
   protected wrappedTokenAddress: string;
   protected walletActors: {
+    wallet?: ethers.Signer;
     btcActor?: typeof BtcActor;
+  } = {};
+  protected eth: {
+    bftBridge?: ethers.Contract;
   } = {};
 
   constructor({
-    wallet,
     agent,
     bftAddress,
     wrappedTokenAddress,
     btcBridgeCanisterId
   }: BtcBridgeOptions) {
-    this.wallet = wallet;
     this.agent = agent;
-    this.bftBridge = this.getBftBridgeContract(bftAddress);
     this.wrappedTokenAddress = wrappedTokenAddress;
     this.btcBridgeCanisterId = btcBridgeCanisterId;
+    this.bftAddress = bftAddress;
   }
+
+  connectEthWallet(wallet?: ethers.Signer) {
+    this.walletActors.wallet = wallet;
+    this.eth = {};
+  }
+
+  connectBitfinityWallet() {}
 
   idMatch(token: BridgeToken) {
     return this.wrappedTokenAddress === token.wrappedTokenAddress;
   }
 
-  async init() {
-    await this.initBtcActor();
-  }
-
-  async icWhitelist() {
+  icWhitelist() {
     return [this.btcBridgeCanisterId];
   }
 
-  protected async initBtcActor() {
-    if (this.walletActors.btcActor) {
-      return this.walletActors.btcActor;
+  get wallet() {
+    if (!this.walletActors.wallet) {
+      throw new Error('ETH wallet not connected yet');
     }
 
-    this.walletActors.btcActor = createBtcBridgeActor(
-      this.btcBridgeCanisterId,
-      { agent: this.agent }
-    );
+    return this.walletActors.wallet;
   }
 
   get btcActor() {
     if (!this.walletActors.btcActor) {
-      throw new Error('Wallet actors not init yet. Call init() before');
+      this.walletActors.btcActor = createBtcBridgeActor(
+        this.btcBridgeCanisterId,
+        { agent: this.agent }
+      );
     }
 
     return this.walletActors.btcActor;
+  }
+
+  get bftBridge() {
+    if (!this.eth.bftBridge) {
+      this.eth.bftBridge = new ethers.Contract(
+        this.bftAddress,
+        BFTBridgeABI,
+        this.wallet
+      );
+    }
+
+    return this.eth.bftBridge;
   }
 
   getWrappedTokenContract() {
@@ -79,10 +94,6 @@ export class BtcBridge implements Bridge {
       WrappedTokenABI,
       this.wallet
     );
-  }
-
-  getBftBridgeContract(address: string) {
-    return new ethers.Contract(address, BFTBridgeABI, this.wallet);
   }
 
   async getWrappedTokenBalance(address: string) {

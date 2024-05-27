@@ -24,21 +24,15 @@ describe.sequential(
 
     await wait(1000);
 
-    const connector = Connector.create({
-      wallet,
-      agent
-    });
+    const connector = Connector.create({ agent });
 
+    connector.connectEthWallet(wallet);
     connector.connectBitfinityWallet(bitfinityWallet);
 
     await connector.fetchLocal();
-    await connector.bridgeAfterDeploy();
+    await connector.bridge();
 
     await wait(1000);
-
-    await connector.init();
-
-    await connector.requestIcConnect();
 
     const icrcBricdge = connector.getBridge<'icrc'>(ICRC2_TOKEN_CANISTER_ID);
 

@@ -11,7 +11,6 @@ import { Bridge } from './bridge';
 import { BridgeToken } from './tokens';
 
 interface RuneBridgeOptions {
-  wallet: ethers.Signer;
   agent: Agent;
   bftAddress: string;
   wrappedTokenAddress: string;
@@ -21,60 +20,76 @@ interface RuneBridgeOptions {
 
 export class RuneBridge implements Bridge {
   protected agent: Agent;
-  protected wallet: ethers.Signer;
-  protected bftBridge: ethers.Contract;
+  protected bftAddress: string;
   protected runeBridgeCanisterId: string;
   protected wrappedTokenAddress: string;
   protected runeId: string;
   protected walletActors: {
+    wallet?: ethers.Signer;
     runeActor?: typeof RuneActor;
+  } = {};
+  protected eth: {
+    bftBridge?: ethers.Contract;
   } = {};
 
   constructor({
-    wallet,
     agent,
     bftAddress,
     wrappedTokenAddress,
     runeBridgeCanisterId,
     runeId
   }: RuneBridgeOptions) {
-    this.wallet = wallet;
     this.agent = agent;
-    this.bftBridge = this.getBftBridgeContract(bftAddress);
     this.wrappedTokenAddress = wrappedTokenAddress;
     this.runeBridgeCanisterId = runeBridgeCanisterId;
     this.runeId = runeId;
+    this.bftAddress = bftAddress;
   }
+
+  connectEthWallet(wallet?: ethers.Signer) {
+    this.walletActors.wallet = wallet;
+    this.eth = {};
+  }
+
+  connectBitfinityWallet() {}
 
   idMatch(token: BridgeToken) {
     return this.wrappedTokenAddress === token.wrappedTokenAddress;
   }
 
-  async init() {
-    await this.initRuneActor();
-  }
-
-  async icWhitelist() {
+  icWhitelist() {
     return [this.runeBridgeCanisterId];
   }
 
-  protected async initRuneActor() {
-    if (this.walletActors.runeActor) {
-      return this.walletActors.runeActor;
+  get wallet() {
+    if (!this.walletActors.wallet) {
+      throw new Error('ETH wallet not connected yet');
     }
 
-    this.walletActors.runeActor = createRuneBridgeActor(
-      this.runeBridgeCanisterId,
-      { agent: this.agent }
-    );
+    return this.walletActors.wallet;
   }
 
   get runeActor() {
     if (!this.walletActors.runeActor) {
-      throw new Error('Wallet actors not init yet. Call init() before');
+      this.walletActors.runeActor = createRuneBridgeActor(
+        this.runeBridgeCanisterId,
+        { agent: this.agent }
+      );
     }
 
     return this.walletActors.runeActor;
+  }
+
+  get bftBridge() {
+    if (!this.eth.bftBridge) {
+      this.eth.bftBridge = new ethers.Contract(
+        this.bftAddress,
+        BFTBridgeABI,
+        this.wallet
+      );
+    }
+
+    return this.eth.bftBridge;
   }
 
   async getDepositAddress(ethAddress: string) {
@@ -85,10 +100,6 @@ export class RuneBridge implements Bridge {
     }
 
     return result.Ok;
-  }
-
-  protected getBftBridgeContract(address: string) {
-    return new ethers.Contract(address, BFTBridgeABI, this.wallet);
   }
 
   private async getWrappedTokenContract() {

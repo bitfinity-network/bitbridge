@@ -15,65 +15,61 @@ export type Bridges = {
 };
 
 export interface BridgerOptions {
-  wallet: ethers.Signer;
   agent: Agent;
 }
 
 export class Bridger {
-  protected wallet: ethers.Signer;
-  protected bitfinityWallet?: BitfinityWallet;
   protected agent: Agent;
   public bridges: Bridges[keyof Bridges][] = [];
   protected tokensBridged: BridgeToken[] = [];
 
-  constructor({ wallet, agent }: BridgerOptions) {
-    this.wallet = wallet;
+  constructor({ agent }: BridgerOptions) {
     this.agent = agent;
   }
 
-  connectBitfinityWallet(bitfinityWallet: BitfinityWallet) {
-    this.bitfinityWallet = bitfinityWallet;
+  connectEthWallet(wallet?: ethers.Signer) {
+    this.bridges.forEach((bridge) => {
+      bridge.connectEthWallet(wallet);
+    });
+  }
+
+  connectBitfinityWallet(bitfinityWallet?: BitfinityWallet) {
+    this.bridges.forEach((bridge) => {
+      bridge.connectBitfinityWallet(bitfinityWallet);
+    });
   }
 
   protected createBridge(token: BridgeToken) {
     if (this.bridges.find((bridge) => bridge.idMatch(token))) {
-      return false;
+      return;
     }
 
-    if (token.type === 'icrc' && this.bitfinityWallet) {
+    if (token.type === 'icrc') {
       this.bridges.push(
         new IcrcBridge({
-          wallet: this.wallet,
           agent: this.agent,
-          bitfinityWallet: this.bitfinityWallet,
           bftAddress: token.bftAddress,
           iCRC2MinterCanisterId: token.iCRC2MinterCanisterId,
           baseTokenCanisterId: token.baseTokenCanisterId,
           wrappedTokenAddress: token.wrappedTokenAddress
         })
       );
-
-      return true;
     }
 
     if (token.type === 'btc') {
       this.bridges.push(
         new BtcBridge({
-          wallet: this.wallet,
           agent: this.agent,
           bftAddress: token.bftAddress,
           btcBridgeCanisterId: token.btcBridgeCanisterId,
           wrappedTokenAddress: token.wrappedTokenAddress
         })
       );
-
-      return true;
     }
 
     if (token.type === 'rune') {
       this.bridges.push(
         new RuneBridge({
-          wallet: this.wallet,
           agent: this.agent,
           bftAddress: token.bftAddress,
           runeBridgeCanisterId: token.runeBridgeCanisterId,
@@ -81,16 +77,12 @@ export class Bridger {
           runeId: token.runeId
         })
       );
-
-      return true;
     }
-
-    return false;
   }
 
   addBridgedTokens(tokens: BridgeToken[]) {
-    return tokens.reduce((total, token) => {
-      const bridgeCreated = this.createBridge(token);
+    tokens.forEach((token) => {
+      this.createBridge(token);
 
       const isInBridgeTokens = this.tokensBridged.some(
         (t2) => t2.wrappedTokenAddress === token.wrappedTokenAddress
@@ -99,9 +91,7 @@ export class Bridger {
       if (!isInBridgeTokens) {
         this.tokensBridged.push(token);
       }
-
-      return total + (bridgeCreated ? 1 : 0);
-    }, 0);
+    });
   }
 
   isBridge(id: string) {
@@ -140,14 +130,9 @@ export class Bridger {
     return this.tokensBridged;
   }
 
-  async init() {
-    await Promise.all(this.bridges.map((bridge) => bridge.init()));
-  }
-
-  async icWhiteList() {
-    return (
-      await Promise.all(this.bridges.map((bridge) => bridge.icWhitelist()))
-    )
+  icWhiteList() {
+    return this.bridges
+      .map((bridge) => bridge.icWhitelist())
       .flat()
       .filter((v, i, a) => a.indexOf(v) === i);
   }
