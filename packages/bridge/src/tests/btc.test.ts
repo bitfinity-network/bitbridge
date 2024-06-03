@@ -18,7 +18,6 @@ describe.sequential(
     const { agent } = createAnnonAgent();
 
     await mintNativeToken(wallet.address, '10000000000000000');
-
     await wait(1000);
 
     const connector = Connector.create({ agent });
@@ -27,8 +26,6 @@ describe.sequential(
 
     await connector.fetchLocal();
     await connector.bridge();
-
-    await wait(1000);
 
     const btcBridge = connector.getBridge<'btc'>(BTC_TOKEN_WRAPPED_ADDRESS);
 

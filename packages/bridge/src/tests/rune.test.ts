@@ -22,7 +22,6 @@ describe.sequential(
     const { agent } = createAnnonAgent();
 
     await mintNativeToken(wallet.address, '10000000000000000');
-
     await wait(1000);
 
     const connector = Connector.create({ agent });
@@ -31,8 +30,6 @@ describe.sequential(
 
     await connector.fetchLocal();
     await connector.bridge();
-
-    await wait(1000);
 
     const runeBridge = connector.getBridge<'rune'>(RUNE_TOKEN_ID);
 

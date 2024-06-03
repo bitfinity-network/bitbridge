@@ -19,11 +19,9 @@ describe.sequential(
     const { agent, identity } = createAgent(wallet.privateKey);
     const bitfinityWallet = createBitfinityWallet(agent);
 
-    await mintNativeToken('0xA0dab4d7e6Ad2395d6A7baD25cC6039B9f0A6f94', '1000000000000000000');
-    await execSendIcrcToken('r3wz4-lhmnf-fbeo6-d3lyh-5ol5x-7gkua-pyfbm-nw4jl-omkdz-wmyd4-aqe', 100000000);
-
-    if (Math.random() > -1)
-      process.exit(0)
+    await mintNativeToken(wallet.address, '1000000000000000000');
+    await execSendIcrcToken(identity.getPrincipal().toText(), 100000000);
+    await wait(1000);
 
     const connector = Connector.create({ agent });
 
@@ -32,8 +30,6 @@ describe.sequential(
 
     await connector.fetchLocal();
     await connector.bridge();
-
-    await wait(10000);
 
     const icrcBricdge = connector.getBridge<'icrc'>(ICRC2_TOKEN_CANISTER_ID);
 
