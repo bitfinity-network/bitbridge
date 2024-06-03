@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { useBridgeContext } from "../provider/BridgeProvider";
-import { NETWORK_SYMBOLS, fromDecimal, importToken } from "../utils";
+// import { useBridgeContext } from "../provider/BridgeProvider";
+import { fromDecimal, importToken } from "../utils";
 import { TokenProp } from "../types";
 import { Connector, IcrcBridge } from "@bitfinity-network/bridge";
-import { getIcWallet } from "./useWallets";
 
 type TBridingHookProps = {
   network: string;

@@ -10,8 +10,8 @@ import {
   reactQueryClient,
   searchToken,
 } from "../utils";
-import { useIcWalletConnet } from "./useWallets";
-import { useBridgeContext } from "../provider/BridgeProvider";
+// import { useIcWalletConnet } from "./useWallets";
+// import { useBridgeContext } from "../provider/BridgeProvider";
 import { IC_HOST, RPC_URL } from "@bitfinity-network/bridge";
 
 const getTokens = async (
@@ -43,8 +43,8 @@ export const useErc20TokenBalance = (tokenAddress: `0x${string}`) => {
 };
 
 export const useIcTokenBalance = (token: TokenProp) => {
-  const { icWallet } = useIcWalletConnet();
-  const { icHost } = useBridgeContext();
+  const { icWallet } = {icWallet: {principal: '123' as any}}// useIcWalletConnet();
+  const { icHost } = { icHost: 'http://127.0.0.1:8545'} // useBridgeContext();
   const { data, isError, isLoading } = useQuery({
     queryKey: [queryKeys.tokenBalance, token.id],
     queryFn: async () =>
@@ -78,7 +78,7 @@ export const useTokenSearch = ({
   network,
   userPrincipal,
 }: Omit<TokenSearchProps, "rpcUrl" | "icHost">): TokenSearchReturnProps => {
-  const { rpcUrl, icHost } = useBridgeContext();
+  const { rpcUrl, icHost } =  { icHost: 'http://127.0.0.1:8545', 'rpcUrl': ''};
   const queryClient = useQueryClient();
   const { data, isLoading, isFetching } = useQuery({
     queryKey: [queryKeys.searchTokens, tokens.length, searchKey],

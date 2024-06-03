@@ -1,15 +1,37 @@
 import {
   FetchRemoteSchema,
   FetchUrl,
-  FetchUrlLocal,
   FetchUrlRemote,
   remoteUrls
 } from './tokens-urls';
-import { FetchedToken, id, splitTokens } from './tokens-fetched';
+import { DeployedToken, FetchedToken, id } from './tokens-fetched';
 import { BridgeToken, idStrMatch } from './tokens';
 
 export class Fetcher {
   protected tokensFetched: FetchedToken[] = [];
+
+  protected splitTokens(
+    tokens: FetchedToken[]
+  ): [BridgeToken[], DeployedToken[]] {
+    const bridged: BridgeToken[] = [];
+    const deployed: DeployedToken[] = [];
+
+    tokens.forEach((token) => {
+      if (token.type === 'icrc' && 'wrappedTokenAddress' in token) {
+        bridged.push(token);
+      } else if (token.type === 'btc' && 'wrappedTokenAddress' in token) {
+        bridged.push(token);
+      } else if (token.type === 'rune' && 'wrappedTokenAddress' in token) {
+        bridged.push(token);
+      } else if (token.type === 'icrc' && 'symbol' in token) {
+        deployed.push(token);
+      } else if (token.type === 'rune' && 'name' in token) {
+        deployed.push(token);
+      }
+    });
+
+    return [bridged, deployed];
+  }
 
   async fetch(tokensUrls: FetchUrl[]) {
     const tokens: FetchedToken[] = (
@@ -41,10 +63,6 @@ export class Fetcher {
     return tokens.length;
   }
 
-  async fetchLocal() {
-    return await this.fetch([FetchUrlLocal.parse({})]);
-  }
-
   async fetchDefault(network: keyof typeof remoteUrls) {
     return await this.fetch([
       FetchUrlRemote.parse({ src: remoteUrls[network] })
@@ -52,13 +70,17 @@ export class Fetcher {
   }
 
   removeDeployedTokens(deployed: BridgeToken[]) {
+    if (!deployed.length) {
+      return;
+    }
+
     this.tokensFetched = this.tokensFetched.filter((fetched) => {
       return !deployed.some((token) => idStrMatch(id(fetched), token));
     });
   }
 
   getTokensAll() {
-    const [bridged, toDeploy] = splitTokens(this.tokensFetched);
+    const [bridged, toDeploy] = this.splitTokens(this.tokensFetched);
 
     return [bridged, toDeploy] as const;
   }

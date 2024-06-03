@@ -1,28 +1,32 @@
 import * as ethers from 'ethers';
-import { BitfinityWallet } from '@bitfinity-network/bitfinitywallet';
+
 import { Agent } from '@dfinity/agent';
 
-import { Bridger, Bridges } from './bridger';
+import { BitfinityWallet } from '@bitfinity-network/bitfinitywallet';
 import {
   BridgeBaseToken,
   BridgeIcrcToken,
   BridgeRuneToken,
-  BridgeToken
-} from './tokens';
-import { FetchUrl, remoteUrls } from './tokens-urls';
-import { Deployer } from './deployer';
-import { Fetcher } from './fetcher';
+  BridgeToken,
+  FetchUrl,
+  remoteUrls,
+  Fetcher
+} from '@bitfinity-network/bridge-tokens';
+
+import { Bridger, Bridges } from './bridger';
+
+import { wait } from './utils';
+import { defaultLocalUrl } from './tokens';
 
 export interface ConnectorOptions {
   agent: Agent;
-  deployer?: { address: string; deployer: Deployer };
 }
 
 export class Connector {
   protected wallet?: ethers.Signer;
+  protected bitfinityWallet?: BitfinityWallet;
   protected bridger: Bridger;
   protected fetcher: Fetcher;
-  protected deployers: Record<string, Deployer> = {};
 
   private constructor({ agent }: ConnectorOptions) {
     this.fetcher = new Fetcher();
@@ -40,10 +44,12 @@ export class Connector {
   }
 
   connectBitfinityWallet(bitfinityWallet: BitfinityWallet) {
+    this.bitfinityWallet = bitfinityWallet;
     this.bridger.connectBitfinityWallet(bitfinityWallet);
   }
 
   disconnectBitfinityWallet() {
+    this.bitfinityWallet = undefined;
     this.bridger.connectBitfinityWallet(undefined);
   }
 
@@ -51,98 +57,84 @@ export class Connector {
     return new Connector(options);
   }
 
-  protected getDeployer(bftAddress: string) {
-    if (!this.wallet) {
-      this.deployers = {};
-      return undefined;
-    }
-
-    if (this.deployers[bftAddress]) {
-      return this.deployers[bftAddress];
-    }
-
-    const deployer = new Deployer({
-      bftAddress: bftAddress,
-      wallet: this.wallet
-    });
-
-    this.deployers[bftAddress] = deployer;
-
-    return deployer;
-  }
-
   async bridge() {
     const [bridged, toDeploy] = this.fetcher.getTokensAll();
 
-    const deployed: BridgeToken[] = (
-      await Promise.all(
-        toDeploy.map(async (token) => {
-          if (token.type === 'btc') {
-            return undefined!;
-          }
+    const deployed: BridgeToken[] = [];
 
-          const id =
-            'baseTokenCanisterId' in token
-              ? token.baseTokenCanisterId
-              : 'runeId' in token
-                ? token.runeId
-                : '';
+    for (const token of toDeploy) {
+      if (token.type === 'btc') {
+        continue;
+      }
 
-          if (this.bridger.isBridge(id)) {
-            return undefined!;
-          }
+      const id =
+        'baseTokenCanisterId' in token
+          ? token.baseTokenCanisterId
+          : 'runeId' in token
+            ? token.runeId
+            : '';
 
-          const prevDeployed = this.getBridgedToken(id);
+      if (this.bridger.isBridge(id)) {
+        continue;
+      }
 
-          if (prevDeployed) {
-            return prevDeployed;
-          }
+      const prevDeployed = this.getBridgedToken(id);
 
-          const deployer = this.getDeployer(token.bftAddress);
+      if (prevDeployed) {
+        deployed.push(prevDeployed);
+        continue;
+      }
 
-          if (!deployer) {
-            return undefined!;
-          }
+      const bft = this.bridger.getBft(token.bftAddress);
 
-          const baseToken = BridgeBaseToken.parse(token);
+      if (!bft) {
+        continue;
+      }
 
-          if (token.type === 'icrc') {
-            const wrappedAddress = await deployer.deployIcrcWrappedToken(
-              token.baseTokenCanisterId,
-              token.name,
-              token.symbol
-            );
+      const baseToken = BridgeBaseToken.parse(token);
 
-            return {
-              ...baseToken,
-              type: 'icrc',
-              baseTokenCanisterId: token.baseTokenCanisterId,
-              iCRC2MinterCanisterId: token.iCRC2MinterCanisterId,
-              wrappedTokenAddress: wrappedAddress
-            } satisfies BridgeIcrcToken;
-          } else {
-            const wrappedAddress = await deployer.deployRuneWrappedToken(
-              token.runeId,
-              token.name
-            );
+      if (token.type === 'icrc') {
+        const wrappedAddress = await bft.deployIcrcWrappedToken(
+          token.baseTokenCanisterId,
+          token.name,
+          token.symbol
+        );
 
-            return {
-              ...baseToken,
-              type: 'rune',
-              runeId: token.runeId,
-              runeBridgeCanisterId: token.runeBridgeCanisterId,
-              wrappedTokenAddress: wrappedAddress
-            } satisfies BridgeRuneToken;
-          }
-        })
-      )
-    ).filter((token) => !!token);
+        deployed.push({
+          ...baseToken,
+          type: 'icrc',
+          baseTokenCanisterId: token.baseTokenCanisterId,
+          iCRC2MinterCanisterId: token.iCRC2MinterCanisterId,
+          wrappedTokenAddress: wrappedAddress
+        } satisfies BridgeIcrcToken);
+      } else {
+        const wrappedAddress = await bft.deployRuneWrappedToken(
+          token.runeId,
+          token.name
+        );
 
-    const deployedTokens = bridged.concat(deployed)
+        deployed.push({
+          ...baseToken,
+          type: 'rune',
+          runeId: token.runeId,
+          runeBridgeCanisterId: token.runeBridgeCanisterId,
+          wrappedTokenAddress: wrappedAddress
+        } satisfies BridgeRuneToken);
+      }
 
-    this.bridger.addBridgedTokens(deployedTokens);
+      await wait(250);
+    }
+
+    const deployedTokens = bridged.concat(deployed);
+
+    this.bridger.addBridgedTokens(
+      deployedTokens,
+      this.wallet,
+      this.bitfinityWallet
+    );
     this.fetcher.removeDeployedTokens(deployedTokens);
 
+    return this.fetcher.getTokensAll().flat().length === 0;
   }
 
   async fetch(tokensUrls: FetchUrl[]) {
@@ -150,7 +142,7 @@ export class Connector {
   }
 
   async fetchLocal() {
-    return await this.fetcher.fetchLocal();
+    return await this.fetch([defaultLocalUrl]);
   }
 
   async fetchDefault(network: keyof typeof remoteUrls) {

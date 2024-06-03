@@ -1,7 +1,8 @@
 import { Principal } from '@dfinity/principal';
 import * as ethers from 'ethers';
 import { numberToHex } from 'viem';
-import { Id256Factory } from '@bitfinity-network/id256';
+import { BridgeToken } from '@bitfinity-network/bridge-tokens';
+import { Bft } from '@bitfinity-network/bridge-bft';
 import {
   BitfinityWallet,
   Transaction
@@ -15,9 +16,7 @@ import {
   ICRC1,
   ICRC2Minter
 } from './ic';
-import { BridgeToken } from './tokens';
 import { generateOperationId } from './tests/utils';
-import BFTBridgeABI from './abi/BFTBridge';
 import WrappedTokenABI from './abi/WrappedToken';
 
 export interface IcrcBridgeOptions {
@@ -30,7 +29,6 @@ export interface IcrcBridgeOptions {
 
 export class IcrcBridge implements Bridge {
   protected bridgeId: string;
-  protected bftAddress: string;
   protected agent: Agent;
   protected iCRC2MinterCanisterId: string;
   protected baseTokenCanisterId: string;
@@ -44,8 +42,9 @@ export class IcrcBridge implements Bridge {
     iCRC2Minter?: Promise<typeof ICRC2Minter>;
   } = {};
   protected eth: {
-    bftBridge?: ethers.Contract;
+    bft?: Bft;
   } = {};
+  readonly bftAddress: string;
 
   constructor({
     bftAddress,
@@ -62,14 +61,22 @@ export class IcrcBridge implements Bridge {
     this.bftAddress = bftAddress;
   }
 
-  connectEthWallet(wallet?: ethers.Signer) {
-    this.walletActors.wallet = wallet;
-    this.eth = {};
+  connectEthWallet(wallet?: ethers.Signer, bft?: Bft) {
+    if (this.walletActors.wallet !== wallet) {
+      this.walletActors.wallet = wallet;
+      this.eth = {};
+    }
+
+    if (this.eth.bft !== bft) {
+      this.eth.bft = bft;
+    }
   }
 
   connectBitfinityWallet(bitfinityWallet?: BitfinityWallet) {
-    this.walletActors.bitfinityWallet = bitfinityWallet;
-    this.ic = {};
+    if (this.walletActors.bitfinityWallet !== bitfinityWallet) {
+      this.walletActors.bitfinityWallet = bitfinityWallet;
+      this.ic = {};
+    }
   }
 
   idMatch(token: BridgeToken) {
@@ -93,15 +100,11 @@ export class IcrcBridge implements Bridge {
   }
 
   get bftBridge() {
-    if (!this.eth.bftBridge) {
-      this.eth.bftBridge = new ethers.Contract(
-        this.bftAddress,
-        BFTBridgeABI,
-        this.wallet
-      );
+    if (!this.eth.bft) {
+      throw new Error('Bft not connected yet');
     }
 
-    return this.eth.bftBridge;
+    return this.eth.bft;
   }
 
   get icrc2Minter() {
@@ -163,9 +166,16 @@ export class IcrcBridge implements Bridge {
     return [this.baseTokenCanisterId, this.iCRC2MinterCanisterId];
   }
 
-  async bridgeToEvmc(amount: bigint, recipient: string) {
+  async bridgeToEvmc(owner: string, recipient: string, amount: bigint) {
     return new Promise((resolve, reject) => {
       (async () => {
+        try {
+          await this.bftBridge.checkAndDeposit(owner, recipient);
+        } catch (err) {
+          reject([err]);
+          return;
+        }
+
         try {
           const fee = await (await this.baseToken).icrc1_fee();
 
@@ -207,8 +217,10 @@ export class IcrcBridge implements Bridge {
                 {
                   operation_id: generateOperationId(),
                   from_subaccount: [],
+                  approve_minted_tokens: [],
                   icrc2_token_principal: this.baseTokenId,
                   recipient_address: recipient,
+                  fee_payer: [recipient],
                   amount: numberToHex(amount)
                 }
               ],
@@ -238,21 +250,11 @@ export class IcrcBridge implements Bridge {
   async bridgeFromEvmc(recipient: string, amount: bigint) {
     const wrappedToken = await this.getWrappedTokenContract();
 
-    const apTx = await wrappedToken.approve(
-      await this.bftBridge.getAddress(),
-      amount
-    );
-
+    const apTx = await wrappedToken.approve(this.bftBridge.address, amount);
     await apTx.wait(2);
 
     const wrappedTokenAddress = await wrappedToken.getAddress();
 
-    const tx = await this.bftBridge.burn(
-      amount,
-      wrappedTokenAddress,
-      Id256Factory.fromPrincipal(Principal.fromText(recipient))
-    );
-
-    await tx.wait(2);
+    await this.bftBridge.burn(recipient, wrappedTokenAddress, amount);
   }
 }

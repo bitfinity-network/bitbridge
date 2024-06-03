@@ -1,20 +1,24 @@
 import * as ethers from 'ethers';
-import BftBridgeABI from './abi/BFTBridge';
-import { Address, Id256, Id256Factory } from '@bitfinity-network/id256';
 import { Principal } from '@dfinity/principal';
+import { Address, Id256, Id256Factory } from '@bitfinity-network/id256';
 
-export interface DeployerOptions {
+import BftBridgeABI from './abi/BFTBridge';
+import { Buffer } from 'buffer';
+
+export interface BftOptions {
   wallet: ethers.Signer;
   bftAddress: string;
 }
 
-export class Deployer {
+export class Bft {
   protected bftBridge: ethers.Contract;
   protected wallet: ethers.Signer;
+  readonly address: string;
 
-  constructor({ bftAddress, wallet }: DeployerOptions) {
+  constructor({ bftAddress, wallet }: BftOptions) {
     this.wallet = wallet;
     this.bftBridge = this.getBftBridgeContract(bftAddress);
+    this.address = bftAddress;
   }
 
   protected getBftBridgeContract(address: string) {
@@ -28,6 +32,39 @@ export class Deployer {
   protected idFromRune(runeId: string) {
     const [b, t] = runeId.split(':');
     return Id256Factory.fromBtcTxIndex(BigInt(b), parseInt(t, 10));
+  }
+
+  async depositNativeTokens(owner: string) {
+    const data = this.bftBridge.interface.encodeFunctionData(
+      'nativeTokenDeposit',
+      [[Id256Factory.fromPrincipal(Principal.fromText(owner))]]
+    );
+
+    const nonce = await this.wallet.getNonce();
+
+    const tx: ethers.ethers.TransactionRequest = {
+      nonce,
+      to: await this.bftBridge.getAddress(),
+      value: BigInt(Math.pow(10, 17)),
+      data
+    };
+
+    const dpTx = await this.wallet.sendTransaction(tx);
+    await dpTx.wait(2);
+  }
+
+  async checkAndDeposit(owner: string, recipient: string) {
+    const nativeBalance = await this.bftBridge.nativeTokenBalance(recipient);
+
+    if (nativeBalance <= 0) {
+      await this.depositNativeTokens(owner);
+
+      const nativeBalance = await this.bftBridge.nativeTokenBalance(recipient);
+
+      if (nativeBalance <= 0) {
+        throw new Error('No native tokens on bft');
+      }
+    }
   }
 
   async deployIcrcWrappedToken(
@@ -64,5 +101,26 @@ export class Deployer {
     return await this.bftBridge.getWrappedToken(
       id.includes(':') ? this.idFromRune(id) : this.idFromCanister(id)
     );
+  }
+
+  async burn(recipient: string, tokenAddress: string, amount: bigint) {
+    let send;
+
+    try {
+      Principal.fromText(recipient);
+      send = Id256Factory.fromPrincipal(Principal.fromText(recipient));
+    } catch (_) {
+      /* empty */
+    }
+
+    if (!send) {
+      send = `0x${Buffer.from(recipient, 'utf8').toString('hex')}`;
+    }
+
+    const tx = await this.bftBridge.burn(amount, tokenAddress, send);
+
+    await tx.wait(2);
+
+    return tx;
   }
 }

@@ -1,5 +1,3 @@
-import 'dotenv/config';
-
 export { BtcBridge } from './btc';
 export { IcrcBridge } from './icrc';
 export { RuneBridge } from './rune';
@@ -9,3 +7,5 @@ export { Bridger, BridgerOptions, Bridges } from './bridger';
 
 export * from './ic';
 export * from './constants';
+
+export { default as wrappedTokenAbi } from './abi/WrappedToken';

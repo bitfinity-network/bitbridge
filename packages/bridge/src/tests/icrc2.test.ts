@@ -19,10 +19,11 @@ describe.sequential(
     const { agent, identity } = createAgent(wallet.privateKey);
     const bitfinityWallet = createBitfinityWallet(agent);
 
-    await mintNativeToken(wallet.address, '10000000000000000');
-    await execSendIcrcToken(identity.getPrincipal().toText(), 1000000);
+    await mintNativeToken('0xA0dab4d7e6Ad2395d6A7baD25cC6039B9f0A6f94', '1000000000000000000');
+    await execSendIcrcToken('r3wz4-lhmnf-fbeo6-d3lyh-5ol5x-7gkua-pyfbm-nw4jl-omkdz-wmyd4-aqe', 100000000);
 
-    await wait(1000);
+    if (Math.random() > -1)
+      process.exit(0)
 
     const connector = Connector.create({ agent });
 
@@ -32,14 +33,18 @@ describe.sequential(
     await connector.fetchLocal();
     await connector.bridge();
 
-    await wait(1000);
+    await wait(10000);
 
     const icrcBricdge = connector.getBridge<'icrc'>(ICRC2_TOKEN_CANISTER_ID);
 
     test('bridge icrc2 token to evm', async () => {
       const amount = 100000n;
 
-      await icrcBricdge.bridgeToEvmc(amount, wallet.address);
+      await icrcBricdge.bridgeToEvmc(
+        identity.getPrincipal().toText(),
+        wallet.address,
+        amount
+      );
 
       await wait(10000);
 

@@ -1,23 +1,9 @@
 import z from 'zod';
 
-import {
-  BridgeIcrcToken,
-  BridgeBtcToken,
-  BridgeRuneToken,
-  BridgeToken
-} from './tokens';
-import {
-  BFT_ETH_ADDRESS,
-  BTC_BRIDGE_CANISTER_ID,
-  ICRC2_MINTER_CANISTER_ID,
-  ICRC2_TOKEN_CANISTER_ID,
-  RUNE_BRIDGE_CANISTER_ID,
-  BTC_TOKEN_WRAPPED_ADDRESS,
-  RUNE_TOKEN_ID
-} from './constants';
+import { BridgeIcrcToken, BridgeBtcToken, BridgeRuneToken } from './tokens';
 
 export const DeployBaseToken = z.object({
-  bftAddress: z.string().default(BFT_ETH_ADDRESS)
+  bftAddress: z.string()
 });
 
 // ICRC
@@ -26,8 +12,8 @@ export const DeployedIcrcToken = DeployBaseToken.extend({
   type: z.literal('icrc').default('icrc'),
   name: z.string().default('AUX'),
   symbol: z.string().default('AUX'),
-  baseTokenCanisterId: z.string().default(ICRC2_TOKEN_CANISTER_ID),
-  iCRC2MinterCanisterId: z.string().default(ICRC2_MINTER_CANISTER_ID)
+  baseTokenCanisterId: z.string(),
+  iCRC2MinterCanisterId: z.string()
 });
 
 export const FetchedIcrcToken = z.union([BridgeIcrcToken, DeployedIcrcToken]);
@@ -37,8 +23,8 @@ export type FetchedIcrcToken = z.infer<typeof FetchedIcrcToken>;
 
 export const DeployedBtcToken = DeployBaseToken.extend({
   type: z.literal('btc').default('btc'),
-  btcBridgeCanisterId: z.string().default(BTC_BRIDGE_CANISTER_ID),
-  wrappedTokenAddress: z.string().default(BTC_TOKEN_WRAPPED_ADDRESS)
+  btcBridgeCanisterId: z.string(),
+  wrappedTokenAddress: z.string()
 });
 
 export const FetchedBtcToken = z.union([BridgeBtcToken, DeployedBtcToken]);
@@ -48,8 +34,8 @@ export type FetchedBtcToken = z.infer<typeof FetchedBtcToken>;
 
 export const DeployedRuneToken = DeployBaseToken.extend({
   type: z.literal('rune').default('rune'),
-  runeId: z.string().default(RUNE_TOKEN_ID),
-  runeBridgeCanisterId: z.string().default(RUNE_BRIDGE_CANISTER_ID),
+  runeId: z.string(),
+  runeBridgeCanisterId: z.string(),
   name: z.string().default('RUNERUNERUNERUNE')
 });
 
@@ -73,29 +59,6 @@ export const FetchedToken = z.union([
   FetchedRuneToken
 ]);
 export type FetchedToken = z.infer<typeof FetchedToken>;
-
-export const splitTokens = (
-  tokens: FetchedToken[]
-): [BridgeToken[], DeployedToken[]] => {
-  const bridged: BridgeToken[] = [];
-  const deployed: DeployedToken[] = [];
-
-  tokens.forEach((token) => {
-    if (token.type === 'icrc' && 'wrappedTokenAddress' in token) {
-      bridged.push(token);
-    } else if (token.type === 'btc' && 'wrappedTokenAddress' in token) {
-      bridged.push(token);
-    } else if (token.type === 'rune' && 'wrappedTokenAddress' in token) {
-      bridged.push(token);
-    } else if (token.type === 'icrc' && 'symbol' in token) {
-      deployed.push(token);
-    } else if (token.type === 'rune' && 'name' in token) {
-      deployed.push(token);
-    }
-  });
-
-  return [bridged, deployed];
-};
 
 export const id = (token: FetchedToken) => {
   if (token.type === 'icrc') {

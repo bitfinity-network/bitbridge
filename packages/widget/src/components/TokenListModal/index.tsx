@@ -1,39 +1,44 @@
-import { useTokenSearch } from "../../hooks/useTokens";
-import { useWallets } from "../../hooks/useWallets";
-import { TokenProp } from "../../types";
-import { CustomModal, SearchInput } from "../../ui";
-import { TokenTag } from "../../ui/TokenTag";
-import { Box, Flex } from "@chakra-ui/react";
-import { useState } from "react";
+import { Box, Flex } from '@chakra-ui/react';
+import { useState } from 'react';
+
+import { Token, useTokenContext } from '../../provider/TokensProvider.tsx';
+import { CustomModal, SearchInput } from '../../ui';
+import { TokenTag } from '../../ui/TokenTag';
 
 type TokenListModelProps = {
   isOpen: boolean;
   onClose: () => void;
-  selectToken: (e: TokenProp) => void;
-  tokenNetwork: string;
-  tokens: TokenProp[];
+  selectToken: (token: Token) => void;
 };
 
 export function TokenListModal({
   isOpen,
   onClose,
-  selectToken,
-  tokenNetwork,
-  tokens,
+  selectToken
 }: TokenListModelProps) {
-  const { icWallet } = useWallets();
-  const icWalletPrincipal = icWallet?.principal?.toText?.();
+  const { tokens } = useTokenContext();
 
-  const [search, setSearch] = useState("");
-  const { data: filteredTokens } = useTokenSearch({
-    tokens,
-    searchKey: search,
-    network: tokenNetwork,
-    userPrincipal: icWalletPrincipal,
+  const [search, setSearch] = useState('');
+
+  const filteredTokens = tokens.filter((token) => {
+    if (!search.length) {
+      return token;
+    }
+
+    const needle = search.trim().toLowerCase();
+
+    const searchable = [token.name, token.symbol].map((str) =>
+      str.trim().toLowerCase()
+    );
+
+    return searchable.find((haystack) => {
+      return haystack.match(new RegExp(needle));
+    });
   });
+
   return (
     <CustomModal
-      title="Select Asset"
+      modalHeaderProps={{ title: 'Select Asset' }}
       isOpen={isOpen}
       onClose={onClose}
       size="lg"
@@ -49,7 +54,7 @@ export function TokenListModal({
         <Box>
           <Flex gap={2} flexWrap="wrap">
             {filteredTokens?.length
-              ? filteredTokens.map((item) => {
+              ? filteredTokens.map((token) => {
                   return (
                     <Box
                       borderWidth={1}
@@ -57,13 +62,13 @@ export function TokenListModal({
                       cursor="pointer"
                       py={2}
                       px={3}
-                      key={item.name}
-                      onClick={() => selectToken(item)}
+                      key={token.symbol}
+                      onClick={() => {selectToken(token); onClose();}}
                     >
-                      {item ? (
+                      {token ? (
                         <TokenTag
-                          name={item.symbol || item.name || ""}
-                          img={item?.logo || ""}
+                          name={token.name || token.symbol || ''}
+                          img={token?.logo || ''}
                           variant="sm"
                         />
                       ) : null}

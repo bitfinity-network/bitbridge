@@ -2,17 +2,11 @@ import type { Principal } from '@dfinity/principal';
 import type { ActorMethod } from '@dfinity/agent';
 import type { IDL } from '@dfinity/candid';
 
-export type ApproveError = {
-    'GenericError' : { 'message' : string, 'error_code' : bigint }
-  } |
-  { 'TemporarilyUnavailable' : null } |
-  { 'Duplicate' : { 'duplicate_of' : bigint } } |
-  { 'BadFee' : { 'expected_fee' : bigint } } |
-  { 'AllowanceChanged' : { 'current_allowance' : bigint } } |
-  { 'CreatedInFuture' : { 'ledger_time' : bigint } } |
-  { 'TooOld' : null } |
-  { 'Expired' : { 'ledger_time' : bigint } } |
-  { 'InsufficientFunds' : { 'balance' : bigint } };
+export interface ApproveMintedTokens {
+  'approve_spender' : string,
+  'principal_signature' : Signature,
+  'approve_amount' : string,
+}
 export interface BuildData {
   'rustc_semver' : string,
   'git_branch' : string,
@@ -27,15 +21,16 @@ export interface BuildData {
 }
 export type Error = { 'Internal' : string } |
   { 'InvalidNonce' : { 'got' : bigint, 'minimum' : bigint } } |
-  { 'Icrc2ApproveError' : ApproveError } |
   { 'InvalidTokenAddress' : null } |
   { 'BftBridgeAlreadyRegistered' : string } |
   { 'Icrc2TransferFromError' : TransferFromError } |
+  { 'Icrc2TransferError' : TransferError } |
   { 'NotAuthorized' : null } |
   { 'AnonymousPrincipal' : null } |
   { 'BftBridgeDoesNotExist' : null } |
   { 'JsonRpcCallFailed' : string } |
   { 'InsufficientOperationPoints' : { 'got' : number, 'expected' : number } } |
+  { 'InterCanisterCallFailed' : [RejectionCode, string] } |
   { 'InvalidBftBridgeContract' : null } |
   { 'InvalidBurnOperation' : string };
 export interface HttpHeader { 'value' : string, 'name' : string }
@@ -45,17 +40,18 @@ export interface HttpResponse {
   'headers' : Array<HttpHeader>,
 }
 export interface Icrc2Burn {
+  'approve_minted_tokens' : [] | [ApproveMintedTokens],
   'operation_id' : number,
   'from_subaccount' : [] | [Uint8Array | number[]],
   'icrc2_token_principal' : Principal,
   'recipient_address' : string,
+  'fee_payer' : [] | [string],
   'amount' : string,
 }
 export interface InitData {
   'evm_principal' : Principal,
   'signing_strategy' : SigningStrategy,
   'owner' : Principal,
-  'spender_principal' : Principal,
   'log_settings' : [] | [LogSettings],
 }
 export type Interval = { 'PerHour' : null } |
@@ -81,6 +77,13 @@ export interface MetricsMap {
   'history_length_nanos' : bigint,
 }
 export interface MetricsStorage { 'metrics' : MetricsMap }
+export type RejectionCode = { 'NoError' : null } |
+  { 'CanisterError' : null } |
+  { 'SysTransient' : null } |
+  { 'DestinationInvalid' : null } |
+  { 'Unknown' : null } |
+  { 'SysFatal' : null } |
+  { 'CanisterReject' : null };
 export type Result = { 'Ok' : number } |
   { 'Err' : Error };
 export type Result_1 = { 'Ok' : string } |
@@ -89,6 +92,7 @@ export type Result_2 = { 'Ok' : Logs } |
   { 'Err' : Error };
 export type Result_3 = { 'Ok' : null } |
   { 'Err' : Error };
+export interface Signature { 'r' : string, 's' : string, 'v' : string }
 export type SigningKeyId = { 'Dfx' : null } |
   { 'Production' : null } |
   { 'Test' : null } |
@@ -98,6 +102,16 @@ export type SigningStrategy = {
     'Local' : { 'private_key' : Uint8Array | number[] }
   } |
   { 'ManagementCanister' : { 'key_id' : SigningKeyId } };
+export type TransferError = {
+    'GenericError' : { 'message' : string, 'error_code' : bigint }
+  } |
+  { 'TemporarilyUnavailable' : null } |
+  { 'BadBurn' : { 'min_burn_amount' : bigint } } |
+  { 'Duplicate' : { 'duplicate_of' : bigint } } |
+  { 'BadFee' : { 'expected_fee' : bigint } } |
+  { 'CreatedInFuture' : { 'ledger_time' : bigint } } |
+  { 'TooOld' : null } |
+  { 'InsufficientFunds' : { 'balance' : bigint } };
 export type TransferFromError = {
     'GenericError' : { 'message' : string, 'error_code' : bigint }
   } |
@@ -127,15 +141,15 @@ export interface _SERVICE {
   'get_minter_canister_evm_address' : ActorMethod<[], Result_1>,
   'get_owner' : ActorMethod<[], Principal>,
   'ic_logs' : ActorMethod<[bigint, bigint], Result_2>,
+  'init_bft_bridge_contract' : ActorMethod<[], Result_1>,
   'list_mint_orders' : ActorMethod<
     [Uint8Array | number[], Uint8Array | number[]],
     Array<[number, Uint8Array | number[]]>
   >,
-  'register_evmc_bft_bridge' : ActorMethod<[string], Result_3>,
   'set_evm_principal' : ActorMethod<[Principal], Result_3>,
   'set_logger_filter' : ActorMethod<[string], Result_3>,
   'set_owner' : ActorMethod<[Principal], Result_3>,
   'transform' : ActorMethod<[TransformArgs], HttpResponse>,
 }
 export declare const idlFactory: IDL.InterfaceFactory;
-export declare const init: ({ IDL }: { IDL: IDL }) => IDL.Type[];
+export declare const init: (args: { IDL: typeof IDL }) => IDL.Type[];

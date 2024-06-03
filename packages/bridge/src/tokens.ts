@@ -1,57 +1,38 @@
-import z from 'zod';
+import {
+  FetchUrlLocal,
+  DeployedIcrcToken,
+  DeployedBtcToken,
+  DeployedRuneToken
+} from '@bitfinity-network/bridge-tokens';
 
-export const BridgeBaseToken = z.object({
-  bftAddress: z.string()
+import {
+  BFT_ETH_ADDRESS,
+  BTC_BRIDGE_CANISTER_ID,
+  ICRC2_MINTER_CANISTER_ID,
+  ICRC2_TOKEN_CANISTER_ID,
+  RUNE_BRIDGE_CANISTER_ID,
+  BTC_TOKEN_WRAPPED_ADDRESS,
+  RUNE_TOKEN_ID
+} from './constants';
+
+export const defaultDeployedTokens = [
+  DeployedIcrcToken.parse({
+    bftAddress: BFT_ETH_ADDRESS,
+    baseTokenCanisterId: ICRC2_TOKEN_CANISTER_ID,
+    iCRC2MinterCanisterId: ICRC2_MINTER_CANISTER_ID
+  }),
+  DeployedBtcToken.parse({
+    bftAddress: BFT_ETH_ADDRESS,
+    btcBridgeCanisterId: BTC_BRIDGE_CANISTER_ID,
+    wrappedTokenAddress: BTC_TOKEN_WRAPPED_ADDRESS
+  }),
+  DeployedRuneToken.parse({
+    bftAddress: BFT_ETH_ADDRESS,
+    runeId: RUNE_TOKEN_ID,
+    runeBridgeCanisterId: RUNE_BRIDGE_CANISTER_ID
+  })
+];
+
+export const defaultLocalUrl = FetchUrlLocal.parse({
+  tokens: defaultDeployedTokens
 });
-
-export const BridgeIcrcToken = BridgeBaseToken.extend({
-  type: z.literal('icrc').default('icrc'),
-  baseTokenCanisterId: z.string(),
-  wrappedTokenAddress: z.string(),
-  iCRC2MinterCanisterId: z.string()
-});
-
-export type BridgeIcrcToken = z.infer<typeof BridgeIcrcToken>;
-
-export const BridgeBtcToken = BridgeBaseToken.extend({
-  type: z.literal('btc').default('btc'),
-  wrappedTokenAddress: z.string(),
-  btcBridgeCanisterId: z.string()
-});
-
-export type BridgeBtcToken = z.infer<typeof BridgeBtcToken>;
-
-export const BridgeRuneToken = BridgeBaseToken.extend({
-  type: z.literal('rune').default('rune'),
-  runeId: z.string(),
-  wrappedTokenAddress: z.string(),
-  runeBridgeCanisterId: z.string()
-});
-
-export type BridgeRuneToken = z.infer<typeof BridgeRuneToken>;
-
-export const BridgeToken = z.discriminatedUnion('type', [
-  BridgeIcrcToken,
-  BridgeBtcToken,
-  BridgeRuneToken
-]);
-
-export type BridgeToken = z.infer<typeof BridgeToken>;
-
-export const id = (token: BridgeToken) => {
-  const id1 = token.wrappedTokenAddress.toLowerCase();
-
-  if (token.type === 'icrc') {
-    return `${id1}_${token.baseTokenCanisterId.replace(/-/g, '').toLowerCase()}`;
-  } else if (token.type === 'rune') {
-    return `${id1}_${token.runeId.toLowerCase()}`;
-  }
-
-  return id1;
-};
-
-export const idStrMatch = (str: string, token: BridgeToken) => {
-  const ids = id(token).split('_');
-
-  return ids.includes(str.replace(/-/g, '').toLowerCase());
-};

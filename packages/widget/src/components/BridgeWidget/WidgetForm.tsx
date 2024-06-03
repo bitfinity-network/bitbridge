@@ -1,3 +1,4 @@
+import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import {
   Box,
   Button,
@@ -9,125 +10,78 @@ import {
   VStack,
   Collapse,
   useDisclosure,
-} from "@chakra-ui/react";
-import { DropdownMenu, LabelValuePair, EnhancedFormControl } from "../../ui";
-import { TokenListModal } from "../TokenListModal";
-import { NetworkListModal } from "../NetworkListModal";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { NETWORKS, NETWORK_SYMBOLS } from "../../utils";
-import { useBridge } from "../../hooks/useBridge";
+  TextProps,
+  chakra,
+  FormControl
+} from '@chakra-ui/react';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
+
+import { DropdownMenu, LabelValuePair, EnhancedFormControl } from '../../ui';
+import { TokenListModal } from '../TokenListModal';
+import { BridgesListModal } from '../BridgesListModal';
+// import { NETWORKS, NETWORK_SYMBOLS } from "../../utils";
+// import { useBridge } from "../../hooks/useBridge";
+// import {
+//   // useErc20TokenBalance,
+//   // useIcTokenBalance,
+//   // useTokens,
+// } from "../../hooks/useTokens";
+// import { useWallets } from "../../provider/WalletsProvider.tsx";
+import { TokenProp } from '../../types';
+// import { useBridgeContext } from "../../provider/BridgeProvider";
+// import { useAccount } from 'wagmi';
 import {
-  useErc20TokenBalance,
-  useIcTokenBalance,
-  useTokens,
-} from "../../hooks/useTokens";
-import { useWallets } from "../../hooks/useWallets";
-import { useConnectModal } from "@rainbow-me/rainbowkit";
-import { NetworkProp, TokenProp } from "../../types";
-import { useBridgeContext } from "../../provider/BridgeProvider";
-import { useAccount } from "wagmi";
+  useBridgedTokens,
+  useBridgeContext,
+  Bridge
+} from '../../provider/BridgeProvider.tsx';
+import { Token, useTokenContext } from '../../provider/TokensProvider.tsx';
+import { TokenTag } from '../../ui/TokenTag';
 
-type WidgetFormProps = {
-  setBridgingOrWalletOperation?: Dispatch<SetStateAction<boolean>>;
-};
-export const WidgetForm = ({
-  setBridgingOrWalletOperation,
-}: WidgetFormProps) => {
-  const { address: ethAddress, isConnected: isEthConnected } = useAccount();
-  const { defaultNetwork } = useBridgeContext();
-  const selectedDefaultNetwork =
-    NETWORKS.find(
-      (item) => item.symbol.toLowerCase() === defaultNetwork?.toLowerCase(),
-    ) || NETWORKS[0];
-  const [network, setNetwork] = useState(selectedDefaultNetwork);
+export const WidgetForm = () => {
   const {
-    bridgeFn,
-    amount,
-    setAmount,
-    token,
-    setToken,
-    isBridging,
-    bridgingMesssage,
-  } = useBridge({
-    network: network?.symbol,
-  });
-  const tokens = useTokens(network.symbol);
+    setWalletsOpen,
+    bridges,
+    isBridgingInProgress,
+    isWalletConnectionPending
+  } = useBridgeContext();
+  const { bridge: bridgeTo } = useTokenContext();
+
   const [showTokenList, setShowTokenList] = useState(false);
-  const [showNetworkList, setShowNetworkList] = useState(false);
-  const { balance: ethBalance } = useErc20TokenBalance(
-    token?.address as `0x${string}`,
-  );
-  const { balance: icBalance } = useIcTokenBalance(token);
-  const {
-    connectToIcWallet,
-    isFetching: isFethcingICWallet,
-    icWallet,
-  } = useWallets();
-  const { openConnectModal } = useConnectModal();
-  const {
-    isOpen: isBridgingMessageOpen,
-    onOpen: onBridgingMessageOpen,
-    onClose: onBridgingMessageClose,
-  } = useDisclosure();
+  const [showBridgesList, setShowBridgesList] = useState(false);
 
-  const isPendingBridgeOrWalletOperation = isBridging || isFethcingICWallet;
+  const [token, setToken] = useState<Token | undefined>(undefined);
+  const [bridge, setBridge] = useState<Bridge | undefined>(bridges[0]);
 
-  const isICOrEthWalletConnected =
-    icWallet?.principal || (ethAddress && isEthConnected);
+  const [amount, setAmount] = useState(0);
 
-  const getBalance = () => {
-    if (network.symbol === NETWORK_SYMBOLS.ETHEREUM) {
-      return ethBalance;
-    } else if (network.symbol === NETWORK_SYMBOLS.IC) {
-      return icBalance;
-    }
-    return 0;
+  const onAmountChange = (strAmount: string) => {
+    const floatingAmount = parseFloat(strAmount);
+
+    // TODO: Ensure decimals
+
+    setAmount(floatingAmount);
   };
 
-  const selectToken = (e: TokenProp) => {
-    setToken(e);
-    setShowTokenList(false);
-  };
+  const bridgingMessage = '';
 
-  const selectNetwork = (e: NetworkProp) => {
-    setNetwork(e);
-    setShowNetworkList(false);
-  };
+  const connectButtonTitle = bridges.length > 0 ? 'Bridge' : 'Connect Wallets';
 
-  const connectWallets = async () => {
-    if (
-      network.symbol === NETWORK_SYMBOLS.BITFINITY ||
-      network.symbol === NETWORK_SYMBOLS.IC
-    ) {
-      if (openConnectModal) {
-        await openConnectModal();
+  const connectButton = () => {
+    if (bridges.length > 0) {
+      if (token) {
+        bridgeTo(token, amount);
       }
-      await connectToIcWallet();
-    }
-  };
-
-  const bridgeToken = async () => {
-    await bridgeFn();
-  };
-
-  useEffect(() => {
-    if (setBridgingOrWalletOperation) {
-      setBridgingOrWalletOperation(isPendingBridgeOrWalletOperation);
-    }
-  }, [isPendingBridgeOrWalletOperation, setBridgingOrWalletOperation]);
-
-  useEffect(() => {
-    if (bridgingMesssage && isBridging) {
-      onBridgingMessageOpen();
     } else {
-      onBridgingMessageClose();
+      setWalletsOpen(true);
     }
-  }, [
-    bridgingMesssage,
-    onBridgingMessageOpen,
-    onBridgingMessageClose,
-    isBridging,
-  ]);
+  };
+
+  const [t, st] = useState('');
+
+  if (Math.random() > -1) {
+    // return
+  }
 
   return (
     <Box>
@@ -135,94 +89,85 @@ export const WidgetForm = ({
         <EnhancedFormControl>
           <HStack justifyContent="space-between">
             <Box>
-              <FormLabel color="secondary.white">Select Network</FormLabel>
+              <FormLabel color="secondary.white">Select Bridge</FormLabel>
             </Box>
           </HStack>
           <Box
             cursor="pointer"
-            onClick={() => setShowNetworkList(!showNetworkList)}
+            onClick={() => setShowBridgesList(!showBridgesList)}
           >
-            <DropdownMenu
-              value={network}
-              handleChange={(e) => setNetwork(e as NetworkProp)}
-            />
+            {bridge ? bridge.name : 'Select bridge'}
           </Box>
         </EnhancedFormControl>
         <Box pt={2}>
           <Divider />
         </Box>
         <EnhancedFormControl pt={4}>
-          <LabelValuePair
-            textStyle={{
-              fontSize: "md",
-              fontWeight: "bold",
-              color: "secondary.alpha60",
-            }}
-            label="Assets"
-          >
-            <FormLabel fontSize="sm">
-              Your Balance:{" "}
-              <Text as="span" color="primary.main">
-                {getBalance() || 0}
-              </Text>
-            </FormLabel>
-          </LabelValuePair>
+          <FormLabel>Assets</FormLabel>
           <Box
             cursor="pointer"
             onClick={() => setShowTokenList(!showTokenList)}
           >
-            <DropdownMenu value={token} handleChange={(e) => setToken(e)} />
+            {token ? (
+              <TokenTag
+                name={token.name || token.symbol || ''}
+                img={token?.logo || ''}
+                variant="sm"
+              />
+            ) : (
+              'Select token to bridge'
+            )}
           </Box>
         </EnhancedFormControl>
-        <EnhancedFormControl pt={4}>
+        <EnhancedFormControl pt={4} bg="success">
           <FormLabel>Amount</FormLabel>
           <Input
             placeholder="0.00"
             variant="unstyled"
             type="number"
-            value={amount === 0 ? "" : amount}
-            onChange={(e) => setAmount(Number(e.target.value))}
+            value={amount > 0 ? amount : ''}
+            onChange={(e) => onAmountChange(e.target.value)}
           />
-          <LabelValuePair label="Service fee">0.000</LabelValuePair>
+          <LabelValuePair label="Service fee">0.00</LabelValuePair>
         </EnhancedFormControl>
 
-        <Collapse in={isBridgingMessageOpen} animateOpacity>
+        <Collapse in={false} animateOpacity>
           <VStack
             width="full"
             alignItems="center"
             justifyContent="center"
-            bg={enhancedFormControlBg}
+            // bg={enhancedFormControlBg}
             borderRadius="12px"
             padding={4}
             marginY={4}
           >
             <Text textStyle="h6" color="secondary.alpha72">
-              {bridgingMesssage}
+              {bridgingMessage}
             </Text>
           </VStack>
         </Collapse>
 
         <Box width="full" pt={2}>
           <Button
-            isLoading={isPendingBridgeOrWalletOperation}
             w="full"
-            onClick={isICOrEthWalletConnected ? bridgeToken : connectWallets}
+            isLoading={isBridgingInProgress}
+            disabled={isWalletConnectionPending}
+            onClick={connectButton}
           >
-            {isICOrEthWalletConnected ? "Bridge" : "Connect Wallets"}
+            {connectButtonTitle}
           </Button>
         </Box>
       </form>
       <TokenListModal
-        tokens={tokens}
-        tokenNetwork={network.symbol}
         isOpen={showTokenList}
         onClose={() => setShowTokenList(false)}
-        selectToken={(e) => selectToken(e)}
+        selectToken={setToken}
       />
-      <NetworkListModal
-        isOpen={showNetworkList}
-        onClose={() => setShowNetworkList(false)}
-        selectNetwork={(e) => selectNetwork(e)}
+      <BridgesListModal
+        bridges={bridges}
+        isOpen={showBridgesList}
+        onClose={() => setShowBridgesList(false)}
+        selectBridge={setBridge}
       />
     </Box>
   );

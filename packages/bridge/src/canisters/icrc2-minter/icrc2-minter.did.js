@@ -19,29 +19,26 @@ export const idlFactory = ({ IDL }) => {
     'evm_principal' : IDL.Principal,
     'signing_strategy' : SigningStrategy,
     'owner' : IDL.Principal,
-    'spender_principal' : IDL.Principal,
     'log_settings' : IDL.Opt(LogSettings),
   });
+  const Signature = IDL.Record({
+    'r' : IDL.Text,
+    's' : IDL.Text,
+    'v' : IDL.Text,
+  });
+  const ApproveMintedTokens = IDL.Record({
+    'approve_spender' : IDL.Text,
+    'principal_signature' : Signature,
+    'approve_amount' : IDL.Text,
+  });
   const Icrc2Burn = IDL.Record({
+    'approve_minted_tokens' : IDL.Opt(ApproveMintedTokens),
     'operation_id' : IDL.Nat32,
     'from_subaccount' : IDL.Opt(IDL.Vec(IDL.Nat8)),
     'icrc2_token_principal' : IDL.Principal,
     'recipient_address' : IDL.Text,
+    'fee_payer' : IDL.Opt(IDL.Text),
     'amount' : IDL.Text,
-  });
-  const ApproveError = IDL.Variant({
-    'GenericError' : IDL.Record({
-      'message' : IDL.Text,
-      'error_code' : IDL.Nat,
-    }),
-    'TemporarilyUnavailable' : IDL.Null,
-    'Duplicate' : IDL.Record({ 'duplicate_of' : IDL.Nat }),
-    'BadFee' : IDL.Record({ 'expected_fee' : IDL.Nat }),
-    'AllowanceChanged' : IDL.Record({ 'current_allowance' : IDL.Nat }),
-    'CreatedInFuture' : IDL.Record({ 'ledger_time' : IDL.Nat64 }),
-    'TooOld' : IDL.Null,
-    'Expired' : IDL.Record({ 'ledger_time' : IDL.Nat64 }),
-    'InsufficientFunds' : IDL.Record({ 'balance' : IDL.Nat }),
   });
   const TransferFromError = IDL.Variant({
     'GenericError' : IDL.Record({
@@ -57,13 +54,35 @@ export const idlFactory = ({ IDL }) => {
     'TooOld' : IDL.Null,
     'InsufficientFunds' : IDL.Record({ 'balance' : IDL.Nat }),
   });
+  const TransferError = IDL.Variant({
+    'GenericError' : IDL.Record({
+      'message' : IDL.Text,
+      'error_code' : IDL.Nat,
+    }),
+    'TemporarilyUnavailable' : IDL.Null,
+    'BadBurn' : IDL.Record({ 'min_burn_amount' : IDL.Nat }),
+    'Duplicate' : IDL.Record({ 'duplicate_of' : IDL.Nat }),
+    'BadFee' : IDL.Record({ 'expected_fee' : IDL.Nat }),
+    'CreatedInFuture' : IDL.Record({ 'ledger_time' : IDL.Nat64 }),
+    'TooOld' : IDL.Null,
+    'InsufficientFunds' : IDL.Record({ 'balance' : IDL.Nat }),
+  });
+  const RejectionCode = IDL.Variant({
+    'NoError' : IDL.Null,
+    'CanisterError' : IDL.Null,
+    'SysTransient' : IDL.Null,
+    'DestinationInvalid' : IDL.Null,
+    'Unknown' : IDL.Null,
+    'SysFatal' : IDL.Null,
+    'CanisterReject' : IDL.Null,
+  });
   const Error = IDL.Variant({
     'Internal' : IDL.Text,
     'InvalidNonce' : IDL.Record({ 'got' : IDL.Nat64, 'minimum' : IDL.Nat64 }),
-    'Icrc2ApproveError' : ApproveError,
     'InvalidTokenAddress' : IDL.Null,
     'BftBridgeAlreadyRegistered' : IDL.Text,
     'Icrc2TransferFromError' : TransferFromError,
+    'Icrc2TransferError' : TransferError,
     'NotAuthorized' : IDL.Null,
     'AnonymousPrincipal' : IDL.Null,
     'BftBridgeDoesNotExist' : IDL.Null,
@@ -72,6 +91,7 @@ export const idlFactory = ({ IDL }) => {
       'got' : IDL.Nat32,
       'expected' : IDL.Nat32,
     }),
+    'InterCanisterCallFailed' : IDL.Tuple(RejectionCode, IDL.Text),
     'InvalidBftBridgeContract' : IDL.Null,
     'InvalidBurnOperation' : IDL.Text,
   });
@@ -139,12 +159,12 @@ export const idlFactory = ({ IDL }) => {
     'get_minter_canister_evm_address' : IDL.Func([], [Result_1], []),
     'get_owner' : IDL.Func([], [IDL.Principal], ['query']),
     'ic_logs' : IDL.Func([IDL.Nat64, IDL.Nat64], [Result_2], []),
+    'init_bft_bridge_contract' : IDL.Func([], [Result_1], []),
     'list_mint_orders' : IDL.Func(
         [IDL.Vec(IDL.Nat8), IDL.Vec(IDL.Nat8)],
         [IDL.Vec(IDL.Tuple(IDL.Nat32, IDL.Vec(IDL.Nat8)))],
         ['query'],
       ),
-    'register_evmc_bft_bridge' : IDL.Func([IDL.Text], [Result_3], []),
     'set_evm_principal' : IDL.Func([IDL.Principal], [Result_3], []),
     'set_logger_filter' : IDL.Func([IDL.Text], [Result_3], []),
     'set_owner' : IDL.Func([IDL.Principal], [Result_3], []),
@@ -172,7 +192,6 @@ export const init = ({ IDL }) => {
     'evm_principal' : IDL.Principal,
     'signing_strategy' : SigningStrategy,
     'owner' : IDL.Principal,
-    'spender_principal' : IDL.Principal,
     'log_settings' : IDL.Opt(LogSettings),
   });
   return [InitData];

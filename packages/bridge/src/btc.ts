@@ -2,13 +2,13 @@ import { Actor } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
 import * as ethers from 'ethers';
 import type { Agent } from '@dfinity/agent';
+import { BridgeToken } from '@bitfinity-network/bridge-tokens';
+import { Bft } from '@bitfinity-network/bridge-bft';
 
 import { Bridge } from './bridge';
 import { BtcActor, createBtcBridgeActor } from './ic';
-import { encodeBtcAddress, ethAddrToSubaccount } from './utils';
-import { BridgeToken } from './tokens';
+import { ethAddrToSubaccount } from './utils';
 import WrappedTokenABI from './abi/WrappedToken';
-import BFTBridgeABI from './abi/BFTBridge';
 
 interface BtcBridgeOptions {
   agent: Agent;
@@ -19,7 +19,6 @@ interface BtcBridgeOptions {
 
 export class BtcBridge implements Bridge {
   protected agent: Agent;
-  protected bftAddress: string;
   protected btcBridgeCanisterId: string;
   protected wrappedTokenAddress: string;
   protected walletActors: {
@@ -27,8 +26,9 @@ export class BtcBridge implements Bridge {
     btcActor?: typeof BtcActor;
   } = {};
   protected eth: {
-    bftBridge?: ethers.Contract;
+    bft?: Bft;
   } = {};
+  readonly bftAddress: string;
 
   constructor({
     agent,
@@ -42,9 +42,15 @@ export class BtcBridge implements Bridge {
     this.bftAddress = bftAddress;
   }
 
-  connectEthWallet(wallet?: ethers.Signer) {
-    this.walletActors.wallet = wallet;
-    this.eth = {};
+  connectEthWallet(wallet?: ethers.Signer, bft?: Bft) {
+    if (this.walletActors.wallet !== wallet) {
+      this.walletActors.wallet = wallet;
+      this.eth = {};
+    }
+
+    if (this.eth.bft !== bft) {
+      this.eth.bft = bft;
+    }
   }
 
   connectBitfinityWallet() {}
@@ -77,15 +83,11 @@ export class BtcBridge implements Bridge {
   }
 
   get bftBridge() {
-    if (!this.eth.bftBridge) {
-      this.eth.bftBridge = new ethers.Contract(
-        this.bftAddress,
-        BFTBridgeABI,
-        this.wallet
-      );
+    if (!this.eth.bft) {
+      throw new Error('Bft not connected yet');
     }
 
-    return this.eth.bftBridge;
+    return this.eth.bft;
   }
 
   getWrappedTokenContract() {
@@ -126,16 +128,15 @@ export class BtcBridge implements Bridge {
     const wrappedTokenContract = this.getWrappedTokenContract();
 
     const approveTx = await wrappedTokenContract.approve(
-      await this.bftBridge.getAddress(),
+      this.bftBridge.address,
       satoshis
     );
     await approveTx.wait(2);
 
-    const burnTx = await this.bftBridge.burn(
-      satoshis,
+    await this.bftBridge.burn(
+      address,
       this.wrappedTokenAddress,
-      `0x${encodeBtcAddress(address)}`
+      BigInt(satoshis),
     );
-    await burnTx.wait(2);
   }
 }

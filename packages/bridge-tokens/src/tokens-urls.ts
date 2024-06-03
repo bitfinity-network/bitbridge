@@ -1,22 +1,11 @@
 import z from 'zod';
 
-import {
-  FetchedToken,
-  DeployedIcrcToken,
-  DeployedBtcToken,
-  DeployedRuneToken
-} from './tokens-fetched';
 import { TOKENS_MAIN_NET_URL, TOKENS_TEST_NET_URL } from './constants';
-
-export const defaultDeployedTokens = [
-  DeployedIcrcToken.parse({}),
-  DeployedBtcToken.parse({}),
-  DeployedRuneToken.parse({})
-];
+import { FetchedToken } from './tokens-fetched';
 
 export const FetchUrlLocal = z.object({
   type: z.literal('local').default('local'),
-  tokens: z.array(FetchedToken).default(defaultDeployedTokens)
+  tokens: z.array(FetchedToken)
 });
 
 export type FetchUrlLocal = z.infer<typeof FetchUrlLocal>;

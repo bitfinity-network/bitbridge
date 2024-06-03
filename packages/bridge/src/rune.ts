@@ -1,14 +1,12 @@
 import * as ethers from 'ethers';
-import { Id256Factory } from '@bitfinity-network/id256';
 import type { Agent } from '@dfinity/agent';
+import { BridgeToken } from '@bitfinity-network/bridge-tokens';
+import { Bft } from '@bitfinity-network/bridge-bft';
 
 import { RuneActor, createRuneBridgeActor } from './ic';
 import WrappedTokenABI from './abi/WrappedToken';
 import { wait } from './utils';
-import { encodeBtcAddress } from './utils';
-import BFTBridgeABI from './abi/BFTBridge';
 import { Bridge } from './bridge';
-import { BridgeToken } from './tokens';
 
 interface RuneBridgeOptions {
   agent: Agent;
@@ -20,7 +18,6 @@ interface RuneBridgeOptions {
 
 export class RuneBridge implements Bridge {
   protected agent: Agent;
-  protected bftAddress: string;
   protected runeBridgeCanisterId: string;
   protected wrappedTokenAddress: string;
   protected runeId: string;
@@ -29,8 +26,9 @@ export class RuneBridge implements Bridge {
     runeActor?: typeof RuneActor;
   } = {};
   protected eth: {
-    bftBridge?: ethers.Contract;
+    bft?: Bft;
   } = {};
+  readonly bftAddress: string;
 
   constructor({
     agent,
@@ -46,9 +44,15 @@ export class RuneBridge implements Bridge {
     this.bftAddress = bftAddress;
   }
 
-  connectEthWallet(wallet?: ethers.Signer) {
-    this.walletActors.wallet = wallet;
-    this.eth = {};
+  connectEthWallet(wallet?: ethers.Signer, bft?: Bft) {
+    if (this.walletActors.wallet !== wallet) {
+      this.walletActors.wallet = wallet;
+      this.eth = {};
+    }
+
+    if (this.eth.bft !== bft) {
+      this.eth.bft = bft;
+    }
   }
 
   connectBitfinityWallet() {}
@@ -81,15 +85,11 @@ export class RuneBridge implements Bridge {
   }
 
   get bftBridge() {
-    if (!this.eth.bftBridge) {
-      this.eth.bftBridge = new ethers.Contract(
-        this.bftAddress,
-        BFTBridgeABI,
-        this.wallet
-      );
+    if (!this.eth.bft) {
+      throw new Error('Bft not connected yet');
     }
 
-    return this.eth.bftBridge;
+    return this.eth.bft;
   }
 
   async getDepositAddress(ethAddress: string) {
@@ -103,16 +103,10 @@ export class RuneBridge implements Bridge {
   }
 
   private async getWrappedTokenContract() {
-    const address = await this.getWrappedTokenEthAddress();
-
-    return new ethers.Contract(address, WrappedTokenABI, this.wallet);
-  }
-
-  async getWrappedTokenEthAddress(): Promise<string> {
-    const [b, t] = this.runeId.split(':');
-
-    return await this.bftBridge.getWrappedToken(
-      Id256Factory.fromBtcTxIndex(BigInt(b), parseInt(t, 10))
+    return new ethers.Contract(
+      this.wrappedTokenAddress,
+      WrappedTokenABI,
+      this.wallet
     );
   }
 
@@ -151,19 +145,16 @@ export class RuneBridge implements Bridge {
     const wrappedTokenContract = await this.getWrappedTokenContract();
 
     const approveTx = await wrappedTokenContract.approve(
-      await this.bftBridge.getAddress(),
+      this.bftBridge.address,
       amount
     );
     await approveTx.wait(2);
 
-    const tokenAddress = await this.getWrappedTokenEthAddress();
-
-    const burnTx = await this.bftBridge.burn(
-      amount,
-      tokenAddress,
-      `0x${encodeBtcAddress(address)}`
+    await this.bftBridge.burn(
+      address,
+      this.wrappedTokenAddress,
+      BigInt(amount)
     );
-    await burnTx.wait(2);
   }
 
   async getRunesBalance(address: string) {
