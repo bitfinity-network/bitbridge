@@ -10,12 +10,8 @@ import {
   VStack
 } from '@chakra-ui/react';
 import { IoClose } from 'react-icons/io5';
-
-import {
-  useWallets,
-  useWalletsOpen,
-  Wallet
-} from '../../provider/BridgeProvider.tsx';
+import { useWallets, Wallet } from '../../provider/BridgeProvider.tsx';
+import { shortenAddress } from '../../utils/format.ts';
 
 type WalletItemProps = {
   wallet: Wallet;
@@ -42,7 +38,7 @@ const WalletItem = ({ wallet }: WalletItemProps) => {
             {wallet.name}
           </Text>
           <Text color="secondary.alpha72" textStyle="body">
-            {wallet.address}
+            {shortenAddress(wallet.address)}
           </Text>
         </VStack>
       </HStack>
