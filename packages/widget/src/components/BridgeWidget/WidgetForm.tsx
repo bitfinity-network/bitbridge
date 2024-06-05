@@ -27,18 +27,18 @@ import { BridgesListModal } from '../BridgesListModal';
 //   // useTokens,
 // } from "../../hooks/useTokens";
 // import { useWallets } from "../../provider/WalletsProvider.tsx";
-import { TokenProp } from '../../types';
 // import { useBridgeContext } from "../../provider/BridgeProvider";
 // import { useAccount } from 'wagmi';
-import {
-  useBridgedTokens,
-  useBridgeContext,
-  Bridge
-} from '../../provider/BridgeProvider.tsx';
+import { useBridgeContext, Bridge } from '../../provider/BridgeProvider.tsx';
 import { Token, useTokenContext } from '../../provider/TokensProvider.tsx';
 import { TokenTag } from '../../ui/TokenTag';
 
-export const WidgetForm = () => {
+type WidgetFormProps = {
+  setBridgingOrWalletOperation?: Dispatch<SetStateAction<boolean>>;
+};
+export const WidgetForm = ({
+  setBridgingOrWalletOperation
+}: WidgetFormProps) => {
   const {
     setWalletsOpen,
     bridges,
@@ -63,6 +63,9 @@ export const WidgetForm = () => {
     setAmount(floatingAmount);
   };
 
+  const isPendingBridgeOrWalletOperation =
+    isBridgingInProgress || isWalletConnectionPending;
+
   const bridgingMessage = '';
 
   const connectButtonTitle = bridges.length > 0 ? 'Bridge' : 'Connect Wallets';
@@ -77,11 +80,11 @@ export const WidgetForm = () => {
     }
   };
 
-  const [t, st] = useState('');
-
-  if (Math.random() > -1) {
-    // return
-  }
+  useEffect(() => {
+    if (setBridgingOrWalletOperation) {
+      setBridgingOrWalletOperation(isPendingBridgeOrWalletOperation);
+    }
+  }, [isPendingBridgeOrWalletOperation, setBridgingOrWalletOperation]);
 
   return (
     <Box>
