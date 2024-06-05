@@ -8,27 +8,11 @@ import {
   Input,
   Text,
   VStack,
-  Collapse,
-  useDisclosure,
-  TextProps,
-  chakra,
-  FormControl
+  Collapse
 } from '@chakra-ui/react';
-import { useConnectModal } from '@rainbow-me/rainbowkit';
-
-import { DropdownMenu, LabelValuePair, EnhancedFormControl } from '../../ui';
+import { LabelValuePair, EnhancedFormControl } from '../../ui';
 import { TokenListModal } from '../TokenListModal';
 import { BridgesListModal } from '../BridgesListModal';
-// import { NETWORKS, NETWORK_SYMBOLS } from "../../utils";
-// import { useBridge } from "../../hooks/useBridge";
-// import {
-//   // useErc20TokenBalance,
-//   // useIcTokenBalance,
-//   // useTokens,
-// } from "../../hooks/useTokens";
-// import { useWallets } from "../../provider/WalletsProvider.tsx";
-// import { useBridgeContext } from "../../provider/BridgeProvider";
-// import { useAccount } from 'wagmi';
 import { useBridgeContext, Bridge } from '../../provider/BridgeProvider.tsx';
 import { Token, useTokenContext } from '../../provider/TokensProvider.tsx';
 import { TokenTag } from '../../ui/TokenTag';
