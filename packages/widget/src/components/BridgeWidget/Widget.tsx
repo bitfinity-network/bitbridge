@@ -43,6 +43,7 @@ export function Widget() {
         closeOnOverlayClick={false}
         modalContentProps={{
           width: '500px',
+          height: shouldOpenWalletPannel ? '600px' : 'auto',
           borderRadius: '20px',
           overflowY: 'hidden'
         }}

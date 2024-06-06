@@ -17,10 +17,10 @@ import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { BITFINITY_INSTALLATION_URL } from '../utils';
 import * as ethers from 'ethers';
 import { BitfinityWallet } from '@bitfinity-network/bitfinitywallet';
-
 import BftIcon from '../assets/icons/bitfinity.svg';
 import BtcIcon from '../assets/icons/bitcoin.svg';
 import IcIcon from '../assets/icons/ic.svg';
+import EvmIcon from '../assets/icons/eth.svg';
 
 const BRIDGE_TYPES = ['icrc_evm', 'btc_emv', 'rune_evm'] as const;
 export type BridgeType = (typeof BRIDGE_TYPES)[number];
@@ -55,20 +55,36 @@ const WALLETS_INFO: Record<WalletType, WalletInfo> = {
 export type BridgeInfo = {
   name: string;
   logo: string;
+  fromName: string;
+  destinationName: string;
+  fromLogo: string;
+  destinationLogo: string;
 };
 
 const BRIDGES_INFO: Record<BridgeType, BridgeInfo> = {
   icrc_evm: {
     name: 'ICRC <-> EVM',
-    logo: BftIcon
+    logo: BftIcon,
+    fromName: 'ICRC',
+    destinationName: 'EVM',
+    fromLogo: BftIcon,
+    destinationLogo: EvmIcon
   },
   btc_emv: {
     name: 'BITCOIN <-> EVM',
-    logo: BtcIcon
+    logo: BtcIcon,
+    fromName: 'BITCOIN',
+    destinationName: 'EVM',
+    fromLogo: BtcIcon,
+    destinationLogo: EvmIcon
   },
   rune_evm: {
     name: 'RUNE <-> EVM',
-    logo: BtcIcon
+    logo: BtcIcon,
+    fromName: 'RUNE',
+    destinationName: 'EVM',
+    fromLogo: BtcIcon,
+    destinationLogo: EvmIcon
   }
 };
 

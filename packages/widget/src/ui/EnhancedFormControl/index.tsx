@@ -4,7 +4,7 @@ export const EnhancedFormControl = chakra(FormControl, {
   baseStyle: {
     width: '100%',
     borderRadius: '12px',
-    bg: 'success',
+    bg: 'secondary.alpha4',
     padding: 4,
     marginY: 4
   }

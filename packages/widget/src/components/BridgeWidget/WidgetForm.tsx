@@ -2,20 +2,18 @@ import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import {
   Box,
   Button,
-  Divider,
-  FormLabel,
   HStack,
   Input,
   Text,
   VStack,
   Collapse
 } from '@chakra-ui/react';
-import { LabelValuePair, EnhancedFormControl } from '../../ui';
+import { LabelValuePair, EnhancedFormControl, TokenChip } from '../../ui';
 import { TokenListModal } from '../TokenListModal';
 import { BridgesListModal } from '../BridgesListModal';
 import { useBridgeContext, Bridge } from '../../provider/BridgeProvider.tsx';
 import { Token, useTokenContext } from '../../provider/TokensProvider.tsx';
-import { TokenTag } from '../../ui/TokenTag';
+import { MdOutlineArrowDownward } from 'react-icons/md';
 
 type WidgetFormProps = {
   setBridgingOrWalletOperation?: Dispatch<SetStateAction<boolean>>;
@@ -47,6 +45,10 @@ export const WidgetForm = ({
     setAmount(floatingAmount);
   };
 
+  const handleToggleTokenList = () => {
+    setShowTokenList(!showTokenList);
+  };
+
   const isPendingBridgeOrWalletOperation =
     isBridgingInProgress || isWalletConnectionPending;
 
@@ -73,48 +75,46 @@ export const WidgetForm = ({
   return (
     <Box>
       <form>
-        <EnhancedFormControl>
-          <HStack justifyContent="space-between">
-            <Box>
-              <FormLabel color="secondary.white">Select Bridge</FormLabel>
-            </Box>
-          </HStack>
-          <Box
-            cursor="pointer"
-            onClick={() => setShowBridgesList(!showBridgesList)}
-          >
-            {bridge ? bridge.name : 'Select bridge'}
-          </Box>
-        </EnhancedFormControl>
-        <Box pt={2}>
-          <Divider />
-        </Box>
         <EnhancedFormControl pt={4}>
-          <FormLabel>Assets</FormLabel>
-          <Box
-            cursor="pointer"
-            onClick={() => setShowTokenList(!showTokenList)}
+          <HStack
+            width="full"
+            bg="secondary.main"
+            padding={3}
+            borderRadius="9px"
           >
-            {token ? (
-              <TokenTag
-                name={token.name || token.symbol || ''}
-                img={token?.logo || ''}
-                variant="sm"
-              />
+            <Input
+              placeholder="0.00"
+              variant="unstyled"
+              type="number"
+              value={amount > 0 ? amount : ''}
+              onChange={(e) => onAmountChange(e.target.value)}
+              size="lg"
+              height={bridge ? '70px' : 'initial'}
+              fontSize={bridge ? '32px' : 'initial'}
+            />
+            {bridge ? (
+              <VStack gap="4px">
+                <TokenChip
+                  bridge={bridge}
+                  target="from"
+                  onClick={handleToggleTokenList}
+                />
+                <MdOutlineArrowDownward width="24px" height="24px" />
+                <TokenChip
+                  bridge={bridge}
+                  target="destination"
+                  onClick={handleToggleTokenList}
+                />
+              </VStack>
             ) : (
-              'Select token to bridge'
+              <Button
+                variant="outline"
+                onClick={() => setShowBridgesList(true)}
+              >
+                Select bridge
+              </Button>
             )}
-          </Box>
-        </EnhancedFormControl>
-        <EnhancedFormControl pt={4} bg="success">
-          <FormLabel>Amount</FormLabel>
-          <Input
-            placeholder="0.00"
-            variant="unstyled"
-            type="number"
-            value={amount > 0 ? amount : ''}
-            onChange={(e) => onAmountChange(e.target.value)}
-          />
+          </HStack>
           <LabelValuePair label="Service fee">0.00</LabelValuePair>
         </EnhancedFormControl>
 
@@ -123,7 +123,7 @@ export const WidgetForm = ({
             width="full"
             alignItems="center"
             justifyContent="center"
-            // bg={enhancedFormControlBg}
+            bg="secondary.main"
             borderRadius="12px"
             padding={4}
             marginY={4}

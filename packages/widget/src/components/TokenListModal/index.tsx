@@ -18,6 +18,8 @@ export function TokenListModal({
 }: TokenListModelProps) {
   const { tokens } = useTokenContext();
 
+  console.log('Tokens', tokens);
+
   const [search, setSearch] = useState('');
 
   const filteredTokens = tokens.filter((token) => {
@@ -63,7 +65,10 @@ export function TokenListModal({
                       py={2}
                       px={3}
                       key={token.symbol}
-                      onClick={() => {selectToken(token); onClose();}}
+                      onClick={() => {
+                        selectToken(token);
+                        onClose();
+                      }}
                     >
                       {token ? (
                         <TokenTag

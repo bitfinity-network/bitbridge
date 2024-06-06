@@ -1,5 +1,4 @@
-import { TokenProp } from "../../types";
-import { HStack, Image, Text, StackProps, TextProps } from "@chakra-ui/react";
+import { HStack, Image, Text, StackProps, TextProps } from '@chakra-ui/react';
 
 interface VariantType {
   sm: TextProps;
@@ -7,28 +6,33 @@ interface VariantType {
 }
 const variants: VariantType = {
   sm: {
-    size: "24px",
-    fontSize: "14px",
+    size: '24px',
+    fontSize: '14px',
     fontWeight: 500,
-    lineHeight: "20px",
-    borderRadius: "full",
+    lineHeight: '20px',
+    borderRadius: 'full'
   },
   lg: {
-    size: "32px",
-    fontSize: "16px",
+    size: '32px',
+    fontSize: '16px',
     fontWeight: 600,
-    lineHeight: "24px",
-    borderRadius: "full",
-  },
+    lineHeight: '24px',
+    borderRadius: 'full'
+  }
 };
 
 const TokenTag = ({
   name,
-  img = "",
-  variant = "lg",
+  img = '',
+  variant = 'lg',
   isTruncated = false,
   ...rest
-}: TokenProp & StackProps) => {
+}: {
+  name: string;
+  img: string;
+  variant: 'sm' | 'lg';
+  isTruncated?: boolean;
+} & StackProps) => {
   const fallbackSrc = `https://api.dicebear.com/7.x/initials/svg?seed=${name}`;
   return (
     <HStack alignItems="center" {...rest}>
