@@ -1,36 +1,38 @@
 import * as ethers from 'ethers';
 
-import { Agent } from '@dfinity/agent';
-
 import { BitfinityWallet } from '@bitfinity-network/bitfinitywallet';
+
 import {
-  BridgeBaseToken,
-  BridgeIcrcToken,
-  BridgeRuneToken,
-  BridgeToken,
-  FetchUrl,
-  remoteUrls,
-  Fetcher
-} from '@bitfinity-network/bridge-tokens';
-
-import { Bridger, Bridges } from './bridger';
-
-import { wait } from './utils';
-import { defaultLocalUrl } from './tokens';
-
-export interface ConnectorOptions {
-  agent: Agent;
-}
+  BridgeNetwork,
+  BridgeType,
+  Networks,
+  BrdidgeNetworkUrl
+} from './network';
+import { Bridger, GetBridge } from './bridger';
 
 export class Connector {
   protected wallet?: ethers.Signer;
   protected bitfinityWallet?: BitfinityWallet;
   protected bridger: Bridger;
-  protected fetcher: Fetcher;
+  protected networks: Networks;
 
-  private constructor({ agent }: ConnectorOptions) {
-    this.fetcher = new Fetcher();
-    this.bridger = new Bridger({ agent });
+  private constructor() {
+    this.networks = new Networks();
+    this.bridger = new Bridger({ networks: this.networks });
+  }
+
+  addNetwork(network: BridgeNetwork) {
+    this.networks.add(network);
+    this.bridger.createBridges();
+  }
+
+  getNetworks() {
+    return this.networks.all();
+  }
+
+  async fetch(urls: BrdidgeNetworkUrl[]) {
+    await this.networks.fetch(urls);
+    this.bridger.createBridges();
   }
 
   connectEthWallet(wallet: ethers.Signer) {
@@ -53,115 +55,15 @@ export class Connector {
     this.bridger.connectBitfinityWallet(undefined);
   }
 
-  static create(options: ConnectorOptions): Connector {
-    return new Connector(options);
-  }
-
-  async bridge() {
-    const [bridged, toDeploy] = this.fetcher.getTokensAll();
-
-    const deployed: BridgeToken[] = [];
-
-    for (const token of toDeploy) {
-      if (token.type === 'btc') {
-        continue;
-      }
-
-      const id =
-        'baseTokenCanisterId' in token
-          ? token.baseTokenCanisterId
-          : 'runeId' in token
-            ? token.runeId
-            : '';
-
-      if (this.bridger.isBridge(id)) {
-        continue;
-      }
-
-      const prevDeployed = this.getBridgedToken(id);
-
-      if (prevDeployed) {
-        deployed.push(prevDeployed);
-        continue;
-      }
-
-      const bft = this.bridger.getBft(token.bftAddress);
-
-      if (!bft) {
-        continue;
-      }
-
-      const baseToken = BridgeBaseToken.parse(token);
-
-      if (token.type === 'icrc') {
-        const wrappedAddress = await bft.deployIcrcWrappedToken(
-          token.baseTokenCanisterId,
-          token.name,
-          token.symbol
-        );
-
-        deployed.push({
-          ...baseToken,
-          type: 'icrc',
-          baseTokenCanisterId: token.baseTokenCanisterId,
-          iCRC2MinterCanisterId: token.iCRC2MinterCanisterId,
-          wrappedTokenAddress: wrappedAddress
-        } satisfies BridgeIcrcToken);
-      } else {
-        const wrappedAddress = await bft.deployRuneWrappedToken(
-          token.runeId,
-          token.name
-        );
-
-        deployed.push({
-          ...baseToken,
-          type: 'rune',
-          runeId: token.runeId,
-          runeBridgeCanisterId: token.runeBridgeCanisterId,
-          wrappedTokenAddress: wrappedAddress
-        } satisfies BridgeRuneToken);
-      }
-
-      await wait(250);
-    }
-
-    const deployedTokens = bridged.concat(deployed);
-
-    this.bridger.addBridgedTokens(
-      deployedTokens,
-      this.wallet,
-      this.bitfinityWallet
-    );
-    this.fetcher.removeDeployedTokens(deployedTokens);
-
-    return this.fetcher.getTokensAll().flat().length === 0;
-  }
-
-  async fetch(tokensUrls: FetchUrl[]) {
-    return await this.fetcher.fetch(tokensUrls);
-  }
-
-  async fetchLocal() {
-    return await this.fetch([defaultLocalUrl]);
-  }
-
-  async fetchDefault(network: keyof typeof remoteUrls) {
-    return await this.fetcher.fetchDefault(network);
+  static create(): Connector {
+    return new Connector();
   }
 
   icWhiteList() {
     return this.bridger.icWhiteList();
   }
 
-  getBridge<T extends keyof Bridges>(id: string) {
-    return this.bridger.getBridge<T>(id);
-  }
-
-  getBridgedToken(id: string) {
-    return this.bridger.getBridgedToken(id);
-  }
-
-  getBridgedTokens() {
-    return this.bridger.getBridgedTokens();
+  getBridge<T extends BridgeType>(netName: string, type: T): GetBridge<T> {
+    return this.bridger.getBridge<T>(netName, type);
   }
 }

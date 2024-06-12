@@ -1,260 +1,123 @@
 import { Principal } from '@dfinity/principal';
-import * as ethers from 'ethers';
-import { numberToHex } from 'viem';
-import { BridgeToken } from '@bitfinity-network/bridge-tokens';
-import { Bft } from '@bitfinity-network/bridge-bft';
-import {
-  BitfinityWallet,
-  Transaction
-} from '@bitfinity-network/bitfinitywallet';
-import type { Agent } from '@dfinity/agent';
+import { Wallets } from '@bitfinity-network/bridge-bft';
 
-import { Bridge } from './bridge';
 import {
-  Icrc1IdlFactory,
-  Icrc2MinterIdlFactory,
-  ICRC1,
-  ICRC2Minter
-} from './ic';
-import { generateOperationId } from './tests/utils';
-import WrappedTokenABI from './abi/WrappedToken';
+  Bridge,
+  BridgeFromEvmc,
+  BridgeToEvmc,
+  DeployWrappedToken
+} from './bridge';
+import { Icrc1IdlFactory, ICRC1, ICRC2Minter } from './ic';
+import { ethAddrToSubaccount } from './utils';
+import { Networks } from './network';
 
 export interface IcrcBridgeOptions {
-  agent: Agent;
-  bftAddress: string;
-  iCRC2MinterCanisterId: string;
-  baseTokenCanisterId: string;
-  wrappedTokenAddress: string;
+  wallets: Wallets;
+  network: string;
+  networks: Networks;
 }
 
 export class IcrcBridge implements Bridge {
-  protected bridgeId: string;
-  protected agent: Agent;
-  protected iCRC2MinterCanisterId: string;
-  protected baseTokenCanisterId: string;
-  protected wrappedTokenAddress: string;
-  protected walletActors: {
-    wallet?: ethers.Signer;
-    bitfinityWallet?: BitfinityWallet;
-  } = {};
   protected ic: {
-    baseToken?: Promise<typeof ICRC1>;
-    iCRC2Minter?: Promise<typeof ICRC2Minter>;
+    baseToken?: Promise<ICRC1>;
+    iCRC2Minter?: Promise<ICRC2Minter>;
   } = {};
-  protected eth: {
-    bft?: Bft;
-  } = {};
-  readonly bftAddress: string;
+  protected wallets: Wallets;
+  protected networkName: string;
+  protected networks: Networks;
 
-  constructor({
-    bftAddress,
-    agent,
-    iCRC2MinterCanisterId,
-    baseTokenCanisterId,
-    wrappedTokenAddress
-  }: IcrcBridgeOptions) {
-    this.bridgeId = `${baseTokenCanisterId}`;
-    this.iCRC2MinterCanisterId = iCRC2MinterCanisterId;
-    this.baseTokenCanisterId = baseTokenCanisterId;
-    this.wrappedTokenAddress = wrappedTokenAddress;
-    this.agent = agent;
-    this.bftAddress = bftAddress;
+  constructor({ network, networks, wallets }: IcrcBridgeOptions) {
+    this.networkName = network;
+    this.networks = networks;
+    this.wallets = wallets;
   }
 
-  connectEthWallet(wallet?: ethers.Signer, bft?: Bft) {
-    if (this.walletActors.wallet !== wallet) {
-      this.walletActors.wallet = wallet;
-      this.eth = {};
-    }
-
-    if (this.eth.bft !== bft) {
-      this.eth.bft = bft;
-    }
+  protected get network() {
+    return this.networks.getBridge(this.networkName, 'icrc_evm');
   }
 
-  connectBitfinityWallet(bitfinityWallet?: BitfinityWallet) {
-    if (this.walletActors.bitfinityWallet !== bitfinityWallet) {
-      this.walletActors.bitfinityWallet = bitfinityWallet;
-      this.ic = {};
-    }
+  protected get bftBridge() {
+    return this.wallets.getBft(this.network.bftAddress);
   }
 
-  idMatch(token: BridgeToken) {
-    return this.wrappedTokenAddress === token.wrappedTokenAddress;
+  protected get feeCharge() {
+    return this.wallets.getFeeCharge(this.network.feeChargeAddress);
   }
 
-  get wallet() {
-    if (!this.walletActors.wallet) {
-      throw new Error('ETH wallet not connected yet');
-    }
-
-    return this.walletActors.wallet;
+  async getTokensPairs() {
+    return await this.bftBridge.getIcrcTokensPairs();
   }
 
-  get bitfinityWallet() {
-    if (!this.walletActors.bitfinityWallet) {
-      throw new Error('Bitfinity wallet not connected yet');
-    }
-
-    return this.walletActors.bitfinityWallet;
+  async getWrappedTokenAddress(wrapped: string) {
+    return await this.bftBridge.getWrappedTokenAddress(wrapped);
   }
 
-  get bftBridge() {
-    if (!this.eth.bft) {
-      throw new Error('Bft not connected yet');
-    }
-
-    return this.eth.bft;
+  async deployWrappedToken({ id, name, symbol }: DeployWrappedToken) {
+    return await this.bftBridge.deployIcrcWrappedToken(id, name, symbol);
   }
 
-  get icrc2Minter() {
-    if (!this.ic.iCRC2Minter) {
-      this.ic.iCRC2Minter = (async () => {
-        return await this.bitfinityWallet.createActor<typeof ICRC2Minter>({
-          canisterId: this.iCRC2MinterCanisterId,
-          interfaceFactory: Icrc2MinterIdlFactory
-        });
-      })();
-    }
-
-    return this.ic.iCRC2Minter;
+  baseToken(token: string) {
+    return this.wallets.getWalletActor<ICRC1>(token, Icrc1IdlFactory);
   }
 
-  get baseToken() {
-    if (!this.ic.baseToken) {
-      this.ic.baseToken = (async () => {
-        return await this.bitfinityWallet.createActor<typeof ICRC1>({
-          canisterId: this.baseTokenCanisterId,
-          interfaceFactory: Icrc1IdlFactory
-        });
-      })();
-    }
+  async getBaseTokenBalance(base: string, address: string) {
+    const actor = await this.baseToken(base);
 
-    return this.ic.baseToken;
-  }
-
-  get baseTokenId() {
-    return Principal.fromText(this.baseTokenCanisterId);
-  }
-
-  get icrc2MinterId() {
-    return Principal.fromText(this.iCRC2MinterCanisterId);
-  }
-
-  async getWrappedTokenContract() {
-    return new ethers.Contract(
-      this.wrappedTokenAddress,
-      WrappedTokenABI,
-      this.wallet
-    );
-  }
-
-  async getBaseTokenBalance(principal: string) {
-    return (await this.baseToken).icrc1_balance_of({
-      owner: Principal.fromText(principal),
+    return actor.icrc1_balance_of({
+      owner: Principal.fromText(address),
       subaccount: []
     });
   }
 
-  async getWrappedTokenBalance(address: string) {
-    const wrappedTokenContract = await this.getWrappedTokenContract();
+  async getWrappedTokenInfo(wrapped: string) {
+    return await this.wallets.getWrappedTokenInfo(wrapped);
+  }
 
-    return await wrappedTokenContract.balanceOf(address);
+  async getWrappedTokenBalance(
+    wrapped: string,
+    address: string
+  ): Promise<bigint> {
+    return await this.wallets.getWrappedTokenBalance(wrapped, address);
   }
 
   icWhitelist() {
-    return [this.baseTokenCanisterId, this.iCRC2MinterCanisterId];
+    return [this.network.iCRC2MinterCanisterId];
   }
 
-  async bridgeToEvmc(owner: string, recipient: string, amount: bigint) {
-    return new Promise((resolve, reject) => {
-      (async () => {
-        try {
-          await this.bftBridge.checkAndDeposit(owner, recipient);
-        } catch (err) {
-          reject([err]);
-          return;
-        }
+  async bridgeToEvmc({ token, owner, recipient, amount }: BridgeToEvmc) {
+    await this.feeCharge.checkAndDeposit(owner, recipient);
 
-        try {
-          const fee = await (await this.baseToken).icrc1_fee();
+    const baseTokenActor = await this.baseToken(token);
 
-          const trRes: unknown[] = [];
-          const trErr: unknown[] = [];
+    const fee = await baseTokenActor.icrc1_fee();
 
-          const bridgeTransactions: Transaction[] = [
-            {
-              idl: Icrc1IdlFactory,
-              canisterId: this.baseTokenCanisterId,
-              methodName: 'icrc2_approve',
-              args: [
-                {
-                  fee: [],
-                  memo: [],
-                  from_subaccount: [],
-                  created_at_time: [],
-                  amount: amount + fee * 2n,
-                  expected_allowance: [],
-                  expires_at: [],
-                  spender: {
-                    owner: this.icrc2MinterId,
-                    subaccount: []
-                  }
-                }
-              ],
-              onSuccess: async (res) => {
-                trRes.push(res);
-              },
-              onFail: async (err) => {
-                trErr.push(err);
-              }
-            },
-            {
-              idl: Icrc2MinterIdlFactory,
-              canisterId: this.iCRC2MinterCanisterId,
-              methodName: 'burn_icrc2',
-              args: [
-                {
-                  operation_id: generateOperationId(),
-                  from_subaccount: [],
-                  approve_minted_tokens: [],
-                  icrc2_token_principal: this.baseTokenId,
-                  recipient_address: recipient,
-                  fee_payer: [recipient],
-                  amount: numberToHex(amount)
-                }
-              ],
-              onSuccess: async (res: any) => {
-                trRes.push(res);
-              },
-              onFail: async (err: any) => {
-                trErr.push(err);
-              }
-            }
-          ];
-
-          await this.bitfinityWallet.batchTransactions(bridgeTransactions);
-
-          if (trErr.length) {
-            reject(trErr);
-          } else {
-            resolve(trRes);
-          }
-        } catch (err) {
-          reject(err);
-        }
-      })();
+    await baseTokenActor.icrc2_approve({
+      fee: [],
+      memo: [],
+      from_subaccount: [],
+      created_at_time: [],
+      amount: amount + fee * 2n,
+      expected_allowance: [],
+      expires_at: [],
+      spender: {
+        owner: Principal.fromText(this.network.iCRC2MinterCanisterId),
+        subaccount: [ethAddrToSubaccount(recipient)]
+      }
     });
+
+    await this.bftBridge.burnIcrc(owner, token, recipient, amount);
   }
 
-  async bridgeFromEvmc(recipient: string, amount: bigint) {
-    const wrappedToken = await this.getWrappedTokenContract();
+  async bridgeFromEvmc({ wrappedToken, recipient, amount }: BridgeFromEvmc) {
+    const wrappedTokenContract =
+      this.wallets.getWrappedTokenContract(wrappedToken);
 
-    const apTx = await wrappedToken.approve(this.bftBridge.address, amount);
+    const apTx = await wrappedTokenContract.approve(
+      this.network.bftAddress,
+      amount
+    );
     await apTx.wait(2);
 
-    const wrappedTokenAddress = await wrappedToken.getAddress();
-
-    await this.bftBridge.burn(recipient, wrappedTokenAddress, amount);
+    await this.bftBridge.burn(recipient, wrappedToken, amount);
   }
 }

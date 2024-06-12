@@ -1,107 +1,104 @@
-import { Dispatch, SetStateAction, useEffect, useState } from 'react';
-import {
-  Box,
-  Button,
-  Divider,
-  FormLabel,
-  HStack,
-  Input,
-  Text,
-  VStack,
-  Collapse,
-  useDisclosure,
-  TextProps,
-  chakra,
-  FormControl
-} from '@chakra-ui/react';
-import { useConnectModal } from '@rainbow-me/rainbowkit';
+import { useState } from 'react';
+import { Box, Button, FormLabel, Input, useToast } from '@chakra-ui/react';
 
-import { DropdownMenu, LabelValuePair, EnhancedFormControl } from '../../ui';
+import { LabelValuePair, EnhancedFormControl } from '../../ui';
 import { TokenListModal } from '../TokenListModal';
-import { BridgesListModal } from '../BridgesListModal';
-// import { NETWORKS, NETWORK_SYMBOLS } from "../../utils";
-// import { useBridge } from "../../hooks/useBridge";
-// import {
-//   // useErc20TokenBalance,
-//   // useIcTokenBalance,
-//   // useTokens,
-// } from "../../hooks/useTokens";
-// import { useWallets } from "../../provider/WalletsProvider.tsx";
-import { TokenProp } from '../../types';
-// import { useBridgeContext } from "../../provider/BridgeProvider";
-// import { useAccount } from 'wagmi';
-import {
-  useBridgedTokens,
-  useBridgeContext,
-  Bridge
-} from '../../provider/BridgeProvider.tsx';
-import { Token, useTokenContext } from '../../provider/TokensProvider.tsx';
+import { useBridgeContext } from '../../provider/BridgeProvider.tsx';
+import { useTokenContext } from '../../provider/TokensProvider.tsx';
 import { TokenTag } from '../../ui/TokenTag';
+import { fromFloating } from '../../utils';
 
 export const WidgetForm = () => {
+  const toast = useToast();
+
+  const { setWalletsOpen, bridges, isWalletConnectionPending } =
+    useBridgeContext();
   const {
-    setWalletsOpen,
-    bridges,
+    bridge: bridgeTo,
     isBridgingInProgress,
-    isWalletConnectionPending
-  } = useBridgeContext();
-  const { bridge: bridgeTo } = useTokenContext();
+    nativeEthBalance,
+    tokens
+  } = useTokenContext();
 
   const [showTokenList, setShowTokenList] = useState(false);
-  const [showBridgesList, setShowBridgesList] = useState(false);
 
-  const [token, setToken] = useState<Token | undefined>(undefined);
-  const [bridge, setBridge] = useState<Bridge | undefined>(bridges[0]);
+  const [tokenId, setTokenId] = useState<string | undefined>(undefined);
 
-  const [amount, setAmount] = useState(0);
+  const [strAmount, setStrAmount] = useState('');
 
-  const onAmountChange = (strAmount: string) => {
-    const floatingAmount = parseFloat(strAmount);
-
-    // TODO: Ensure decimals
-
-    setAmount(floatingAmount);
-  };
-
-  const bridgingMessage = '';
+  const token = tokens.find(({ id }) => id === tokenId);
 
   const connectButtonTitle = bridges.length > 0 ? 'Bridge' : 'Connect Wallets';
 
   const connectButton = () => {
+    if (isWalletConnectionPending || isBridgingInProgress) {
+      return;
+    }
+
     if (bridges.length > 0) {
-      if (token) {
-        bridgeTo(token, amount);
+      const floatingAmount = Number(strAmount);
+
+      if (nativeEthBalance <= 0) {
+        toast({
+          title: "You don't have enough BFT balance",
+          description: 'Please top up your balance',
+          status: 'error',
+          duration: 9000,
+          isClosable: true
+        });
+        return;
       }
+      if (!token) {
+        toast({
+          title: 'No tokens selected',
+          description: 'Please select a token to bridge',
+          status: 'error',
+          duration: 9000,
+          isClosable: true
+        });
+        return;
+      }
+      if (token.balance <= fromFloating(floatingAmount, token.decimals)) {
+        toast({
+          title: "You don't have enough token balance",
+          description: 'Please top up your balance',
+          status: 'error',
+          duration: 9000,
+          isClosable: true
+        });
+        return;
+      }
+      if (floatingAmount <= 0) {
+        toast({
+          title: 'Insufficient bridge amount',
+          description: 'Please select an amount to bridge',
+          status: 'error',
+          duration: 9000,
+          isClosable: true
+        });
+        return;
+      }
+
+      (async () => {
+        await bridgeTo(token, floatingAmount);
+
+        toast({
+          title: 'Bridged successful',
+          description: 'You received your tokens!',
+          status: 'success',
+          duration: 9000,
+          isClosable: true
+        });
+        setStrAmount('');
+      })();
     } else {
       setWalletsOpen(true);
     }
   };
 
-  const [t, st] = useState('');
-
-  if (Math.random() > -1) {
-    // return
-  }
-
   return (
     <Box>
       <form>
-        <EnhancedFormControl>
-          <HStack justifyContent="space-between">
-            <Box>
-              <FormLabel color="secondary.white">Select Bridge</FormLabel>
-            </Box>
-          </HStack>
-          <Box
-            cursor="pointer"
-            onClick={() => setShowBridgesList(!showBridgesList)}
-          >
-            {bridge ? bridge.name : 'Select bridge'}
-          </Box>
-        </EnhancedFormControl>
-        <Box pt={2}>
-          <Divider />
-        </Box>
         <EnhancedFormControl pt={4}>
           <FormLabel>Assets</FormLabel>
           <Box
@@ -109,11 +106,7 @@ export const WidgetForm = () => {
             onClick={() => setShowTokenList(!showTokenList)}
           >
             {token ? (
-              <TokenTag
-                name={token.name || token.symbol || ''}
-                img={token?.logo || ''}
-                variant="sm"
-              />
+              <TokenTag token={token} variant="sm" />
             ) : (
               'Select token to bridge'
             )}
@@ -125,49 +118,33 @@ export const WidgetForm = () => {
             placeholder="0.00"
             variant="unstyled"
             type="number"
-            value={amount > 0 ? amount : ''}
-            onChange={(e) => onAmountChange(e.target.value)}
+            disabled={isWalletConnectionPending || isBridgingInProgress}
+            value={strAmount}
+            onChange={(e) => setStrAmount(e.target.value)}
           />
           <LabelValuePair label="Service fee">0.00</LabelValuePair>
         </EnhancedFormControl>
-
-        <Collapse in={false} animateOpacity>
-          <VStack
-            width="full"
-            alignItems="center"
-            justifyContent="center"
-            // bg={enhancedFormControlBg}
-            borderRadius="12px"
-            padding={4}
-            marginY={4}
-          >
-            <Text textStyle="h6" color="secondary.alpha72">
-              {bridgingMessage}
-            </Text>
-          </VStack>
-        </Collapse>
 
         <Box width="full" pt={2}>
           <Button
             w="full"
             isLoading={isBridgingInProgress}
-            disabled={isWalletConnectionPending}
+            disabled={isWalletConnectionPending || isBridgingInProgress}
             onClick={connectButton}
           >
             {connectButtonTitle}
+          </Button>
+        </Box>
+        <Box pt={2}>
+          <Button w="full" onClick={() => setWalletsOpen(true)}>
+            Open wallets
           </Button>
         </Box>
       </form>
       <TokenListModal
         isOpen={showTokenList}
         onClose={() => setShowTokenList(false)}
-        selectToken={setToken}
-      />
-      <BridgesListModal
-        bridges={bridges}
-        isOpen={showBridgesList}
-        onClose={() => setShowBridgesList(false)}
-        selectBridge={setBridge}
+        selectToken={setTokenId}
       />
     </Box>
   );

@@ -1,14 +1,14 @@
 import { Box, Flex } from '@chakra-ui/react';
 import { useState } from 'react';
 
-import { Token, useTokenContext } from '../../provider/TokensProvider.tsx';
+import { useTokenContext } from '../../provider/TokensProvider.tsx';
 import { CustomModal, SearchInput } from '../../ui';
 import { TokenTag } from '../../ui/TokenTag';
 
 type TokenListModelProps = {
   isOpen: boolean;
   onClose: () => void;
-  selectToken: (token: Token) => void;
+  selectToken: (tokenId: string) => void;
 };
 
 export function TokenListModal({
@@ -62,16 +62,13 @@ export function TokenListModal({
                       cursor="pointer"
                       py={2}
                       px={3}
-                      key={token.symbol}
-                      onClick={() => {selectToken(token); onClose();}}
+                      key={token.id}
+                      onClick={() => {
+                        selectToken(token.id);
+                        onClose();
+                      }}
                     >
-                      {token ? (
-                        <TokenTag
-                          name={token.name || token.symbol || ''}
-                          img={token?.logo || ''}
-                          variant="sm"
-                        />
-                      ) : null}
+                      {token ? <TokenTag token={token} variant="sm" /> : null}
                     </Box>
                   );
                 })

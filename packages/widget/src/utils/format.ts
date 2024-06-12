@@ -8,19 +8,19 @@ export const shortenAddress = (
     const s = address.substr(-suffix);
     return `${p}...${s}`;
   }
-  return "";
+  return '';
 };
 
-export const toDecimal = (
+export const toFloating = (
   amount: bigint | number | string,
-  decimal: bigint | number,
+  decimal: bigint | number
 ) => {
   return Number(amount) / 10 ** Number(decimal ?? 0);
 };
 
-export const fromDecimal = (
+export const fromFloating = (
   amount: bigint | number | string,
-  decimal: bigint | number,
-) => {
-  return Math.round(Number(amount) * 10 ** Number(decimal ?? 0));
+  decimal: bigint | number
+): bigint => {
+  return BigInt(Math.round(Number(amount) * 10 ** Number(decimal ?? 0)));
 };

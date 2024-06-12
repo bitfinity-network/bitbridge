@@ -8,35 +8,22 @@ import {
   Chain
 } from '@rainbow-me/rainbowkit';
 import { WagmiProvider } from 'wagmi';
-import { HttpAgent } from '@dfinity/agent';
+import { BrdidgeNetworkUrl } from '@bitfinity-network/bridge';
 
 import { Widget } from './Widget';
-import { reactQueryClient } from '../../utils';
 import { extendDefaultTheme, CustomThemeType } from '../../theme/theme';
 import { BridgeProvider } from '../../provider/BridgeProvider';
+import { TokensProvider } from '../../provider/TokensProvider.tsx';
+import {
+  ListsUrl,
+  TokenListed,
+  TokensListsProvider
+} from '../../provider/TokensListsProvider.tsx';
+import { BITFINITY_CHAINS, LIST_URLS, NETWORK_URLS } from '../../utils';
 
 import '@rainbow-me/rainbowkit/styles.css';
-import { TokensProvider } from '../../provider/TokensProvider.tsx';
 
-const IC_HOST = 'http://127.0.0.1:4943';
-const BITFINITY_LOCAL_CHAIN_RPC_URL = 'http://127.0.0.1:8545';
-
-const BITFINITY_LOCAL_CHAIN = {
-  id: 355113,
-  name: 'Bitfinity Network',
-  nativeCurrency: {
-    name: 'Bitfinity',
-    symbol: 'BFT',
-    decimals: 18
-  },
-  rpcUrls: {
-    public: { http: [BITFINITY_LOCAL_CHAIN_RPC_URL] },
-    default: { http: [BITFINITY_LOCAL_CHAIN_RPC_URL] }
-  }
-} as const satisfies Chain;
-
-const agent = new HttpAgent({ host: IC_HOST });
-agent.fetchRootKey();
+import { QueryClient } from '@tanstack/react-query';
 
 const persister = {
   persister: createSyncStoragePersister({
@@ -44,16 +31,39 @@ const persister = {
   })
 };
 
-export type BridgeWidget = {
+export const TANSTACK_GARBAGE_COLLECTION_TIME = 1000 * 60 * 8; // 8 minutes
+
+export const reactQueryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      gcTime: TANSTACK_GARBAGE_COLLECTION_TIME,
+      staleTime: Infinity,
+      refetchOnWindowFocus: false
+    }
+  }
+});
+
+export interface BridgeWidgetProps {
   chains?: Chain[];
   theme?: CustomThemeType;
-};
+  network?: string;
+  networkUrls?: BrdidgeNetworkUrl[];
+  tokensListed?: TokenListed[];
+  listsUrls?: ListsUrl[];
+}
 
-export const BridgeWidget = ({ chains = [], theme }: BridgeWidget) => {
+export const BridgeWidget = ({
+  theme,
+  chains = [],
+  network = 'devnet',
+  tokensListed = [],
+  networkUrls = NETWORK_URLS,
+  listsUrls = LIST_URLS
+}: BridgeWidgetProps) => {
   const config = getDefaultConfig({
     appName: 'bridge-widget',
     projectId: 'YOUR_PROJECT_ID',
-    chains: [BITFINITY_LOCAL_CHAIN, ...chains]
+    chains: [...BITFINITY_CHAINS, ...chains]
   });
 
   const extendedTheme = extendDefaultTheme(theme);
@@ -66,11 +76,17 @@ export const BridgeWidget = ({ chains = [], theme }: BridgeWidget) => {
           persistOptions={persister}
         >
           <RainbowKitProvider>
-            <BridgeProvider agent={agent}>
-              <TokensProvider agent={agent}>
-                <Widget />
-              </TokensProvider>
-            </BridgeProvider>
+            <TokensListsProvider
+              tokensListed={tokensListed}
+              network={network}
+              listsUrls={listsUrls}
+            >
+              <BridgeProvider network={network} networkUrls={networkUrls}>
+                <TokensProvider>
+                  <Widget />
+                </TokensProvider>
+              </BridgeProvider>
+            </TokensListsProvider>
           </RainbowKitProvider>
           <ReactQueryDevtools initialIsOpen={false} />
         </PersistQueryClientProvider>

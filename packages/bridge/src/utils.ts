@@ -1,5 +1,5 @@
 import { Buffer } from 'buffer';
-import { fromHexString } from '@dfinity/candid';
+import { fromHexString,  } from '@dfinity/candid';
 
 export const ethAddrToSubaccount = (ethAddr: string) => {
   ethAddr = ethAddr.replace(/^0x/, '');
@@ -20,3 +20,4 @@ export const encodeBtcAddress = (address: string) => {
 export const wait = (ms: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
+

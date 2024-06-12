@@ -2,7 +2,9 @@ const abi = [
   {
     type: 'constructor',
     inputs: [
-      { name: 'minterAddress', type: 'address', internalType: 'address' }
+      { name: 'minterAddress', type: 'address', internalType: 'address' },
+      { name: 'feeChargeAddress', type: 'address', internalType: 'address' },
+      { name: '_isWrappedSide', type: 'bool', internalType: 'bool' }
     ],
     stateMutability: 'nonpayable'
   },
@@ -30,6 +32,15 @@ const abi = [
   },
   {
     type: 'function',
+    name: 'feeChargeContract',
+    inputs: [],
+    outputs: [
+      { name: '', type: 'address', internalType: 'contract IFeeCharge' }
+    ],
+    stateMutability: 'view'
+  },
+  {
+    type: 'function',
     name: 'getBaseToken',
     inputs: [
       { name: 'wrappedTokenAddress', type: 'address', internalType: 'address' }
@@ -41,7 +52,9 @@ const abi = [
     type: 'function',
     name: 'getDepositBlocks',
     inputs: [],
-    outputs: [{ name: '', type: 'uint32[]', internalType: 'uint32[]' }],
+    outputs: [
+      { name: 'blockNumbers', type: 'uint32[]', internalType: 'uint32[]' }
+    ],
     stateMutability: 'view'
   },
   {
@@ -60,30 +73,13 @@ const abi = [
   },
   {
     type: 'function',
-    name: 'increment',
-    inputs: [
-      {
-        name: 'buffer',
-        type: 'tuple',
-        internalType: 'struct BFTBridge.RingBuffer',
-        components: [
-          { name: 'begin', type: 'uint8', internalType: 'uint8' },
-          { name: 'end', type: 'uint8', internalType: 'uint8' }
-        ]
-      }
-    ],
+    name: 'listTokenPairs',
+    inputs: [],
     outputs: [
-      {
-        name: '',
-        type: 'tuple',
-        internalType: 'struct BFTBridge.RingBuffer',
-        components: [
-          { name: 'begin', type: 'uint8', internalType: 'uint8' },
-          { name: 'end', type: 'uint8', internalType: 'uint8' }
-        ]
-      }
+      { name: 'wrapped', type: 'address[]', internalType: 'address[]' },
+      { name: 'base', type: 'bytes32[]', internalType: 'bytes32[]' }
     ],
-    stateMutability: 'pure'
+    stateMutability: 'view'
   },
   {
     type: 'function',
@@ -101,23 +97,13 @@ const abi = [
   },
   {
     type: 'function',
-    name: 'nativeTokenBalance',
-    inputs: [{ name: 'user', type: 'address', internalType: 'address' }],
-    outputs: [{ name: 'balance', type: 'uint256', internalType: 'uint256' }],
-    stateMutability: 'view'
-  },
-  {
-    type: 'function',
-    name: 'nativeTokenDeposit',
+    name: 'notifyMinter',
     inputs: [
-      {
-        name: 'approvedSenderIDs',
-        type: 'bytes32[]',
-        internalType: 'bytes32[]'
-      }
+      { name: 'notificationType', type: 'uint32', internalType: 'uint32' },
+      { name: 'userData', type: 'bytes', internalType: 'bytes' }
     ],
-    outputs: [{ name: 'balance', type: 'uint256', internalType: 'uint256' }],
-    stateMutability: 'payable'
+    outputs: [],
+    stateMutability: 'nonpayable'
   },
   {
     type: 'function',
@@ -125,63 +111,6 @@ const abi = [
     inputs: [],
     outputs: [{ name: '', type: 'uint32', internalType: 'uint32' }],
     stateMutability: 'view'
-  },
-  {
-    type: 'function',
-    name: 'removeApprovedSenderIDs',
-    inputs: [
-      {
-        name: 'approvedSenderIDs',
-        type: 'bytes32[]',
-        internalType: 'bytes32[]'
-      }
-    ],
-    outputs: [],
-    stateMutability: 'nonpayable'
-  },
-  {
-    type: 'function',
-    name: 'size',
-    inputs: [
-      {
-        name: 'buffer',
-        type: 'tuple',
-        internalType: 'struct BFTBridge.RingBuffer',
-        components: [
-          { name: 'begin', type: 'uint8', internalType: 'uint8' },
-          { name: 'end', type: 'uint8', internalType: 'uint8' }
-        ]
-      }
-    ],
-    outputs: [{ name: '', type: 'uint8', internalType: 'uint8' }],
-    stateMutability: 'pure'
-  },
-  {
-    type: 'function',
-    name: 'toIDfromBaseAddress',
-    inputs: [
-      { name: 'chainID', type: 'uint32', internalType: 'uint32' },
-      { name: 'toAddress', type: 'address', internalType: 'address' }
-    ],
-    outputs: [{ name: 'toID', type: 'bytes32', internalType: 'bytes32' }],
-    stateMutability: 'pure'
-  },
-  {
-    type: 'function',
-    name: 'truncateUTF8',
-    inputs: [{ name: 'input', type: 'string', internalType: 'string' }],
-    outputs: [{ name: 'result', type: 'bytes32', internalType: 'bytes32' }],
-    stateMutability: 'pure'
-  },
-  {
-    type: 'function',
-    name: 'withdrawNativeTokens',
-    inputs: [
-      { name: 'to', type: 'address', internalType: 'address payable' },
-      { name: 'amount', type: 'uint256', internalType: 'uint256' }
-    ],
-    outputs: [{ name: 'balance', type: 'uint256', internalType: 'uint256' }],
-    stateMutability: 'nonpayable'
   },
   {
     type: 'event',
@@ -274,6 +203,20 @@ const abi = [
         internalType: 'address'
       },
       { name: 'nonce', type: 'uint32', indexed: false, internalType: 'uint32' }
+    ],
+    anonymous: false
+  },
+  {
+    type: 'event',
+    name: 'NotifyMinterEvent',
+    inputs: [
+      {
+        name: 'notificationType',
+        type: 'uint32',
+        indexed: false,
+        internalType: 'uint32'
+      },
+      { name: 'userData', type: 'bytes', indexed: false, internalType: 'bytes' }
     ],
     anonymous: false
   },

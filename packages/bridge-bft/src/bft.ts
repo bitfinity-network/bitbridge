@@ -1,28 +1,39 @@
+import { Buffer } from 'buffer';
 import * as ethers from 'ethers';
 import { Principal } from '@dfinity/principal';
+import { IDL } from '@dfinity/candid';
 import { Address, Id256, Id256Factory } from '@bitfinity-network/id256';
 
 import BftBridgeABI from './abi/BFTBridge';
-import { Buffer } from 'buffer';
 
 export interface BftOptions {
+  address: string;
   wallet: ethers.Signer;
-  bftAddress: string;
 }
 
 export class Bft {
-  protected bftBridge: ethers.Contract;
+  protected eth: {
+    bft?: ethers.Contract;
+    feeCharge?: ethers.Contract;
+  } = {};
   protected wallet: ethers.Signer;
-  readonly address: string;
+  protected address: string;
 
-  constructor({ bftAddress, wallet }: BftOptions) {
+  constructor({ address, wallet }: BftOptions) {
+    this.address = address;
     this.wallet = wallet;
-    this.bftBridge = this.getBftBridgeContract(bftAddress);
-    this.address = bftAddress;
   }
 
-  protected getBftBridgeContract(address: string) {
-    return new ethers.Contract(address, BftBridgeABI, this.wallet);
+  protected get bftBridge() {
+    if (!this.eth.bft) {
+      this.eth.bft = new ethers.Contract(
+        this.address,
+        BftBridgeABI,
+        this.wallet
+      );
+    }
+
+    return this.eth.bft;
   }
 
   protected idFromCanister(baseTokenCanisterId: string): Id256 {
@@ -34,37 +45,62 @@ export class Bft {
     return Id256Factory.fromBtcTxIndex(BigInt(b), parseInt(t, 10));
   }
 
-  async depositNativeTokens(owner: string) {
-    const data = this.bftBridge.interface.encodeFunctionData(
-      'nativeTokenDeposit',
-      [[Id256Factory.fromPrincipal(Principal.fromText(owner))]]
-    );
+  protected async getTokensPairs(): Promise<{ eth: string; id256: string }[]> {
+    const pairs = await this.bftBridge.listTokenPairs();
 
-    const nonce = await this.wallet.getNonce();
+    if (!(pairs && pairs.length > 1)) {
+      return [];
+    }
 
-    const tx: ethers.ethers.TransactionRequest = {
-      nonce,
-      to: await this.bftBridge.getAddress(),
-      value: BigInt(Math.pow(10, 17)),
-      data
-    };
-
-    const dpTx = await this.wallet.sendTransaction(tx);
-    await dpTx.wait(2);
+    return pairs[0].map((eth: string, index: number) => {
+      return {
+        eth,
+        id256: pairs[1][index]
+      };
+    });
   }
 
-  async checkAndDeposit(owner: string, recipient: string) {
-    const nativeBalance = await this.bftBridge.nativeTokenBalance(recipient);
+  async getIcrcTokensPairs(): Promise<{ wrapped: string; base: string }[]> {
+    const pairs = await this.getTokensPairs();
 
-    if (nativeBalance <= 0) {
-      await this.depositNativeTokens(owner);
+    return pairs.map(({ eth, id256 }) => {
+      return {
+        wrapped: eth,
+        base: Id256Factory.toPrincipal(
+          Buffer.from(id256.replace(/^0x/, ''), 'hex')
+        ).toText()
+      };
+    });
+  }
 
-      const nativeBalance = await this.bftBridge.nativeTokenBalance(recipient);
+  async getBtcTokensPairs(): Promise<{ wrapped: string; base: string }[]> {
+    const pairs = await this.getTokensPairs();
 
-      if (nativeBalance <= 0) {
-        throw new Error('No native tokens on bft');
-      }
-    }
+    return pairs.map(({ eth, id256 }) => {
+      const [b, t] = Id256Factory.toBtcTxIndex(
+        Buffer.from(id256.replace(/^0x/, ''), 'hex')
+      );
+
+      return {
+        wrapped: eth,
+        base: `${b}:${t}`
+      };
+    });
+  }
+
+  async getRuneTokensPairs(): Promise<{ wrapped: string; base: string }[]> {
+    const pairs = await this.getTokensPairs();
+
+    return pairs.map(({ eth, id256 }) => {
+      const [b, t] = Id256Factory.toBtcTxIndex(
+        Buffer.from(id256.replace(/^0x/, ''), 'hex')
+      );
+
+      return {
+        wrapped: eth,
+        base: `${b}:${t}`
+      };
+    });
   }
 
   async deployIcrcWrappedToken(
@@ -97,10 +133,45 @@ export class Bft {
     return await this.getWrappedTokenAddress(runeId);
   }
 
-  async getWrappedTokenAddress(id: string): Promise<string> {
+  async getWrappedTokenAddress(wrapped: string): Promise<string> {
     return await this.bftBridge.getWrappedToken(
-      id.includes(':') ? this.idFromRune(id) : this.idFromCanister(id)
+      wrapped.includes(':')
+        ? this.idFromRune(wrapped)
+        : this.idFromCanister(wrapped)
     );
+  }
+
+  async burnIcrc(
+    owner: string,
+    token: string,
+    recipient: string,
+    amount: bigint
+  ) {
+    const Icrc2Burn = IDL.Record({
+      sender: IDL.Principal,
+      amount: IDL.Text,
+      icrc2_token_principal: IDL.Principal,
+      from_subaccount: IDL.Opt(IDL.Vec(IDL.Nat8)),
+      recipient_address: IDL.Text, // IDL.Vec(IDL.Nat8),
+      fee_payer: IDL.Opt(IDL.Text)
+    });
+
+    const encoded = IDL.encode(
+      [Icrc2Burn],
+      [
+        {
+          sender: Principal.fromText(owner),
+          from_subaccount: [],
+          amount: `0x${BigInt(amount).toString(16)}`,
+          icrc2_token_principal: Principal.fromText(token),
+          recipient_address: recipient,
+          fee_payer: [recipient]
+        }
+      ]
+    );
+
+    const tx = await this.bftBridge.notifyMinter(0, encoded);
+    await tx.wait(2);
   }
 
   async burn(recipient: string, tokenAddress: string, amount: bigint) {
@@ -118,7 +189,6 @@ export class Bft {
     }
 
     const tx = await this.bftBridge.burn(amount, tokenAddress, send);
-
     await tx.wait(2);
 
     return tx;

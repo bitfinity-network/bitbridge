@@ -8,22 +8,26 @@ import {
   useCallback,
   useRef
 } from 'react';
-import { BridgeToken, FetchUrl } from '@bitfinity-network/bridge-tokens';
-import { Connector, IcrcBridge } from '@bitfinity-network/bridge';
-import { Agent } from '@dfinity/agent';
-
+import {
+  BrdidgeNetworkUrl,
+  BridgeType,
+  BtcBridge,
+  Connector,
+  IcrcBridge,
+  RuneBridge
+} from '@bitfinity-network/bridge';
+import * as ethers from 'ethers';
 import { useAccount, useDisconnect } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
-import { BITFINITY_INSTALLATION_URL } from '../utils';
-import * as ethers from 'ethers';
 import { BitfinityWallet } from '@bitfinity-network/bitfinitywallet';
 
+import { BITFINITY_INSTALLATION_URL, createStore } from '../utils';
 import BftIcon from '../assets/icons/bitfinity.svg';
 import BtcIcon from '../assets/icons/bitcoin.svg';
 import IcIcon from '../assets/icons/ic.svg';
+import { useTokenListsContext } from './TokensListsProvider.tsx';
 
-const BRIDGE_TYPES = ['icrc_evm', 'btc_emv', 'rune_evm'] as const;
-export type BridgeType = (typeof BRIDGE_TYPES)[number];
+export const BRIDGE_TYPES: BridgeType[] = Object.values(BridgeType.enum);
 
 const WALLET_TYPES = ['eth', 'btc', 'ic'] as const;
 export type WalletType = (typeof WALLET_TYPES)[number];
@@ -62,7 +66,7 @@ const BRIDGES_INFO: Record<BridgeType, BridgeInfo> = {
     name: 'ICRC <-> EVM',
     logo: BftIcon
   },
-  btc_emv: {
+  btc_evm: {
     name: 'BITCOIN <-> EVM',
     logo: BtcIcon
   },
@@ -73,7 +77,11 @@ const BRIDGES_INFO: Record<BridgeType, BridgeInfo> = {
 };
 
 export type WalletConnected = {
-  eth?: { wallet: ethers.Signer; address: string };
+  eth?: {
+    wallet: ethers.Signer;
+    address: string;
+    provider: ethers.BrowserProvider;
+  };
   ic?: { wallet: BitfinityWallet; address: string };
   btc?: { wallet: boolean; address: string };
 };
@@ -85,14 +93,15 @@ interface BaseWalletData {
   toggle: () => void;
 }
 
-interface IcWalletData extends BaseWalletData {
+export interface IcWalletData extends BaseWalletData {
   type: 'ic';
   wallet?: BitfinityWallet;
 }
 
-interface EthWalletData extends BaseWalletData {
+export interface EthWalletData extends BaseWalletData {
   type: 'eth';
   wallet?: ethers.Signer;
+  provider?: ethers.BrowserProvider;
 }
 
 interface BtcWalletData extends BaseWalletData {
@@ -104,20 +113,36 @@ export type WalletData = IcWalletData | EthWalletData | BtcWalletData;
 
 export type Wallet = WalletInfo & WalletData;
 
-export type Bridge = {
+interface BaseBridgeData {
   type: BridgeType;
-} & BridgeInfo;
+}
+
+interface IcBridgeData extends BaseBridgeData {
+  type: 'icrc_evm';
+  bridge: IcrcBridge;
+}
+
+interface BtcBridgeData extends BaseBridgeData {
+  type: 'btc_evm';
+  bridge: BtcBridge;
+}
+
+interface RuneBridgeData extends BaseBridgeData {
+  type: 'rune_evm';
+  bridge: RuneBridge;
+}
+
+export type BridgeData = IcBridgeData | BtcBridgeData | RuneBridgeData;
+
+export type Bridge = BridgeData & BridgeInfo;
 
 type BridgeContext = {
   wallets: Wallet[];
   bridges: Bridge[];
-  tokens: BridgeToken[];
   isWalletConnectionPending: boolean;
-  isBridgingInProgress: boolean;
   walletsOpen: boolean;
   setWalletsOpen: (open: boolean) => void;
-  bridgeToEvmc: (token: BridgeToken, amount: bigint) => void;
-  bridgeFromEvmc: (token: BridgeToken, amount: bigint) => void;
+  switchNetwork: (networkName: string) => void;
 };
 
 const defaultCtx = {
@@ -130,37 +155,23 @@ type Storage = {
   icConnected?: boolean;
 };
 
-export type BridgeOptions = {
-  agent: Agent;
-  isFetchLocal?: boolean;
-  fetchDefaults?: 'testnet' | 'mainnet';
-  fetchUrls?: FetchUrl[];
+export type BridgeProviderProps = {
+  network: string;
+  networkUrls: BrdidgeNetworkUrl[];
   children: ReactNode;
 };
 
-const setStorageItems = (items: Partial<Storage>) => {
-  const prev = getStorage();
-
-  localStorage.setItem('bitbridge', JSON.stringify({ ...prev, ...items }));
-};
-
-const getStorage = (): Storage => {
-  if (typeof localStorage === 'undefined') {
-    return {} as Storage;
-  }
-
-  try {
-    return JSON.parse(localStorage.getItem('bitbridge') || '{}') as Storage;
-  } catch (_) {
-    return {} as Storage;
-  }
-};
+const { setStorageItems, getStorage } = createStore<Storage>('bitbridge');
 
 const useEthWalletConnection = ({
   onConnect,
   onDisconnect
 }: {
-  onConnect: (wallet: ethers.Signer, address: string) => void;
+  onConnect: (
+    wallet: ethers.Signer,
+    provider: ethers.BrowserProvider,
+    address: string
+  ) => void;
   onDisconnect: () => void;
 }) => {
   const ethAccount = useAccount();
@@ -191,7 +202,7 @@ const useEthWalletConnection = ({
         const provider = new ethers.BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
 
-        onConnect(signer, ethAccount.address);
+        onConnect(signer, provider, ethAccount.address);
       })();
     }
   }, [ethAccountStatus, ethAccount.address, onConnect, onDisconnect]);
@@ -204,7 +215,7 @@ const useEthWalletConnection = ({
 };
 
 const useIcWalletConnection = (
-  isBridged: boolean,
+  isReady: boolean,
   {
     onConnect,
     onDisconnect
@@ -239,7 +250,7 @@ const useIcWalletConnection = (
   }, [onDisconnect]);
 
   useEffect(() => {
-    if (!isBridged || isConnectChecked.current) {
+    if (!isReady || isConnectChecked.current) {
       return;
     }
 
@@ -250,7 +261,7 @@ const useIcWalletConnection = (
     if (icConnected) {
       onConnect(window.ic.bitfinityWallet).then(() => {});
     }
-  }, [isBridged, onConnect]);
+  }, [isReady, onConnect]);
 
   return {
     icWalletConnect,
@@ -260,36 +271,35 @@ const useIcWalletConnection = (
 };
 
 export const BridgeProvider = ({
-  agent,
-  isFetchLocal,
-  fetchDefaults,
-  fetchUrls,
+  network: netDefault,
+  networkUrls,
   children
-}: BridgeOptions) => {
-  const [walletsOpen, setWalletsOpen] = useState(true);
+}: BridgeProviderProps) => {
+  const { tokensListed } = useTokenListsContext();
+
+  const [walletsOpen, setWalletsOpen] = useState(false);
 
   const [walletsConnected, setWalletsConnected] = useState(
     {} as WalletConnected
   );
-  const [isBridgingInProgress, setIsBridgingInProgress] = useState(false);
 
   const isFetchedEffect = useRef(false);
   const [isFetched, setIsFetched] = useState(false);
-  const [isBridged, setIsBridged] = useState(false);
-  const [allBridgedTokens, setAllBridgedTokens] = useState<BridgeToken[]>([]);
 
-  const connector = useMemo(() => Connector.create({ agent }), [agent]);
+  const [network, setNetwork] = useState(netDefault);
+
+  const connector = useMemo(() => Connector.create(), []);
 
   const { ethWalletConnect, ethWalletDisconnect, ethPending } =
     useEthWalletConnection(
       useMemo(() => {
         return {
-          onConnect(eth, address) {
+          onConnect(wallet, provider, address) {
             setWalletsConnected((prev) => ({
               ...prev,
-              eth: { wallet: eth, address }
+              eth: { wallet, provider, address }
             }));
-            connector.connectEthWallet(eth);
+            connector.connectEthWallet(wallet);
           },
           onDisconnect() {
             setWalletsConnected((prev) => ({ ...prev, eth: undefined }));
@@ -301,21 +311,31 @@ export const BridgeProvider = ({
 
   const { icWalletConnect, icWalletDisconnect, icPending } =
     useIcWalletConnection(
-      isBridged,
+      !!tokensListed.length && isFetched,
       useMemo(() => {
         return {
-          async onConnect(ic) {
-            const whitelist = connector.icWhiteList();
+          async onConnect(wallet) {
+            const whitelist = tokensListed
+              .map((token) => {
+                if (token.type !== 'icrc') {
+                  return undefined!;
+                }
 
-            await ic.requestConnect({ whitelist });
-            const principal = await ic.getPrincipal();
+                return token.id;
+              })
+              .filter((token) => !!token)
+              .concat(connector.icWhiteList())
+              .filter((v, i, a) => a.indexOf(v) === i);
+
+            await wallet.requestConnect({ whitelist });
+            const principal = await wallet.getPrincipal();
 
             setWalletsConnected((prev) => ({
               ...prev,
-              ic: { wallet: ic, address: principal.toText() }
+              ic: { wallet: wallet, address: principal.toText() }
             }));
 
-            connector.connectBitfinityWallet(ic);
+            connector.connectBitfinityWallet(wallet);
           },
           async onDisconnect() {
             connector.disconnectBitfinityWallet();
@@ -323,7 +343,7 @@ export const BridgeProvider = ({
             setWalletsConnected((prev) => ({ ...prev, ic: undefined }));
           }
         };
-      }, [connector])
+      }, [connector, tokensListed])
     );
 
   const wallets = useMemo(() => {
@@ -353,6 +373,7 @@ export const BridgeProvider = ({
         type,
         connected,
         wallet: wallet?.wallet,
+        provider: wallet && 'provider' in wallet ? wallet.provider : undefined,
         address,
         toggle,
         ...info
@@ -366,45 +387,40 @@ export const BridgeProvider = ({
     icWalletDisconnect
   ]);
 
+  const networks = connector.getNetworks();
+
   const bridges = useMemo(() => {
     const ready: Bridge[] = [];
 
+    if (!networks.some((n) => n.name === network)) {
+      return ready;
+    }
+
     if (walletsConnected.ic && walletsConnected.eth) {
-      ready.push({ type: 'icrc_evm', ...BRIDGES_INFO.icrc_evm });
+      const bridge = connector.getBridge(network, 'icrc_evm');
+      ready.push({ type: 'icrc_evm', bridge, ...BRIDGES_INFO.icrc_evm });
     }
 
     if (walletsConnected.btc && walletsConnected.eth) {
-      ready.push({ type: 'btc_emv', ...BRIDGES_INFO.btc_emv });
+      const bridge = connector.getBridge(network, 'btc_evm');
+      ready.push({ type: 'btc_evm', bridge, ...BRIDGES_INFO.btc_evm });
     }
 
     if (walletsConnected.btc && walletsConnected.eth) {
-      ready.push({ type: 'rune_evm', ...BRIDGES_INFO.rune_evm });
+      const bridge = connector.getBridge(network, 'rune_evm');
+      ready.push({ type: 'rune_evm', bridge, ...BRIDGES_INFO.rune_evm });
     }
 
     return ready;
-  }, [walletsConnected]);
+  }, [connector, networks, walletsConnected, network]);
 
-  const tokens = useMemo(() => {
-    return allBridgedTokens.filter((token) => {
-      const types = [];
-
-      if (walletsConnected.ic) {
-        types.push('icrc');
-      }
-      if (walletsConnected.eth) {
-        types.push('eth');
-      }
-      if (walletsConnected.btc) {
-        types.push('btc');
-      }
-
-      return types.includes(token.type);
-    });
-  }, [walletsConnected, allBridgedTokens]);
+  const switchNetwork = useCallback((networkName: string) => {
+    setNetwork(networkName);
+  }, []);
 
   const isWalletConnectionPending = icPending || ethPending;
 
-  // Tokens fetching effect
+  // Networks fetching effect
   useEffect(() => {
     if (isFetchedEffect.current) {
       return;
@@ -413,126 +429,31 @@ export const BridgeProvider = ({
     isFetchedEffect.current = true;
 
     (async () => {
-      isFetchLocal = true; // TODO: TMP
-      if (isFetchLocal) {
-        console.warn('For dev usage only');
-        await connector.fetchLocal();
-      }
-
-      if (fetchDefaults) {
-        await connector.fetchDefault(fetchDefaults);
-      }
-
-      if (fetchUrls) {
-        await connector.fetch(fetchUrls);
-      }
-
+      await connector.fetch(networkUrls);
       setIsFetched(true);
     })();
-  }, [connector, isFetchedEffect, fetchDefaults, fetchUrls, isFetchLocal]);
-
-  // Tokens bridging
-  useEffect(() => {
-    if (!isFetched) {
-      return;
-    }
-
-    (async () => {
-      const allFetchedBridged = await connector.bridge();
-      if (allFetchedBridged) {
-        setIsBridged(true);
-        setAllBridgedTokens([...connector.getBridgedTokens()]);
-      }
-    })();
-  }, [connector, walletsConnected.eth, isFetched]);
-
-  const bridgeToEvmc = useCallback(
-    async (token: BridgeToken, amount: bigint) => {
-      const bridge = connector.getBridge(token.wrappedTokenAddress);
-
-      if (!bridge) {
-        return;
-      }
-
-      const eth = walletsConnected.eth;
-      const ic = walletsConnected.ic;
-
-      console.log('bridge', !!bridge, !!eth, !!ic);
-
-      if (bridge instanceof IcrcBridge) {
-        if (!(eth && ic)) {
-          return;
-        }
-
-        setIsBridgingInProgress(true);
-
-        try {
-          await bridge.bridgeToEvmc(ic.address, eth.address, amount);
-        } catch (_) {
-          console.error(_);
-          /* empty */
-        }
-
-        setIsBridgingInProgress(false);
-      }
-    },
-    [connector, walletsConnected]
-  );
-
-  const bridgeFromEvmc = useCallback(
-    async (token: BridgeToken, amount: bigint) => {
-      const bridge = connector.getBridge(token.wrappedTokenAddress);
-
-      if (!bridge) {
-        return;
-      }
-
-      const eth = walletsConnected.eth;
-      const ic = walletsConnected.ic;
-
-      if (bridge instanceof IcrcBridge) {
-        if (!(eth && ic)) {
-          return;
-        }
-
-        setIsBridgingInProgress(true);
-
-        try {
-          await bridge.bridgeFromEvmc(ic.address, amount);
-        } catch (_) {
-          /* empty */
-        }
-
-        setIsBridgingInProgress(false);
-      }
-    },
-    [connector, walletsConnected]
-  );
+  }, [connector, isFetchedEffect, networkUrls]);
 
   const ctx: BridgeContext = useMemo(() => {
     return {
       ...defaultCtx,
       bridges,
-      tokens,
+      network,
       walletsConnected,
       wallets,
       walletsOpen,
-      bridgeToEvmc,
-      bridgeFromEvmc,
       isWalletConnectionPending,
-      isBridgingInProgress,
+      switchNetwork,
       setWalletsOpen
     };
   }, [
     bridges,
-    tokens,
+    network,
     walletsConnected,
     wallets,
     walletsOpen,
-    bridgeToEvmc,
-    bridgeFromEvmc,
-    isWalletConnectionPending,
-    isBridgingInProgress
+    switchNetwork,
+    isWalletConnectionPending
   ]);
 
   return (
@@ -542,12 +463,6 @@ export const BridgeProvider = ({
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const useBridgeContext = () => useContext(BridgeContext);
-
-export const useBridgedTokens = () => {
-  const { tokens } = useBridgeContext();
-
-  return tokens;
-};
 
 export const useWallets = () => {
   const { wallets } = useBridgeContext();

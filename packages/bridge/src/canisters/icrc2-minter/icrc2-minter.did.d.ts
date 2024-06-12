@@ -2,11 +2,6 @@ import type { Principal } from '@dfinity/principal';
 import type { ActorMethod } from '@dfinity/agent';
 import type { IDL } from '@dfinity/candid';
 
-export interface ApproveMintedTokens {
-  'approve_spender' : string,
-  'principal_signature' : Signature,
-  'approve_amount' : string,
-}
 export interface BuildData {
   'rustc_semver' : string,
   'git_branch' : string,
@@ -38,15 +33,6 @@ export interface HttpResponse {
   'status' : bigint,
   'body' : Uint8Array | number[],
   'headers' : Array<HttpHeader>,
-}
-export interface Icrc2Burn {
-  'approve_minted_tokens' : [] | [ApproveMintedTokens],
-  'operation_id' : number,
-  'from_subaccount' : [] | [Uint8Array | number[]],
-  'icrc2_token_principal' : Principal,
-  'recipient_address' : string,
-  'fee_payer' : [] | [string],
-  'amount' : string,
 }
 export interface InitData {
   'evm_principal' : Principal,
@@ -84,15 +70,12 @@ export type RejectionCode = { 'NoError' : null } |
   { 'Unknown' : null } |
   { 'SysFatal' : null } |
   { 'CanisterReject' : null };
-export type Result = { 'Ok' : number } |
+export type Result = { 'Ok' : string } |
   { 'Err' : Error };
-export type Result_1 = { 'Ok' : string } |
+export type Result_1 = { 'Ok' : Logs } |
   { 'Err' : Error };
-export type Result_2 = { 'Ok' : Logs } |
+export type Result_2 = { 'Ok' : null } |
   { 'Err' : Error };
-export type Result_3 = { 'Ok' : null } |
-  { 'Err' : Error };
-export interface Signature { 'r' : string, 's' : string, 'v' : string }
 export type SigningKeyId = { 'Dfx' : null } |
   { 'Production' : null } |
   { 'Test' : null } |
@@ -128,7 +111,6 @@ export interface TransformArgs {
   'response' : HttpResponse,
 }
 export interface _SERVICE {
-  'burn_icrc2' : ActorMethod<[Icrc2Burn], Result>,
   'get_bft_bridge_contract' : ActorMethod<[], [] | [string]>,
   'get_canister_build_data' : ActorMethod<[], BuildData>,
   'get_curr_metrics' : ActorMethod<[], MetricsData>,
@@ -138,17 +120,17 @@ export interface _SERVICE {
     [Uint8Array | number[], Uint8Array | number[], number],
     [] | [Uint8Array | number[]]
   >,
-  'get_minter_canister_evm_address' : ActorMethod<[], Result_1>,
+  'get_minter_canister_evm_address' : ActorMethod<[], Result>,
   'get_owner' : ActorMethod<[], Principal>,
-  'ic_logs' : ActorMethod<[bigint, bigint], Result_2>,
-  'init_bft_bridge_contract' : ActorMethod<[], Result_1>,
+  'ic_logs' : ActorMethod<[bigint, bigint], Result_1>,
+  'init_bft_bridge_contract' : ActorMethod<[string], Result>,
   'list_mint_orders' : ActorMethod<
     [Uint8Array | number[], Uint8Array | number[]],
     Array<[number, Uint8Array | number[]]>
   >,
-  'set_evm_principal' : ActorMethod<[Principal], Result_3>,
-  'set_logger_filter' : ActorMethod<[string], Result_3>,
-  'set_owner' : ActorMethod<[Principal], Result_3>,
+  'set_evm_principal' : ActorMethod<[Principal], Result_2>,
+  'set_logger_filter' : ActorMethod<[string], Result_2>,
+  'set_owner' : ActorMethod<[Principal], Result_2>,
   'transform' : ActorMethod<[TransformArgs], HttpResponse>,
 }
 export declare const idlFactory: IDL.InterfaceFactory;

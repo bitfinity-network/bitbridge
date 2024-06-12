@@ -31,7 +31,7 @@ describe.sequential(
     await connector.fetchLocal();
     await connector.bridge();
 
-    const runeBridge = connector.getBridge<'rune'>(RUNE_TOKEN_ID);
+    const runeBridge = connector.getBridge('test', 'rune');
 
     test('bridge to evm', async () => {
       const toAddress = wallet.address;
@@ -54,7 +54,8 @@ describe.sequential(
 
       await wait(1000);
 
-      await runeBridge.bridgeToEvmc(toAddress);
+      await runeBridge.bridgeToEvmc( { recipient: '1' } );
+      // await runeBridge.bridgeToEvmc(toAddress);
 
       await wait(5000);
 
