@@ -2,10 +2,10 @@ import type {
   ActorSubclass,
   HttpAgentOptions,
   ActorConfig,
-  Agent,
-} from "@dfinity/agent";
-import type { Principal } from "@dfinity/principal";
-import type { IDL } from "@dfinity/candid";
+  Agent
+} from '@dfinity/agent';
+import type { Principal } from '@dfinity/principal';
+import type { IDL } from '@dfinity/candid';
 
 import { _SERVICE } from './icrc1.did';
 
@@ -43,8 +43,4 @@ export declare const createActor: (
   options?: CreateActorOptions
 ) => ActorSubclass<_SERVICE>;
 
-/**
- * Intialized Actor using default settings, ready to talk to a canister using its candid interface
- * @constructs {@link ActorSubClass}
- */
-export declare const ICRC1: ActorSubclass<_SERVICE>;
+export type ICRC1 = ActorSubclass<_SERVICE>;

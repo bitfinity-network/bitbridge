@@ -43,8 +43,4 @@ export declare const createActor: (
   options?: CreateActorOptions
 ) => ActorSubclass<_SERVICE>;
 
-/**
- * Intialized Actor using default settings, ready to talk to a canister using its candid interface
- * @constructs {@link ActorSubClass}
- */
-export declare const RuneActor: ActorSubclass<_SERVICE>;
+export type RuneActor = ActorSubclass<_SERVICE>;

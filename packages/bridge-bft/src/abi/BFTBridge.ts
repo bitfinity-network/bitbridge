@@ -2,11 +2,9 @@ const abi = [
   {
     type: 'constructor',
     inputs: [
-      {
-        name: 'minterAddress',
-        type: 'address',
-        internalType: 'address'
-      }
+      { name: 'minterAddress', type: 'address', internalType: 'address' },
+      { name: 'feeChargeAddress', type: 'address', internalType: 'address' },
+      { name: '_isWrappedSide', type: 'bool', internalType: 'bool' }
     ],
     stateMutability: 'nonpayable'
   },
@@ -34,13 +32,18 @@ const abi = [
   },
   {
     type: 'function',
+    name: 'feeChargeContract',
+    inputs: [],
+    outputs: [
+      { name: '', type: 'address', internalType: 'contract IFeeCharge' }
+    ],
+    stateMutability: 'view'
+  },
+  {
+    type: 'function',
     name: 'getBaseToken',
     inputs: [
-      {
-        name: 'wrappedTokenAddress',
-        type: 'address',
-        internalType: 'address'
-      }
+      { name: 'wrappedTokenAddress', type: 'address', internalType: 'address' }
     ],
     outputs: [{ name: '', type: 'bytes32', internalType: 'bytes32' }],
     stateMutability: 'view'
@@ -49,7 +52,9 @@ const abi = [
     type: 'function',
     name: 'getDepositBlocks',
     inputs: [],
-    outputs: [{ name: '', type: 'uint32[]', internalType: 'uint32[]' }],
+    outputs: [
+      { name: 'blockNumbers', type: 'uint32[]', internalType: 'uint32[]' }
+    ],
     stateMutability: 'view'
   },
   {
@@ -68,30 +73,13 @@ const abi = [
   },
   {
     type: 'function',
-    name: 'increment',
-    inputs: [
-      {
-        name: 'buffer',
-        type: 'tuple',
-        internalType: 'struct BFTBridge.RingBuffer',
-        components: [
-          { name: 'begin', type: 'uint8', internalType: 'uint8' },
-          { name: 'end', type: 'uint8', internalType: 'uint8' }
-        ]
-      }
-    ],
+    name: 'listTokenPairs',
+    inputs: [],
     outputs: [
-      {
-        name: '',
-        type: 'tuple',
-        internalType: 'struct BFTBridge.RingBuffer',
-        components: [
-          { name: 'begin', type: 'uint8', internalType: 'uint8' },
-          { name: 'end', type: 'uint8', internalType: 'uint8' }
-        ]
-      }
+      { name: 'wrapped', type: 'address[]', internalType: 'address[]' },
+      { name: 'base', type: 'bytes32[]', internalType: 'bytes32[]' }
     ],
-    stateMutability: 'pure'
+    stateMutability: 'view'
   },
   {
     type: 'function',
@@ -109,44 +97,20 @@ const abi = [
   },
   {
     type: 'function',
+    name: 'notifyMinter',
+    inputs: [
+      { name: 'notificationType', type: 'uint32', internalType: 'uint32' },
+      { name: 'userData', type: 'bytes', internalType: 'bytes' }
+    ],
+    outputs: [],
+    stateMutability: 'nonpayable'
+  },
+  {
+    type: 'function',
     name: 'operationIDCounter',
     inputs: [],
     outputs: [{ name: '', type: 'uint32', internalType: 'uint32' }],
     stateMutability: 'view'
-  },
-  {
-    type: 'function',
-    name: 'size',
-    inputs: [
-      {
-        name: 'buffer',
-        type: 'tuple',
-        internalType: 'struct BFTBridge.RingBuffer',
-        components: [
-          { name: 'begin', type: 'uint8', internalType: 'uint8' },
-          { name: 'end', type: 'uint8', internalType: 'uint8' }
-        ]
-      }
-    ],
-    outputs: [{ name: '', type: 'uint8', internalType: 'uint8' }],
-    stateMutability: 'pure'
-  },
-  {
-    type: 'function',
-    name: 'toIDfromBaseAddress',
-    inputs: [
-      { name: 'chainID', type: 'uint32', internalType: 'uint32' },
-      { name: 'toAddress', type: 'address', internalType: 'address' }
-    ],
-    outputs: [{ name: 'toID', type: 'bytes32', internalType: 'bytes32' }],
-    stateMutability: 'pure'
-  },
-  {
-    type: 'function',
-    name: 'truncateUTF8',
-    inputs: [{ name: 'input', type: 'string', internalType: 'string' }],
-    outputs: [{ name: 'result', type: 'bytes32', internalType: 'bytes32' }],
-    stateMutability: 'pure'
   },
   {
     type: 'event',
@@ -200,12 +164,7 @@ const abi = [
         indexed: false,
         internalType: 'bytes16'
       },
-      {
-        name: 'decimals',
-        type: 'uint8',
-        indexed: false,
-        internalType: 'uint8'
-      }
+      { name: 'decimals', type: 'uint8', indexed: false, internalType: 'uint8' }
     ],
     anonymous: false
   },
@@ -243,12 +202,21 @@ const abi = [
         indexed: false,
         internalType: 'address'
       },
+      { name: 'nonce', type: 'uint32', indexed: false, internalType: 'uint32' }
+    ],
+    anonymous: false
+  },
+  {
+    type: 'event',
+    name: 'NotifyMinterEvent',
+    inputs: [
       {
-        name: 'nonce',
+        name: 'notificationType',
         type: 'uint32',
         indexed: false,
         internalType: 'uint32'
-      }
+      },
+      { name: 'userData', type: 'bytes', indexed: false, internalType: 'bytes' }
     ],
     anonymous: false
   },
@@ -256,12 +224,7 @@ const abi = [
     type: 'event',
     name: 'WrappedTokenDeployedEvent',
     inputs: [
-      {
-        name: 'name',
-        type: 'string',
-        indexed: false,
-        internalType: 'string'
-      },
+      { name: 'name', type: 'string', indexed: false, internalType: 'string' },
       {
         name: 'symbol',
         type: 'string',

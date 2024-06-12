@@ -1,14 +1,14 @@
 import { describe, expect, test } from 'vitest';
 
-import { Connector } from '../';
+import { Connector, ICRC2_TOKEN_CANISTER_ID } from '../';
 import {
   createAgent,
   createBitfinityWallet,
   execSendIcrcToken,
   mintNativeToken,
-  randomWallet
+  randomWallet,
+  testNetwork
 } from './utils';
-import { ICRC2_TOKEN_CANISTER_ID } from '../constants';
 import { wait } from '../utils';
 
 describe.sequential(
@@ -19,37 +19,54 @@ describe.sequential(
     const { agent, identity } = createAgent(wallet.privateKey);
     const bitfinityWallet = createBitfinityWallet(agent);
 
-    await mintNativeToken(wallet.address, '10000000000000000');
-    await execSendIcrcToken(identity.getPrincipal().toText(), 1000000);
+    await mintNativeToken(wallet.address, '1000000000000000000');
+    await execSendIcrcToken(identity.getPrincipal().toText(), 100000000);
+    await wait(3000);
 
-    await wait(1000);
+    const connector = Connector.create();
 
-    const connector = Connector.create({
-      wallet,
-      agent
-    });
-
+    connector.connectEthWallet(wallet);
     connector.connectBitfinityWallet(bitfinityWallet);
 
-    await connector.fetchLocal();
-    await connector.bridgeAfterDeploy();
+    connector.addNetwork(testNetwork);
 
-    await wait(1000);
+    const icrcBricdge = connector.getBridge('devnet', 'icrc_evm');
 
-    await connector.init();
+    test('deploy icrc2 token to evm', async () => {
+      const wrapped = await icrcBricdge.deployWrappedToken({
+        id: ICRC2_TOKEN_CANISTER_ID,
+        name: 'AUX',
+        symbol: 'AUX'
+      });
+      expect(wrapped).toBeTypeOf('string');
 
-    await connector.requestIcConnect();
-
-    const icrcBricdge = connector.getBridge<'icrc'>(ICRC2_TOKEN_CANISTER_ID);
+      const balance = await icrcBricdge.getWrappedTokenBalance(
+        wrapped,
+        wallet.address
+      );
+      expect(balance).toStrictEqual(0n);
+    });
 
     test('bridge icrc2 token to evm', async () => {
       const amount = 100000n;
 
-      await icrcBricdge.bridgeToEvmc(amount, wallet.address);
+      await icrcBricdge.bridgeToEvmc({
+        token: ICRC2_TOKEN_CANISTER_ID,
+        owner: identity.getPrincipal().toText(),
+        recipient: wallet.address,
+        amount
+      });
 
       await wait(10000);
 
-      const balance = await icrcBricdge.getWrappedTokenBalance(wallet.address);
+      const wrapped = await icrcBricdge.getWrappedTokenAddress(
+        ICRC2_TOKEN_CANISTER_ID
+      );
+
+      const balance = await icrcBricdge.getWrappedTokenBalance(
+        wrapped,
+        wallet.address
+      );
       expect(balance).toStrictEqual(amount);
     });
 
@@ -57,20 +74,27 @@ describe.sequential(
       const amount = 1000n;
 
       const balance = await icrcBricdge.getBaseTokenBalance(
+        ICRC2_TOKEN_CANISTER_ID,
         identity.getPrincipal().toText()
       );
-      expect(balance).toStrictEqual(899980n);
+      expect(balance).toStrictEqual(99899980n);
 
-      await icrcBricdge.bridgeFromEvmc(
-        identity.getPrincipal().toText(),
-        amount
+      const wrapped = await icrcBricdge.getWrappedTokenAddress(
+        ICRC2_TOKEN_CANISTER_ID
       );
+
+      await icrcBricdge.bridgeFromEvmc({
+        wrappedToken: wrapped,
+        recipient: identity.getPrincipal().toText(),
+        amount
+      });
 
       const balance2 = await icrcBricdge.getBaseTokenBalance(
+        ICRC2_TOKEN_CANISTER_ID,
         identity.getPrincipal().toText()
       );
-      expect(balance2).toStrictEqual(901960n);
+      expect(balance2).toStrictEqual(99900970n);
     });
   },
-  180000
+  280000
 );

@@ -3,13 +3,29 @@ import { Actor, HttpAgent } from '@dfinity/agent';
 import { exec } from 'child_process';
 import { Secp256k1KeyIdentity } from '@dfinity/identity-secp256k1';
 import {
+  BFT_ETH_ADDRESS,
   CHAIN_ID,
+  FEE_CHARGE_ADDRESS,
   IC_HOST,
+  ICRC2_MINTER_CANISTER_ID,
   ICRC2_TOKEN_CANISTER_ID,
   RPC_URL
 } from '../constants';
 import { fromHexString } from '@dfinity/candid';
 import { BitfinityWallet } from '@bitfinity-network/bitfinitywallet';
+import { BridgeNetwork, BridgeIcrc } from '../network';
+
+export const testNetwork: BridgeNetwork = BridgeNetwork.parse({
+  name: 'devnet',
+  bridges: [
+    BridgeIcrc.parse({
+      icHost: IC_HOST,
+      bftAddress: BFT_ETH_ADDRESS,
+      feeChargeAddress: FEE_CHARGE_ADDRESS,
+      iCRC2MinterCanisterId: ICRC2_MINTER_CANISTER_ID
+    })
+  ]
+});
 
 export const createAgent = (key: string) => {
   const identity = Secp256k1KeyIdentity.fromSecretKey(
@@ -34,13 +50,6 @@ export const createAnnonAgent = () => {
   agent.fetchRootKey();
 
   return { agent };
-};
-
-export const generateOperationId = () => {
-  const timestamp = Date.now();
-  const randomNum = Math.floor(Math.random() * 0x100000000);
-  const uniqueId = (timestamp + randomNum) % 0x100000000;
-  return uniqueId;
 };
 
 export const getProvider = () => {

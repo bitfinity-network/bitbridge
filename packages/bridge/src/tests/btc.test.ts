@@ -6,7 +6,7 @@ import {
   randomWallet,
   mintNativeToken,
   execBitcoinCmd,
-  createAnnonAgent,
+  createAnnonAgent
 } from './utils';
 import { wait } from '../utils';
 
@@ -18,22 +18,14 @@ describe.sequential(
     const { agent } = createAnnonAgent();
 
     await mintNativeToken(wallet.address, '10000000000000000');
-
     await wait(1000);
 
-    const connector = Connector.create({
-      wallet,
-      agent
-    });
+    const connector = Connector.create({ agent });
+
+    connector.connectEthWallet(wallet);
 
     await connector.fetchLocal();
-    await connector.bridgeAfterDeploy();
-
-    await wait(1000);
-
-    await connector.init();
-
-    await connector.requestIcConnect();
+    await connector.bridge();
 
     const btcBridge = connector.getBridge<'btc'>(BTC_TOKEN_WRAPPED_ADDRESS);
 
