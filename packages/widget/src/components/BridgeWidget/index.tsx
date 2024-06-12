@@ -1,70 +1,96 @@
-import { Fragment } from "react";
-import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { BridgeProvider } from "../../provider/BridgeProvider";
-import { Widget } from "./Widget";
-import { reactQueryClient } from "../../utils";
-import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
-import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
-import { WagmiProvider } from "wagmi";
-import { BITFINITY_LOCAL_CHAIN } from "../../utils/network";
-import "@rainbow-me/rainbowkit/styles.css";
-import { CustomThemeType, TBridgeWidget } from "../../types";
-import { extendDefaultTheme } from "../../theme/Theme";
-import { ChakraProvider } from "@chakra-ui/react";
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
+import { ChakraProvider } from '@chakra-ui/react';
+import {
+  getDefaultConfig,
+  RainbowKitProvider,
+  Chain
+} from '@rainbow-me/rainbowkit';
+import { WagmiProvider } from 'wagmi';
+import { BrdidgeNetworkUrl } from '@bitfinity-network/bridge';
 
-const persister = createSyncStoragePersister({
-  storage: window.localStorage,
+import { Widget } from './Widget';
+import { extendDefaultTheme, CustomThemeType } from '../../theme/theme';
+import { BridgeProvider } from '../../provider/BridgeProvider';
+import { TokensProvider } from '../../provider/TokensProvider.tsx';
+import {
+  ListsUrl,
+  TokenListed,
+  TokensListsProvider
+} from '../../provider/TokensListsProvider.tsx';
+import { BITFINITY_CHAINS, LIST_URLS, NETWORK_URLS } from '../../utils';
+
+import '@rainbow-me/rainbowkit/styles.css';
+
+import { QueryClient } from '@tanstack/react-query';
+
+const persister = {
+  persister: createSyncStoragePersister({
+    storage: window.localStorage
+  })
+};
+
+export const TANSTACK_GARBAGE_COLLECTION_TIME = 1000 * 60 * 8; // 8 minutes
+
+export const reactQueryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      gcTime: TANSTACK_GARBAGE_COLLECTION_TIME,
+      staleTime: Infinity,
+      refetchOnWindowFocus: false
+    }
+  }
 });
 
+export interface BridgeWidgetProps {
+  chains?: Chain[];
+  theme?: CustomThemeType;
+  network?: string;
+  networkUrls?: BrdidgeNetworkUrl[];
+  tokensListed?: TokenListed[];
+  listsUrls?: ListsUrl[];
+}
+
 export const BridgeWidget = ({
-  chains = [],
   theme,
-  ...rest
-}: TBridgeWidget) => {
+  chains = [],
+  network = 'devnet',
+  tokensListed = [],
+  networkUrls = NETWORK_URLS,
+  listsUrls = LIST_URLS
+}: BridgeWidgetProps) => {
   const config = getDefaultConfig({
-    appName: "bridge-widget",
-    projectId: "YOUR_PROJECT_ID",
-    chains: [BITFINITY_LOCAL_CHAIN, ...chains],
+    appName: 'bridge-widget',
+    projectId: 'YOUR_PROJECT_ID',
+    chains: [...BITFINITY_CHAINS, ...chains]
   });
 
-  /**
-   * Example custom theme:
-   * {
-      colors: {
-        primary: "#FFD700",
-        secondary: "#FFD7000",
-        mainBg: "#000000",
-        modalBg: "#333333",
-        primaryText: "#FFFFFF",
-        secondaryText: "#000000",
-      },
-      config: {
-        colorMode: "dark",
-        useSystemColorMode: false,
-      },
-    };
-   */
-  const customTheme: CustomThemeType | undefined = theme;
-  const extendedTheme = extendDefaultTheme(customTheme);
+  const extendedTheme = extendDefaultTheme(theme);
 
   return (
-    <Fragment>
-      <ChakraProvider theme={extendedTheme}>
-        <WagmiProvider config={config}>
-          <PersistQueryClientProvider
-            client={reactQueryClient}
-            persistOptions={{ persister }}
-          >
-            <RainbowKitProvider>
-              <BridgeProvider {...rest}>
-                <Widget />
+    <ChakraProvider theme={extendedTheme}>
+      <WagmiProvider config={config}>
+        <PersistQueryClientProvider
+          client={reactQueryClient}
+          persistOptions={persister}
+        >
+          <RainbowKitProvider>
+            <TokensListsProvider
+              tokensListed={tokensListed}
+              network={network}
+              listsUrls={listsUrls}
+            >
+              <BridgeProvider network={network} networkUrls={networkUrls}>
+                <TokensProvider>
+                  <Widget />
+                </TokensProvider>
               </BridgeProvider>
-            </RainbowKitProvider>
-            <ReactQueryDevtools initialIsOpen={false} />
-          </PersistQueryClientProvider>
-        </WagmiProvider>
-      </ChakraProvider>
-    </Fragment>
+            </TokensListsProvider>
+          </RainbowKitProvider>
+          <ReactQueryDevtools initialIsOpen={false} />
+        </PersistQueryClientProvider>
+      </WagmiProvider>
+    </ChakraProvider>
   );
 };

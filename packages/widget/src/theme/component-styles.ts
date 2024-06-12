@@ -11,22 +11,32 @@ export const componentStyles: ThemeComponents = {
       xs: {
         paddingX: "8px",
         paddingY: "6px",
+        fontSize: "12px",
+        lineHeight: "16px",
       },
       sm: {
-        paddingX: "12px",
-        paddingY: "8px",
+        paddingX: "24px",
+        paddingY: "12px",
+        fontSize: "12px",
+        lineHeight: "16px",
       },
       md: {
         paddingX: "16px",
         paddingY: "12px",
+        fontSize: "12px",
+        lineHeight: "16px",
       },
       lg: {
         paddingX: "20px",
         paddingY: "14px",
+        fontSize: "12px",
+        lineHeight: "16px",
       },
       xl: {
         paddingX: "24px",
         paddingY: "16px",
+        fontSize: "12px",
+        lineHeight: "16px",
       },
       jumbo: {
         paddingX: "48px",
@@ -71,10 +81,10 @@ export const componentStyles: ThemeComponents = {
       outline: (props: StyleFunctionProps) => ({
         bg: props.isDisabled
           ? `${props.colorMode}.${props.colorScheme}.alpha16`
-          : `${props.colorMode}.${props.colorScheme}.alpha8`,
+          : `${props.colorMode}.${props.colorScheme}.alpha72`,
         borderColor: props.isDisabled
           ? `${props.colorMode}.${props.colorScheme}.alpha16`
-          : `${props.colorMode}.${props.colorScheme}.alpha60`,
+          : `${props.colorMode}.${props.colorScheme}.main`,
         color: props.isDisabled
           ? `${props.colorMode}.text.disabled`
           : `${props.colorMode}.text.black`,

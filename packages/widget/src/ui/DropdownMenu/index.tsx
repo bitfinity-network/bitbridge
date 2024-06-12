@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment } from 'react';
 import {
   Box,
   BoxProps,
@@ -6,12 +6,29 @@ import {
   Flex,
   HStack,
   Icon,
-  useDisclosure,
-} from "@chakra-ui/react";
-import { BsCheckLg } from "react-icons/bs";
-import { MdKeyboardArrowDown } from "react-icons/md";
-import { SelectedItem } from "./SelectedItem";
-import { DropDownItemProp, DropdownProps } from "../../types";
+  TextProps,
+  useDisclosure
+} from '@chakra-ui/react';
+import { BsCheckLg } from 'react-icons/bs';
+
+import { MdKeyboardArrowDown } from 'react-icons/md';
+import { SelectedItem } from './SelectedItem';
+
+export type DropDownItemProp = {
+  id?: string;
+  name: string;
+  labelProps?: TextProps;
+  img?: string;
+  hideImage?: boolean;
+};
+
+export interface DropdownProps {
+  value: DropDownItemProp;
+  list?: DropDownItemProp[];
+  hideImage?: boolean;
+  labelProps?: TextProps;
+  handleChange?: (item: DropDownItemProp) => void;
+}
 
 export function DropdownMenu({
   value,
@@ -28,13 +45,14 @@ export function DropdownMenu({
     }
     onClose();
   };
+
   return (
     <Fragment>
       <Box bg="secondary.alpha8" w="full" {...boxProps}>
         <Flex alignItems="center" onClick={isOpen ? onClose : onOpen}>
           <SelectedItem
             name={value.name}
-            img={value?.logo}
+            img={value.img}
             hideImage={hideImage}
             labelProps={labelProps}
           />
@@ -53,7 +71,7 @@ export function DropdownMenu({
             const isSelected = value && value.name === item.name;
             return (
               <Box
-                bg={isSelected ? "primary.alpha8" : "none"}
+                bg={isSelected ? 'primary.alpha8' : 'none'}
                 key={item.name}
                 onClick={() => onItemSelect(item)}
               >

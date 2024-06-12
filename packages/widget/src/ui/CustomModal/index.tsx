@@ -17,21 +17,37 @@ import { ReactNode } from "react";
 import "react-spring-bottom-sheet/dist/style.css";
 import "./style.css";
 import { IoClose } from "react-icons/io5";
+import { IconType } from "react-icons/lib";
 
 type ModalHeaderProps = {
   title?: string;
   onClose: () => void;
   disableClose?: boolean;
+  iconPrefix?: IconType;
+  onIconPrefixClick?: () => void;
 };
 type CustomModalProps = {
   isOpen: boolean;
   children: ReactNode;
   modalContentProps?: ModalContentProps;
-  modalHeaderProps?: Pick<ModalHeaderProps, "title" | "disableClose">;
+  modalHeaderProps?: Pick<
+    ModalHeaderProps,
+    "title" | "disableClose" | "iconPrefix" | "onIconPrefixClick"
+  >;
 };
 
-const ModalHeader = ({ title, onClose, disableClose }: ModalHeaderProps) => {
-  const iconColor = useColorModeValue(
+const ModalHeader = ({
+  title,
+  onClose,
+  disableClose,
+  iconPrefix,
+  onIconPrefixClick,
+}: ModalHeaderProps) => {
+  const iconPrefixColor = useColorModeValue(
+    "light.primary.main",
+    "dark.primary.main"
+  );
+  const closeIconColor = useColorModeValue(
     disableClose ? "light.text.disabled" : "light.text.main",
     disableClose ? "dark.text.disabled" : "dark.text.main"
   );
@@ -39,11 +55,22 @@ const ModalHeader = ({ title, onClose, disableClose }: ModalHeaderProps) => {
   if (title) {
     return (
       <HStack justifyContent="space-between">
+        {iconPrefix && (
+          <Icon
+            color={iconPrefixColor}
+            h="28px"
+            w="28px"
+            onClick={onIconPrefixClick}
+            cursor="pointer"
+            size="48px"
+            as={iconPrefix}
+          />
+        )}
         <Text color="brand.100" fontWeight={600} fontSize="20px">
           {title}
         </Text>
         <Icon
-          color={iconColor}
+          color={closeIconColor}
           h="28px"
           w="28px"
           onClick={!disableClose ? onClose : undefined}
@@ -68,7 +95,8 @@ const CustomModal = ({
   const breakpoint = useBreakpointValue({ base: "base", md: "md", lg: "lg" });
   const modalBgColor = useColorModeValue("light.bg.modal", "dark.bg.modal");
 
-  const { title, disableClose } = modalHeaderProps || {};
+  const { title, disableClose, iconPrefix, onIconPrefixClick } =
+    modalHeaderProps || {};
 
   if (breakpoint === "base") {
     return (
@@ -106,6 +134,8 @@ const CustomModal = ({
             onClose={onClose}
             title={title}
             disableClose={disableClose}
+            iconPrefix={iconPrefix}
+            onIconPrefixClick={onIconPrefixClick}
           />
         ) : null}
         <ModalBody p={0}>{children}</ModalBody>

@@ -1,29 +1,37 @@
-import react from "@vitejs/plugin-react";
-import svgr from "vite-plugin-svgr";
-import { resolve } from "path";
-import { defineConfig } from "vite";
+import react from '@vitejs/plugin-react';
+import svgr from 'vite-plugin-svgr';
+import { resolve } from 'path';
+import { defineConfig } from 'vite';
+import mix from 'vite-plugin-mix';
 
 export default defineConfig({
   define: {
-    "process.env": process.env,
-    global: "window",
+    'process.env': process.env,
+    global: 'window'
   },
-  plugins: [react(), svgr()],
+  plugins: [
+    react(),
+    svgr(),
+    // hack the module export problem
+    ((mix as any).default as typeof mix)({
+      handler: resolve(__dirname, 'src/urls.ts')
+    })
+  ],
   build: {
     lib: {
-      entry: resolve(__dirname, "lib/index.ts"),
-      name: "widget",
-      fileName: "index",
+      entry: resolve(__dirname, 'src/index.ts'),
+      name: 'widget',
+      fileName: 'index'
     },
     rollupOptions: {
-      external: ["react", "react-dom"],
+      external: ['react', 'react-dom'],
       output: {
-        format: "es",
+        format: 'es',
         globals: {
-          react: "React",
-          "react-dom": "React-dom",
-        },
-      },
-    },
-  },
+          react: 'React',
+          'react-dom': 'React-dom'
+        }
+      }
+    }
+  }
 });

@@ -1,100 +1,81 @@
 import { Actor } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
-import * as ethers from 'ethers';
-import type { Agent } from '@dfinity/agent';
+import { Wallets } from '@bitfinity-network/bridge-bft';
 
-import { Bridge } from './bridge';
-import { BtcActor, createBtcBridgeActor } from './ic';
-import { encodeBtcAddress, ethAddrToSubaccount } from './utils';
-import { BridgeToken } from './tokens';
-import WrappedTokenABI from './abi/WrappedToken';
-import BFTBridgeABI from './abi/BFTBridge';
+import {
+  Bridge,
+  BridgeFromEvmc,
+  BridgeToEvmc,
+  DeployWrappedToken
+} from './bridge';
+import { BtcActor, BtcBridgeIdlFactory } from './ic';
+import { ethAddrToSubaccount } from './utils';
+import { Networks } from './network';
 
 interface BtcBridgeOptions {
-  wallet: ethers.Signer;
-  agent: Agent;
-  bftAddress: string;
-  wrappedTokenAddress: string;
-  btcBridgeCanisterId: string;
+  wallets: Wallets;
+  network: string;
+  networks: Networks;
 }
 
 export class BtcBridge implements Bridge {
-  protected agent: Agent;
-  protected wallet: ethers.Signer;
-  protected bftBridge: ethers.Contract;
-  protected btcBridgeCanisterId: string;
-  protected wrappedTokenAddress: string;
-  protected walletActors: {
-    btcActor?: typeof BtcActor;
-  } = {};
+  protected wallets: Wallets;
+  protected networkName: string;
+  protected networks: Networks;
 
-  constructor({
-    wallet,
-    agent,
-    bftAddress,
-    wrappedTokenAddress,
-    btcBridgeCanisterId
-  }: BtcBridgeOptions) {
-    this.wallet = wallet;
-    this.agent = agent;
-    this.bftBridge = this.getBftBridgeContract(bftAddress);
-    this.wrappedTokenAddress = wrappedTokenAddress;
-    this.btcBridgeCanisterId = btcBridgeCanisterId;
+  constructor({ network, wallets, networks }: BtcBridgeOptions) {
+    this.networkName = network;
+    this.networks = networks;
+    this.wallets = wallets;
   }
 
-  idMatch(token: BridgeToken) {
-    return this.wrappedTokenAddress === token.wrappedTokenAddress;
+  protected get network() {
+    return this.networks.getBridge(this.networkName, 'btc_evm');
   }
 
-  async init() {
-    await this.initBtcActor();
-  }
-
-  async icWhitelist() {
-    return [this.btcBridgeCanisterId];
-  }
-
-  protected async initBtcActor() {
-    if (this.walletActors.btcActor) {
-      return this.walletActors.btcActor;
-    }
-
-    this.walletActors.btcActor = createBtcBridgeActor(
-      this.btcBridgeCanisterId,
-      { agent: this.agent }
+  get btcActor(): BtcActor {
+    return this.wallets.getActor(
+      this.network.icHost,
+      this.network.btcBridgeCanisterId,
+      BtcBridgeIdlFactory
     );
   }
 
-  get btcActor() {
-    if (!this.walletActors.btcActor) {
-      throw new Error('Wallet actors not init yet. Call init() before');
-    }
-
-    return this.walletActors.btcActor;
+  protected get bftBridge() {
+    return this.wallets.getBft(this.network.bftAddress);
   }
 
-  getWrappedTokenContract() {
-    return new ethers.Contract(
-      this.wrappedTokenAddress,
-      WrappedTokenABI,
-      this.wallet
-    );
+  icWhitelist() {
+    return [this.network.btcBridgeCanisterId];
   }
 
-  getBftBridgeContract(address: string) {
-    return new ethers.Contract(address, BFTBridgeABI, this.wallet);
+  async getTokensPairs() {
+    return await this.bftBridge.getRuneTokensPairs();
   }
 
-  async getWrappedTokenBalance(address: string) {
-    const wrappedTokenContract = this.getWrappedTokenContract();
-
-    return await wrappedTokenContract.balanceOf(address);
+  async getBaseTokenBalance() {
+    return 0n;
   }
 
-  async getBTCAddress(address: string) {
+  async getWrappedTokenInfo(wrapped: string) {
+    return await this.wallets.getWrappedTokenInfo(wrapped);
+  }
+
+  async getWrappedTokenBalance(
+    wrapped: string,
+    address: string
+  ): Promise<bigint> {
+    return await this.wallets.getWrappedTokenBalance(wrapped, address);
+  }
+
+  async deployWrappedToken({ id, name }: DeployWrappedToken) {
+    return await this.bftBridge.deployRuneWrappedToken(id, name);
+  }
+
+  async getDepositAddress(recipient: string) {
     const btcAddress = await this.btcActor.get_btc_address({
       owner: [Principal.fromText(Actor.canisterIdOf(this.btcActor).toText())],
-      subaccount: [ethAddrToSubaccount(address)]
+      subaccount: [ethAddrToSubaccount(recipient)]
     });
 
     return btcAddress;
@@ -107,24 +88,20 @@ export class BtcBridge implements Bridge {
    *
    * @param address
    */
-  async bridgeToEvmc(address: string) {
-    return await this.btcActor.btc_to_erc20(address);
+  async bridgeToEvmc({ recipient }: BridgeToEvmc) {
+    return await this.btcActor.btc_to_erc20(recipient);
   }
 
-  async bridgeFromEvmc(address: string, satoshis: number) {
-    const wrappedTokenContract = this.getWrappedTokenContract();
+  async bridgeFromEvmc({ wrappedToken, recipient, amount }: BridgeFromEvmc) {
+    const wrappedTokenContract =
+      this.wallets.getWrappedTokenContract(wrappedToken);
 
     const approveTx = await wrappedTokenContract.approve(
-      await this.bftBridge.getAddress(),
-      satoshis
+      this.network.bftAddress,
+      amount
     );
     await approveTx.wait(2);
 
-    const burnTx = await this.bftBridge.burn(
-      satoshis,
-      this.wrappedTokenAddress,
-      `0x${encodeBtcAddress(address)}`
-    );
-    await burnTx.wait(2);
+    await this.bftBridge.burn(recipient, wrappedToken, BigInt(amount));
   }
 }

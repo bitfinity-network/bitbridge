@@ -3,7 +3,35 @@ import { ThemeColorsType, themeColors } from "./theme-colors";
 import { componentStyles } from "./component-styles";
 import { globalStyles } from "./global-styles";
 import { fontConfig, fontStyles } from "./font-config";
-import { CustomThemeType } from "../types";
+
+import { defineStyleConfig } from '@chakra-ui/react'
+
+defineStyleConfig({
+  variants: {
+
+  }
+})
+
+export type CustomThemeType = {
+  colors?: {
+    primary?: string;
+    secondary?: string;
+    success?: string;
+    mainBg?: string;
+    modalBg?: string;
+    primaryText?: string;
+    secondaryText?: string;
+  };
+  config?: {
+    colorMode?: 'light' | 'dark';
+    useSystemColorMode?: boolean;
+  };
+};
+
+// TODO: use Chakra Semantic Tokens
+//       https://github.com/chakra-ui/chakra-ui/discussions/2169
+//       https://v2.chakra-ui.com/docs/styled-system/semantic-tokens
+//              !!! avoid usage of useColorMode hook !!!
 
 const defaultThemeObject = {
   styles: {
@@ -14,8 +42,8 @@ const defaultThemeObject = {
   textStyles: fontStyles,
   components: componentStyles,
   config: {
-    initialColorMode: "light",
-    useSystemColorMode: false,
+    initialColorMode: "light", // TODO: rm when Chakra Semantic Tokens
+    useSystemColorMode: false, // TODO: switch to true when update to Chakra Semantic Tokens
     cssVarPrefix: "bitbridge",
   },
 };
