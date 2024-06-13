@@ -99,7 +99,7 @@ export const WidgetForm = ({
                   target="from"
                   onClick={handleToggleTokenList}
                 />
-                <MdOutlineArrowDownward width="24px" height="24px" />
+                <MdOutlineArrowDownward width="22px" height="22px" />
                 <TokenChip
                   bridge={bridge}
                   target="destination"

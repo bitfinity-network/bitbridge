@@ -115,7 +115,7 @@ const CustomModal = ({
         p={4}
         bg="bg.modal"
         backdropFilter="blur(40px)"
-        borderRadius={0}
+        borderRadius="8px"
         {...modalContentProps}
       >
         {title ? (
