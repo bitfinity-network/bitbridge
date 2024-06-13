@@ -1,19 +1,11 @@
 import { Dispatch, SetStateAction, useEffect, useState } from 'react';
-import {
-  Box,
-  Button,
-  HStack,
-  Input,
-  Text,
-  VStack,
-  Collapse
-} from '@chakra-ui/react';
+import { Box, Button, HStack, Input, VStack, useToast } from '@chakra-ui/react';
 import { LabelValuePair, EnhancedFormControl, TokenChip } from '../../ui';
 import { TokenListModal } from '../TokenListModal';
-import { BridgesListModal } from '../BridgesListModal';
-import { useBridgeContext, Bridge } from '../../provider/BridgeProvider.tsx';
-import { Token, useTokenContext } from '../../provider/TokensProvider.tsx';
+import { useBridgeContext } from '../../provider/BridgeProvider.tsx';
+import { useTokenContext } from '../../provider/TokensProvider.tsx';
 import { MdOutlineArrowDownward } from 'react-icons/md';
+import { fromFloating } from '../../utils/format.ts';
 
 type WidgetFormProps = {
   setBridgingOrWalletOperation?: Dispatch<SetStateAction<boolean>>;
@@ -21,6 +13,10 @@ type WidgetFormProps = {
 export const WidgetForm = ({
   setBridgingOrWalletOperation
 }: WidgetFormProps) => {
+  const toast = useToast();
+
+  const { setWalletsOpen, bridges, isWalletConnectionPending } =
+    useBridgeContext();
   const {
     bridge: bridgeTo,
     isBridgingInProgress,
@@ -34,22 +30,7 @@ export const WidgetForm = ({
 
   const [strAmount, setStrAmount] = useState('');
 
-  const onAmountChange = (strAmount: string) => {
-    const floatingAmount = parseFloat(strAmount);
-
-    // TODO: Ensure decimals
-
-    setAmount(floatingAmount);
-  };
-
-  const handleToggleTokenList = () => {
-    setShowTokenList(!showTokenList);
-  };
-
-  const isPendingBridgeOrWalletOperation =
-    isBridgingInProgress || isWalletConnectionPending;
-
-  const bridgingMessage = '';
+  const token = tokens.find(({ id }) => id === tokenId);
 
   const connectButtonTitle = bridges.length > 0 ? 'Bridge' : 'Connect Wallets';
 
@@ -119,6 +100,10 @@ export const WidgetForm = ({
     }
   };
 
+  const isPendingBridgeOrWalletOperation =
+    isBridgingInProgress || isWalletConnectionPending;
+  const hasBridges = bridges.length > 0;
+
   useEffect(() => {
     if (setBridgingOrWalletOperation) {
       setBridgingOrWalletOperation(isPendingBridgeOrWalletOperation);
@@ -139,39 +124,36 @@ export const WidgetForm = ({
               placeholder="0.00"
               variant="unstyled"
               type="number"
-              value={amount > 0 ? amount : ''}
-              onChange={(e) => onAmountChange(e.target.value)}
+              value={strAmount}
+              onChange={(e) => setStrAmount(e.target.value)}
               size="lg"
-              height={bridge ? '70px' : 'initial'}
-              fontSize={bridge ? '32px' : 'initial'}
+              height={hasBridges ? '70px' : 'initial'}
+              fontSize={hasBridges ? '32px' : 'initial'}
             />
-            {bridge ? (
+            {hasBridges ? (
               <VStack gap="4px">
                 <TokenChip
-                  bridge={bridge}
+                  bridge={bridges[0]}
                   target="from"
-                  onClick={handleToggleTokenList}
+                  onClick={() => setShowTokenList(true)}
                 />
                 <MdOutlineArrowDownward width="22px" height="22px" />
                 <TokenChip
-                  bridge={bridge}
+                  bridge={bridges[1]}
                   target="destination"
-                  onClick={handleToggleTokenList}
+                  onClick={() => setShowTokenList(true)}
                 />
               </VStack>
             ) : (
-              <Button
-                variant="outline"
-                onClick={() => setShowBridgesList(true)}
-              >
-                Select bridge
+              <Button variant="outline" onClick={() => setShowTokenList(true)}>
+                Select Tokens
               </Button>
             )}
           </HStack>
           <LabelValuePair label="Service fee">0.00</LabelValuePair>
         </EnhancedFormControl>
 
-        <Collapse in={false} animateOpacity>
+        {/* <Collapse in={false} animateOpacity>
           <VStack
             width="full"
             alignItems="center"
@@ -185,21 +167,16 @@ export const WidgetForm = ({
               {bridgingMessage}
             </Text>
           </VStack>
-        </Collapse>
+        </Collapse> */}
 
         <Box width="full" pt={2}>
           <Button
             w="full"
             isLoading={isBridgingInProgress}
-            disabled={isWalletConnectionPending || isBridgingInProgress}
+            disabled={isWalletConnectionPending}
             onClick={connectButton}
           >
             {connectButtonTitle}
-          </Button>
-        </Box>
-        <Box pt={2}>
-          <Button w="full" onClick={() => setWalletsOpen(true)}>
-            Open wallets
           </Button>
         </Box>
       </form>
