@@ -20,7 +20,6 @@ import * as ethers from 'ethers';
 import { useAccount, useDisconnect } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { BitfinityWallet } from '@bitfinity-network/bitfinitywallet';
-
 import { BITFINITY_INSTALLATION_URL, createStore } from '../utils';
 import BftIcon from '../assets/icons/bitfinity.svg';
 import BtcIcon from '../assets/icons/bitcoin.svg';
@@ -59,20 +58,36 @@ const WALLETS_INFO: Record<WalletType, WalletInfo> = {
 export type BridgeInfo = {
   name: string;
   logo: string;
+  fromName: string;
+  destinationName: string;
+  fromLogo: string;
+  destinationLogo: string;
 };
 
 const BRIDGES_INFO: Record<BridgeType, BridgeInfo> = {
   icrc_evm: {
     name: 'ICRC <-> EVM',
-    logo: BftIcon
+    logo: BftIcon,
+    fromName: 'ICRC',
+    destinationName: 'EVM',
+    fromLogo: BftIcon,
+    destinationLogo: EvmIcon
   },
   btc_evm: {
     name: 'BITCOIN <-> EVM',
-    logo: BtcIcon
+    logo: BtcIcon,
+    fromName: 'BITCOIN',
+    destinationName: 'EVM',
+    fromLogo: BtcIcon,
+    destinationLogo: EvmIcon
   },
   rune_evm: {
     name: 'RUNE <-> EVM',
-    logo: BtcIcon
+    logo: BtcIcon,
+    fromName: 'RUNE',
+    destinationName: 'EVM',
+    fromLogo: BtcIcon,
+    destinationLogo: EvmIcon
   }
 };
 

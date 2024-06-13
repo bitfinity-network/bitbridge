@@ -7,16 +7,11 @@ import {
   Image,
   Slide,
   Text,
-  VStack,
-  useColorModeValue
+  VStack
 } from '@chakra-ui/react';
 import { IoClose } from 'react-icons/io5';
-
-import {
-  useWallets,
-  useWalletsOpen,
-  Wallet
-} from '../../provider/BridgeProvider.tsx';
+import { useWallets, Wallet } from '../../provider/BridgeProvider.tsx';
+import { shortenAddress } from '../../utils/format.ts';
 
 type WalletItemProps = {
   wallet: Wallet;
@@ -43,7 +38,7 @@ const WalletItem = ({ wallet }: WalletItemProps) => {
             {wallet.name}
           </Text>
           <Text color="secondary.alpha72" textStyle="body">
-            {wallet.address}
+            {shortenAddress(wallet.address)}
           </Text>
         </VStack>
       </HStack>
@@ -56,14 +51,11 @@ const WalletItem = ({ wallet }: WalletItemProps) => {
   );
 };
 
-export const WidgetWallets = () => {
-  const closeIconColor = useColorModeValue('light.text.main', 'dark.text.main');
-  const pannelBgColor = useColorModeValue(
-    'light.secondary.main',
-    'dark.secondary.main'
-  );
-
-  const [isOpen, setOpen] = useWalletsOpen();
+type WidgetWalletsProps = {
+  isOpen: boolean;
+  onClose: () => void;
+};
+export const WidgetWallets = ({ isOpen, onClose }: WidgetWalletsProps) => {
   const wallets = useWallets();
 
   return (
@@ -77,7 +69,7 @@ export const WidgetWallets = () => {
           h="full"
           bg="light.secondary.alpha60"
           backdropFilter="blur(32px)"
-          onClick={() => setOpen(false)}
+          onClick={onClose}
         />
       )}
       <Slide direction="bottom" in={isOpen} style={{ zIndex: 10 }}>
@@ -86,7 +78,7 @@ export const WidgetWallets = () => {
           gap="16px"
           padding={4}
           maxHeight={500}
-          bg={pannelBgColor}
+          bg="secondary.main"
           boxShadow={isOpen ? '0 -16px 20px 0px rgba(0, 0, 0, 0.24)' : 'none'}
           overflowY="auto"
         >
@@ -95,10 +87,10 @@ export const WidgetWallets = () => {
               Manage Wallets
             </Text>
             <Icon
-              color={closeIconColor}
+              color="text.main"
               h="28px"
               w="28px"
-              onClick={() => setOpen(false)}
+              onClick={onClose}
               cursor="pointer"
               size="48px"
               as={IoClose}
