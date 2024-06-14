@@ -130,7 +130,7 @@ export const WidgetForm = ({
               placeholder="0.00"
               variant="unstyled"
               type="number"
-              disabled={isPendingBridgeOrWalletOperation}
+              disabled={isPendingBridgeOrWalletOperation || !hasBridges}
               value={strAmount}
               onChange={(e) => setStrAmount(e.target.value)}
               size="lg"
@@ -152,7 +152,11 @@ export const WidgetForm = ({
                 />
               </VStack>
             ) : (
-              <Button variant="outline" onClick={handleToggleTokenList}>
+              <Button
+                variant="outline"
+                onClick={handleToggleTokenList}
+                size="sm"
+              >
                 Select Token
               </Button>
             )}
