@@ -76,11 +76,19 @@ const BRIDGES_INFO: Record<BridgeType, BridgeInfo> = {
   }
 };
 
+export type EthWalletWatchAsset = (options: {
+  address: string;
+  symbol: string;
+  decimals: number;
+  image: string;
+}) => Promise<void>;
+
 export type WalletConnected = {
   eth?: {
     wallet: ethers.Signer;
     address: string;
     provider: ethers.BrowserProvider;
+    watchAsset: EthWalletWatchAsset;
   };
   ic?: { wallet: BitfinityWallet; address: string };
   btc?: { wallet: boolean; address: string };
@@ -102,6 +110,7 @@ export interface EthWalletData extends BaseWalletData {
   type: 'eth';
   wallet?: ethers.Signer;
   provider?: ethers.BrowserProvider;
+  watchAsset?: EthWalletWatchAsset;
 }
 
 interface BtcWalletData extends BaseWalletData {
@@ -162,6 +171,20 @@ export type BridgeProviderProps = {
 };
 
 const { setStorageItems, getStorage } = createStore<Storage>('bitbridge');
+
+const ethWalletWatchAsset: EthWalletWatchAsset = async (options) => {
+  try {
+    return await window.ethereum.request({
+      method: 'wallet_watchAsset',
+      params: {
+        type: 'ERC20',
+        options
+      }
+    });
+  } catch (_) {
+    return false;
+  }
+};
 
 const useEthWalletConnection = ({
   onConnect,
@@ -297,7 +320,12 @@ export const BridgeProvider = ({
           onConnect(wallet, provider, address) {
             setWalletsConnected((prev) => ({
               ...prev,
-              eth: { wallet, provider, address }
+              eth: {
+                wallet,
+                provider,
+                address,
+                watchAsset: ethWalletWatchAsset
+              }
             }));
             connector.connectEthWallet(wallet);
           },
@@ -374,6 +402,8 @@ export const BridgeProvider = ({
         connected,
         wallet: wallet?.wallet,
         provider: wallet && 'provider' in wallet ? wallet.provider : undefined,
+        watchAsset:
+          wallet && 'watchAsset' in wallet ? wallet.watchAsset : undefined,
         address,
         toggle,
         ...info
