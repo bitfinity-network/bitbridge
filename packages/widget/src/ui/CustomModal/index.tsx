@@ -57,11 +57,6 @@ const ModalHeader = ({
                 cursor="pointer"
                 size="48px"
                 as={IconItem}
-                _hover={{
-                  width: '32px',
-                  height: '32px'
-                }}
-                transition="width 0.2s ease-in-out, height 0.2s ease-in-out"
               />
             ))}
           </HStack>

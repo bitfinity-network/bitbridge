@@ -1,15 +1,5 @@
-import { Fragment, useState } from 'react';
-import {
-  Box,
-  Button,
-  HStack,
-  Icon,
-  Image,
-  Slide,
-  Text,
-  VStack
-} from '@chakra-ui/react';
-import { IoClose } from 'react-icons/io5';
+import { useState } from 'react';
+import { Button, HStack, Image, Text, VStack } from '@chakra-ui/react';
 
 import { useBridgeContext, Wallet } from '../../provider/BridgeProvider.tsx';
 import { CustomModal } from '../../ui/index.ts';
