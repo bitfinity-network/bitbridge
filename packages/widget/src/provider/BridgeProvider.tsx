@@ -173,13 +173,17 @@ export type BridgeProviderProps = {
 const { setStorageItems, getStorage } = createStore<Storage>('bitbridge');
 
 const ethWalletWatchAsset: EthWalletWatchAsset = async (options) => {
-  return await window.ethereum.request({
-    method: 'wallet_watchAsset',
-    params: {
-      type: 'ERC20',
-      options
-    }
-  });
+  try {
+    return await window.ethereum.request({
+      method: 'wallet_watchAsset',
+      params: {
+        type: 'ERC20',
+        options
+      }
+    });
+  } catch (_) {
+    return false;
+  }
 };
 
 const useEthWalletConnection = ({
