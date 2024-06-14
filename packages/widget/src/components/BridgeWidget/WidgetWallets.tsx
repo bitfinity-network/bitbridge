@@ -12,6 +12,7 @@ import {
 import { IoClose } from 'react-icons/io5';
 
 import { useBridgeContext, Wallet } from '../../provider/BridgeProvider.tsx';
+import { CustomModal } from '../../ui/index.ts';
 
 type WalletItemProps = {
   wallet: Wallet;
@@ -55,54 +56,19 @@ export const WidgetWallets = () => {
   const { wallets, walletsOpen, setWalletsOpen } = useBridgeContext();
 
   return (
-    <Fragment>
-      {walletsOpen && (
-        <Box
-          position="absolute"
-          top={0}
-          left={0}
-          w="full"
-          h="full"
-          bg="light.secondary.alpha60"
-          backdropFilter="blur(32px)"
-          onClick={() => setWalletsOpen(false)}
-        />
-      )}
-      <Slide direction="bottom" in={walletsOpen} style={{ zIndex: 10 }}>
-        <VStack
-          width="full"
-          gap="16px"
-          padding={4}
-          maxHeight={500}
-          bg="secondary.main"
-          boxShadow={
-            walletsOpen ? '0 -16px 20px 0px rgba(0, 0, 0, 0.24)' : 'none'
-          }
-          overflowY="auto"
-        >
-          <HStack width="full" justifyContent="space-between">
-            <Text color="brand.100" fontWeight={600} fontSize="20px">
-              Manage Wallets
-            </Text>
-            <Icon
-              color="text.main"
-              h="28px"
-              w="28px"
-              onClick={() => setWalletsOpen(false)}
-              cursor="pointer"
-              size="48px"
-              as={IoClose}
-            />
-          </HStack>
-          <VStack w="full" paddingY={4} gap={4}>
-            <VStack width="full" gap="8px">
-              {wallets.map((wallet) => {
-                return <WalletItem key={wallet.type} wallet={wallet} />;
-              })}
-            </VStack>
-          </VStack>
+    <CustomModal
+      modalHeaderProps={{ title: 'Manage Wallets' }}
+      isOpen={walletsOpen}
+      onClose={() => setWalletsOpen(false)}
+      size="lg"
+    >
+      <VStack w="full" paddingY={4} gap={4}>
+        <VStack width="full" gap="8px">
+          {wallets.map((wallet) => {
+            return <WalletItem key={wallet.type} wallet={wallet} />;
+          })}
         </VStack>
-      </Slide>
-    </Fragment>
+      </VStack>
+    </CustomModal>
   );
 };

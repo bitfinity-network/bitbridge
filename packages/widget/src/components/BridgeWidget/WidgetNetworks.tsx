@@ -1,18 +1,9 @@
-import { Fragment, useState } from 'react';
-import {
-  Box,
-  HStack,
-  Icon,
-  Slide,
-  Text,
-  VStack,
-  useColorModeValue,
-  Button
-} from '@chakra-ui/react';
-import { IoClose } from 'react-icons/io5';
+import { useState } from 'react';
+import { HStack, Text, VStack, Button } from '@chakra-ui/react';
 import { BridgeNetwork } from '@bitfinity-network/bridge';
 
 import { useBridgeContext } from '../../provider/BridgeProvider.tsx';
+import { CustomModal } from '../../ui/index.ts';
 
 type NetworkItemProps = {
   network: BridgeNetwork;
@@ -55,12 +46,6 @@ const NetworkItem = ({ network, current, onSelect }: NetworkItemProps) => {
 };
 
 export const WidgetNetworks = () => {
-  const closeIconColor = useColorModeValue('light.text.main', 'dark.text.main');
-  const pannelBgColor = useColorModeValue(
-    'light.secondary.main',
-    'dark.secondary.main'
-  );
-
   const {
     bridgeNetworks,
     networksOpen,
@@ -70,61 +55,26 @@ export const WidgetNetworks = () => {
   } = useBridgeContext();
 
   return (
-    <Fragment>
-      {networksOpen && (
-        <Box
-          position="absolute"
-          top={0}
-          left={0}
-          w="full"
-          h="full"
-          bg="light.secondary.alpha60"
-          backdropFilter="blur(32px)"
-          onClick={() => setNetworksOpen(false)}
-        />
-      )}
-      <Slide direction="bottom" in={networksOpen} style={{ zIndex: 10 }}>
-        <VStack
-          width="full"
-          gap="16px"
-          padding={4}
-          maxHeight={500}
-          bg={pannelBgColor}
-          boxShadow={
-            networksOpen ? '0 -16px 20px 0px rgba(0, 0, 0, 0.24)' : 'none'
-          }
-          overflowY="auto"
-        >
-          <HStack width="full" justifyContent="space-between">
-            <Text color="brand.100" fontWeight={600} fontSize="20px">
-              Manage Networks
-            </Text>
-            <Icon
-              color={closeIconColor}
-              h="28px"
-              w="28px"
-              onClick={() => setNetworksOpen(false)}
-              cursor="pointer"
-              size="48px"
-              as={IoClose}
-            />
-          </HStack>
-          <VStack w="full" paddingY={4} gap={4}>
-            <VStack width="full" gap="8px">
-              {bridgeNetworks.map((network) => {
-                return (
-                  <NetworkItem
-                    key={network.name}
-                    network={network}
-                    current={networkName === network.name}
-                    onSelect={switchNetwork}
-                  />
-                );
-              })}
-            </VStack>
-          </VStack>
+    <CustomModal
+      modalHeaderProps={{ title: 'Manage Networks' }}
+      isOpen={networksOpen}
+      onClose={() => setNetworksOpen(false)}
+      size="lg"
+    >
+      <VStack w="full" paddingY={4} gap={4}>
+        <VStack width="full" gap="8px">
+          {bridgeNetworks.map((network) => {
+            return (
+              <NetworkItem
+                key={network.name}
+                network={network}
+                current={networkName === network.name}
+                onSelect={switchNetwork}
+              />
+            );
+          })}
         </VStack>
-      </Slide>
-    </Fragment>
+      </VStack>
+    </CustomModal>
   );
 };

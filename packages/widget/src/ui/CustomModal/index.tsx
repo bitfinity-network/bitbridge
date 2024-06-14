@@ -22,8 +22,8 @@ type ModalHeaderProps = {
   title?: string;
   onClose: () => void;
   disableClose?: boolean;
-  iconPrefix?: IconType;
-  onIconPrefixClick?: () => void;
+  iconPrefix?: IconType[];
+  onIconPrefixClick?: (() => void)[];
 };
 type CustomModalProps = {
   isOpen: boolean;
@@ -45,16 +45,26 @@ const ModalHeader = ({
   if (title) {
     return (
       <HStack justifyContent="space-between">
-        {iconPrefix && (
-          <Icon
-            color="primary.main"
-            h="28px"
-            w="28px"
-            onClick={onIconPrefixClick}
-            cursor="pointer"
-            size="48px"
-            as={iconPrefix}
-          />
+        {iconPrefix?.length && (
+          <HStack p={2} bg="secondary.alpha4" borderRadius="16px" gap="16px">
+            {iconPrefix.map((IconItem, index) => (
+              <Icon
+                key={index}
+                color="primary.main"
+                height="24px"
+                width="24px"
+                onClick={onIconPrefixClick?.[index]}
+                cursor="pointer"
+                size="48px"
+                as={IconItem}
+                _hover={{
+                  width: '32px',
+                  height: '32px'
+                }}
+                transition="width 0.2s ease-in-out, height 0.2s ease-in-out"
+              />
+            ))}
+          </HStack>
         )}
         <Text color="brand.100" fontWeight={600} fontSize="20px">
           {title}
