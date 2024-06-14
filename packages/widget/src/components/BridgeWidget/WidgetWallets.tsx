@@ -10,7 +10,7 @@ import {
   VStack
 } from '@chakra-ui/react';
 import { IoClose } from 'react-icons/io5';
-import { useWallets, Wallet } from '../../provider/BridgeProvider.tsx';
+import { Wallet, useBridgeContext } from '../../provider/BridgeProvider.tsx';
 import { shortenAddress } from '../../utils/format.ts';
 
 type WalletItemProps = {
@@ -56,7 +56,7 @@ type WidgetWalletsProps = {
   onClose: () => void;
 };
 export const WidgetWallets = ({ isOpen, onClose }: WidgetWalletsProps) => {
-  const wallets = useWallets();
+  const { wallets, walletsOpen } = useBridgeContext();
 
   return (
     <Fragment>
