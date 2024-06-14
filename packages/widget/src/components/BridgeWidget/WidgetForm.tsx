@@ -11,8 +11,12 @@ import { fromFloating } from '../../utils';
 export const WidgetForm = () => {
   const toast = useToast();
 
-  const { setWalletsOpen, bridges, isWalletConnectionPending } =
-    useBridgeContext();
+  const {
+    bridges,
+    isWalletConnectionPending,
+    setWalletsOpen,
+    setNetworksOpen
+  } = useBridgeContext();
   const {
     bridge: bridgeTo,
     isBridgingInProgress,
@@ -138,6 +142,11 @@ export const WidgetForm = () => {
         <Box pt={2}>
           <Button w="full" onClick={() => setWalletsOpen(true)}>
             Open wallets
+          </Button>
+        </Box>
+        <Box pt={2}>
+          <Button w="full" onClick={() => setNetworksOpen(true)}>
+            Open networks
           </Button>
         </Box>
       </form>

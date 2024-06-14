@@ -1,24 +1,26 @@
 import { Fragment, useState } from 'react';
 import {
   Box,
-  Button,
   HStack,
   Icon,
-  Image,
   Slide,
   Text,
   VStack,
-  useColorModeValue
+  useColorModeValue,
+  Button
 } from '@chakra-ui/react';
 import { IoClose } from 'react-icons/io5';
+import { BridgeNetwork } from '@bitfinity-network/bridge';
 
-import { useBridgeContext, Wallet } from '../../provider/BridgeProvider.tsx';
+import { useBridgeContext } from '../../provider/BridgeProvider.tsx';
 
-type WalletItemProps = {
-  wallet: Wallet;
+type NetworkItemProps = {
+  network: BridgeNetwork;
+  current: boolean;
+  onSelect: (name: string) => void;
 };
 
-const WalletItem = ({ wallet }: WalletItemProps) => {
+const NetworkItem = ({ network, current, onSelect }: NetworkItemProps) => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -33,36 +35,43 @@ const WalletItem = ({ wallet }: WalletItemProps) => {
       onMouseLeave={() => setIsHovered(false)}
     >
       <HStack alignItems="center" paddingY={2} w="full">
-        <Image src={wallet.logo} alt={wallet.name} width={10} height={10} />
         <VStack alignItems="flex-start" gap="0">
           <Text isTruncated textStyle="h6">
-            {wallet.name}
-          </Text>
-          <Text color="secondary.alpha72" textStyle="body">
-            {wallet.address}
+            {network.name}
           </Text>
         </VStack>
       </HStack>
-      {isHovered && (
-        <Button variant="outline" size="sm" onClick={wallet.toggle}>
-          {wallet.connected ? 'Disconnect' : 'Connect'}
+      {isHovered && !current && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onSelect(network.name)}
+        >
+          Select
         </Button>
       )}
     </HStack>
   );
 };
 
-export const WidgetWallets = () => {
+export const WidgetNetworks = () => {
   const closeIconColor = useColorModeValue('light.text.main', 'dark.text.main');
   const pannelBgColor = useColorModeValue(
     'light.secondary.main',
     'dark.secondary.main'
   );
-  const { wallets, walletsOpen, setWalletsOpen } = useBridgeContext();
+
+  const {
+    bridgeNetworks,
+    networksOpen,
+    setNetworksOpen,
+    switchNetwork,
+    network: networkName
+  } = useBridgeContext();
 
   return (
     <Fragment>
-      {walletsOpen && (
+      {networksOpen && (
         <Box
           position="absolute"
           top={0}
@@ -71,10 +80,10 @@ export const WidgetWallets = () => {
           h="full"
           bg="light.secondary.alpha60"
           backdropFilter="blur(32px)"
-          onClick={() => setWalletsOpen(false)}
+          onClick={() => setNetworksOpen(false)}
         />
       )}
-      <Slide direction="bottom" in={walletsOpen} style={{ zIndex: 10 }}>
+      <Slide direction="bottom" in={networksOpen} style={{ zIndex: 10 }}>
         <VStack
           width="full"
           gap="16px"
@@ -82,19 +91,19 @@ export const WidgetWallets = () => {
           maxHeight={500}
           bg={pannelBgColor}
           boxShadow={
-            walletsOpen ? '0 -16px 20px 0px rgba(0, 0, 0, 0.24)' : 'none'
+            networksOpen ? '0 -16px 20px 0px rgba(0, 0, 0, 0.24)' : 'none'
           }
           overflowY="auto"
         >
           <HStack width="full" justifyContent="space-between">
             <Text color="brand.100" fontWeight={600} fontSize="20px">
-              Manage Wallets
+              Manage Networks
             </Text>
             <Icon
               color={closeIconColor}
               h="28px"
               w="28px"
-              onClick={() => setWalletsOpen(false)}
+              onClick={() => setNetworksOpen(false)}
               cursor="pointer"
               size="48px"
               as={IoClose}
@@ -102,8 +111,15 @@ export const WidgetWallets = () => {
           </HStack>
           <VStack w="full" paddingY={4} gap={4}>
             <VStack width="full" gap="8px">
-              {wallets.map((wallet) => {
-                return <WalletItem key={wallet.type} wallet={wallet} />;
+              {bridgeNetworks.map((network) => {
+                return (
+                  <NetworkItem
+                    key={network.name}
+                    network={network}
+                    current={networkName === network.name}
+                    onSelect={switchNetwork}
+                  />
+                );
               })}
             </VStack>
           </VStack>
