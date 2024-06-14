@@ -3,6 +3,7 @@ import svgr from 'vite-plugin-svgr';
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
 import mix from 'vite-plugin-mix';
+import 'dotenv/config';
 
 export default defineConfig({
   define: {
