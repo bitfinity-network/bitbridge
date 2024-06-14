@@ -52,7 +52,10 @@ export const componentStyles: ThemeComponents = {
           : `${props.colorScheme}.main`,
         color: props.isDisabled ? `text.disabled` : `text.black`,
         _hover: props.isDisabled
-          ? {}
+          ? {
+              bg: `secondary.alpha40`,
+              cursor: 'not-allowed'
+            }
           : {
               bg: `${props.colorScheme}.hover`
             },

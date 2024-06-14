@@ -4,8 +4,8 @@ export const shortenAddress = (
   suffix: number = 4
 ) => {
   if (address) {
-    const p = address.substr(0, prefix);
-    const s = address.substr(-suffix);
+    const p = address.slice(0, prefix);
+    const s = address.slice(-suffix);
     return `${p}...${s}`;
   }
   return '';

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { HStack, Text, VStack, Button } from '@chakra-ui/react';
 import { BridgeNetwork } from '@bitfinity-network/bridge';
 
@@ -12,8 +11,6 @@ type NetworkItemProps = {
 };
 
 const NetworkItem = ({ network, current, onSelect }: NetworkItemProps) => {
-  const [isHovered, setIsHovered] = useState(false);
-
   return (
     <HStack
       width="full"
@@ -22,8 +19,6 @@ const NetworkItem = ({ network, current, onSelect }: NetworkItemProps) => {
       justifyContent="space-between"
       borderRadius="8px"
       bg="light.secondary.alpha4"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
       <HStack alignItems="center" paddingY={2} w="full">
         <VStack alignItems="flex-start" gap="0">
@@ -32,15 +27,14 @@ const NetworkItem = ({ network, current, onSelect }: NetworkItemProps) => {
           </Text>
         </VStack>
       </HStack>
-      {isHovered && !current && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onSelect(network.name)}
-        >
-          Select
-        </Button>
-      )}
+      <Button
+        variant={current ? 'solid' : 'outline'}
+        size="sm"
+        onClick={() => onSelect(network.name)}
+        disabled={current}
+      >
+        {current ? 'Connected' : 'Select'}
+      </Button>
     </HStack>
   );
 };
