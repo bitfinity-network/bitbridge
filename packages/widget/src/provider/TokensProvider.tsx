@@ -44,7 +44,7 @@ interface TokenBase {
   wallet: WalletType;
   bridge: BridgeType;
   id: string;
-  wrapped: boolean;
+  wrapped: string | undefined;
   name: string;
   symbol: string;
   decimals: number;
@@ -204,25 +204,28 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
         });
 
         if (bridge) {
+          const wrapped = bridge.tokens.find(
+            ({ wrapped }) => wrapped === tokenListed.id
+          );
+
           tokens.push({
             ...tokenListed,
             type: 'evmc',
             wallet: 'eth',
             bridge: bridge.type,
             id: tokenListed.id,
-            wrapped: true,
+            wrapped: wrapped ? wrapped.base : undefined,
             balance: 0n
           });
         }
       }
 
       if (tokenListed.type === 'icrc') {
-        const wrapped = tokensPairs.some(({ type, tokens }) => {
-          return (
-            type === 'icrc_evm' &&
-            tokens.some(({ base }) => base === tokenListed.id)
-          );
-        });
+        const wrapped = tokensPairs
+          .filter(({ type }) => type === 'icrc_evm')
+          .map(({ tokens }) => tokens)
+          .flat()
+          .find(({ base }) => base === tokenListed.id);
 
         tokens.push({
           ...tokenListed,
@@ -230,7 +233,7 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
           wallet: 'ic',
           bridge: 'icrc_evm',
           id: tokenListed.id,
-          wrapped,
+          wrapped: wrapped ? wrapped.wrapped : undefined,
           balance: 0n
         });
       }
@@ -333,10 +336,6 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
       }
       const { bridge } = bridgeInfo;
 
-      const getAddress = (type: WalletType) => {
-        return wallets.find((wallet) => wallet.type === type)?.address;
-      };
-
       const amount = fromFloating(floatingAmount, token.decimals);
 
       if (token.balance <= amount) {
@@ -347,15 +346,15 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
       let recipient: string | undefined;
 
       if (token.type === 'icrc') {
-        recipient = getAddress('eth');
+        recipient = ethWallet?.address;
       } else if (token.type === 'evmc') {
-        recipient = getAddress('ic');
+        recipient = icWallet?.address;
       }
 
       if (token.type === 'icrc') {
-        owner = getAddress('ic');
+        owner = icWallet?.address;
       } else if (token.type === 'evmc') {
-        owner = getAddress('eth');
+        owner = ethWallet?.address;
       }
 
       if (!(recipient && owner)) {
@@ -367,8 +366,10 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
 
       try {
         if (!from) {
+          let justWrapped: string | undefined;
+
           if (!token.wrapped) {
-            await bridge.deployWrappedToken({
+            justWrapped = await bridge.deployWrappedToken({
               id: token.id,
               name: token.name,
               symbol: token.symbol
@@ -381,6 +382,22 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
             owner,
             amount
           });
+
+          // Adding wrapped ERC20 token to eth based wallets
+          if (ethWallet?.watchAsset) {
+            const wrapped = tokens.find(
+              ({ id }) => id === (token.wrapped || justWrapped)
+            );
+
+            if (wrapped) {
+              await ethWallet.watchAsset({
+                address: wrapped.id,
+                symbol: wrapped.symbol,
+                image: wrapped.logo || '',
+                decimals: wrapped.decimals
+              });
+            }
+          }
 
           if (!token.wrapped) {
             await reactQueryClient.invalidateQueries({
@@ -397,9 +414,6 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
       } catch (err) {
         console.error('Error while bridging', err);
       }
-      // TODO: add to wallet and other tokens actions
-      // TODO: figure out 3E-11 on first bridge! ->
-      //       happens because tokens show wrong data initially as name decimals and etc
 
       // Immediately invalidate bridged token old balance
       await reactQueryClient.invalidateQueries({
@@ -408,7 +422,7 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
 
       setIsBridgingInProgress(false);
     },
-    [wallets, bridges, nativeEthBalance]
+    [ethWallet, icWallet, bridges, nativeEthBalance, tokens]
   );
 
   const ctx: TokensContext = useMemo(() => {
