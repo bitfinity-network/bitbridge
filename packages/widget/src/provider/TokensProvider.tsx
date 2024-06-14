@@ -18,7 +18,7 @@ import {
   IcWalletData
 } from './BridgeProvider.tsx';
 import { TokenListed, useTokenListsContext } from './TokensListsProvider.tsx';
-import { fromFloating } from '../utils';
+import { fromFloating, IS_DEV } from '../utils';
 import { reactQueryClient } from '../components/BridgeWidget';
 
 export type TokensContext = {
@@ -84,6 +84,23 @@ export type TokenBalance = {
   balance: bigint;
 };
 
+const queriesCaching = {
+  tokensPairs: {
+    staleTime: IS_DEV ? 0 : 60 * 1000,
+    gcTime: IS_DEV ? 0 : undefined
+  },
+  tokensUnlistedInfo: {
+    staleTime: IS_DEV ? 0 : 60 * 1000,
+    gcTime: IS_DEV ? 0 : undefined
+  },
+  tokensBalances: {
+    refetchOnWindowFocus: true,
+    refetchInterval: 5 * 1000,
+    staleTime: IS_DEV ? 0 : 1000,
+    gcTime: IS_DEV ? 0 : undefined
+  }
+};
+
 export const TokensProvider = ({ children }: { children: ReactNode }) => {
   const { wallets, bridges } = useBridgeContext();
   const { tokensListed } = useTokenListsContext();
@@ -105,8 +122,7 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
       queryKey: ['tokens', 'pairs', type],
       queryFn: () =>
         bridges.find((bridge) => bridge.type === type)?.bridge.getTokensPairs(),
-      staleTime: 0,
-      gcTime: 0
+      ...queriesCaching.tokensPairs
     }))
   });
 
@@ -170,8 +186,7 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
           fee: 0
         } satisfies TokenListed;
       },
-      staleTime: 0,
-      gcTime: 0
+      ...queriesCaching.tokensUnlistedInfo
     }))
   });
 
@@ -260,10 +275,8 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
           balance
         } as TokenBalance;
       },
-      refetchInterval: 5000,
       placeholder: { id: token.id, balance: 0n } as TokenBalance,
-      staleTime: 0,
-      gcTime: 0
+      ...queriesCaching.tokensBalances
     }))
   });
 

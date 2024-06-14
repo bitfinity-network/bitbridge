@@ -1,6 +1,7 @@
 import { createContext, ReactNode, useContext, useMemo } from 'react';
 import { useQueries } from '@tanstack/react-query';
 import z from 'zod';
+import { IS_DEV } from '../utils';
 
 export type TokensListsContext = {
   tokensListed: TokenListed[];
@@ -128,8 +129,8 @@ export const TokensListsProvider = ({
           queryKey: ['token-lists', url],
           queryFn: () =>
             type === 'ic' ? fetchIcTokensLists(url) : fetchEthTokensLists(url),
-          staleTime: 240,
-          gcTime: 2400
+          staleTime: IS_DEV ? 0 : 60 * 1000,
+          gcTime: IS_DEV ? 0 : undefined
         };
       })
   });
