@@ -10,6 +10,7 @@ import {
 } from 'react';
 import {
   BrdidgeNetworkUrl,
+  BridgeNetwork,
   BridgeType,
   BtcBridge,
   Connector,
@@ -91,11 +92,19 @@ const BRIDGES_INFO: Record<BridgeType, BridgeInfo> = {
   }
 };
 
+export type EthWalletWatchAsset = (options: {
+  address: string;
+  symbol: string;
+  decimals: number;
+  image: string;
+}) => Promise<void>;
+
 export type WalletConnected = {
   eth?: {
     wallet: ethers.Signer;
     address: string;
     provider: ethers.BrowserProvider;
+    watchAsset: EthWalletWatchAsset;
   };
   ic?: { wallet: BitfinityWallet; address: string };
   btc?: { wallet: boolean; address: string };
@@ -117,6 +126,7 @@ export interface EthWalletData extends BaseWalletData {
   type: 'eth';
   wallet?: ethers.Signer;
   provider?: ethers.BrowserProvider;
+  watchAsset?: EthWalletWatchAsset;
 }
 
 interface BtcWalletData extends BaseWalletData {
@@ -152,16 +162,23 @@ export type BridgeData = IcBridgeData | BtcBridgeData | RuneBridgeData;
 export type Bridge = BridgeData & BridgeInfo;
 
 type BridgeContext = {
+  network: string;
   wallets: Wallet[];
   bridges: Bridge[];
   isWalletConnectionPending: boolean;
   walletsOpen: boolean;
+  networksOpen: boolean;
   setWalletsOpen: (open: boolean) => void;
+  setNetworksOpen: (open: boolean) => void;
   switchNetwork: (networkName: string) => void;
+  bridgeNetworks: BridgeNetwork[];
 };
 
 const defaultCtx = {
-  bridgesReady: {}
+  bridgesReady: {},
+  wallets: [],
+  bridges: [],
+  bridgeNetworks: []
 } as unknown as BridgeContext;
 
 const BridgeContext = createContext<BridgeContext>(defaultCtx);
@@ -177,6 +194,20 @@ export type BridgeProviderProps = {
 };
 
 const { setStorageItems, getStorage } = createStore<Storage>('bitbridge');
+
+const ethWalletWatchAsset: EthWalletWatchAsset = async (options) => {
+  try {
+    return await window.ethereum.request({
+      method: 'wallet_watchAsset',
+      params: {
+        type: 'ERC20',
+        options
+      }
+    });
+  } catch (_) {
+    return false;
+  }
+};
 
 const useEthWalletConnection = ({
   onConnect,
@@ -305,6 +336,9 @@ export const BridgeProvider = ({
 
   const connector = useMemo(() => Connector.create(), []);
 
+  const [networksOpen, setNetworksOpen] = useState(false);
+  const [bridgeNetworks, setBridgeNetworks] = useState<BridgeNetwork[]>([]);
+
   const { ethWalletConnect, ethWalletDisconnect, ethPending } =
     useEthWalletConnection(
       useMemo(() => {
@@ -312,7 +346,12 @@ export const BridgeProvider = ({
           onConnect(wallet, provider, address) {
             setWalletsConnected((prev) => ({
               ...prev,
-              eth: { wallet, provider, address }
+              eth: {
+                wallet,
+                provider,
+                address,
+                watchAsset: ethWalletWatchAsset
+              }
             }));
             connector.connectEthWallet(wallet);
           },
@@ -389,6 +428,8 @@ export const BridgeProvider = ({
         connected,
         wallet: wallet?.wallet,
         provider: wallet && 'provider' in wallet ? wallet.provider : undefined,
+        watchAsset:
+          wallet && 'watchAsset' in wallet ? wallet.watchAsset : undefined,
         address,
         toggle,
         ...info
@@ -402,12 +443,10 @@ export const BridgeProvider = ({
     icWalletDisconnect
   ]);
 
-  const networks = connector.getNetworks();
-
   const bridges = useMemo(() => {
     const ready: Bridge[] = [];
 
-    if (!networks.some((n) => n.name === network)) {
+    if (!bridgeNetworks.some((n) => n.name === network)) {
       return ready;
     }
 
@@ -427,7 +466,7 @@ export const BridgeProvider = ({
     }
 
     return ready;
-  }, [connector, networks, walletsConnected, network]);
+  }, [connector, bridgeNetworks, walletsConnected, network]);
 
   const switchNetwork = useCallback((networkName: string) => {
     setNetwork(networkName);
@@ -445,6 +484,7 @@ export const BridgeProvider = ({
 
     (async () => {
       await connector.fetch(networkUrls);
+      setBridgeNetworks(connector.getNetworks());
       setIsFetched(true);
     })();
   }, [connector, isFetchedEffect, networkUrls]);
@@ -457,9 +497,12 @@ export const BridgeProvider = ({
       walletsConnected,
       wallets,
       walletsOpen,
+      networksOpen,
       isWalletConnectionPending,
+      bridgeNetworks,
       switchNetwork,
-      setWalletsOpen
+      setWalletsOpen,
+      setNetworksOpen
     };
   }, [
     bridges,
@@ -467,6 +510,8 @@ export const BridgeProvider = ({
     walletsConnected,
     wallets,
     walletsOpen,
+    networksOpen,
+    bridgeNetworks,
     switchNetwork,
     isWalletConnectionPending
   ]);
@@ -478,15 +523,3 @@ export const BridgeProvider = ({
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const useBridgeContext = () => useContext(BridgeContext);
-
-export const useWallets = () => {
-  const { wallets } = useBridgeContext();
-
-  return wallets;
-};
-
-export const useWalletsOpen = () => {
-  const wallets = useBridgeContext();
-
-  return [wallets.walletsOpen, wallets.setWalletsOpen] as const;
-};

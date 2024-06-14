@@ -15,8 +15,12 @@ export const WidgetForm = ({
 }: WidgetFormProps) => {
   const toast = useToast();
 
-  const { setWalletsOpen, bridges, isWalletConnectionPending } =
-    useBridgeContext();
+  const {
+    bridges,
+    isWalletConnectionPending,
+    setWalletsOpen,
+    setNetworksOpen
+  } = useBridgeContext();
   const {
     bridge: bridgeTo,
     isBridgingInProgress,
