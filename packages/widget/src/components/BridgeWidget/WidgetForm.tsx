@@ -116,6 +116,12 @@ export const WidgetForm = ({
     }
   }, [isPendingBridgeOrWalletOperation, setBridgingOrWalletOperation]);
 
+  console.log(
+    'strAmount',
+    Number(strAmount),
+    isWalletConnectionPending || !hasBridges || Number(strAmount) <= 0
+  );
+
   return (
     <Box>
       <form>
@@ -167,7 +173,7 @@ export const WidgetForm = ({
           <Button
             w="full"
             isLoading={isBridgingInProgress}
-            disabled={isWalletConnectionPending}
+            disabled={true}
             onClick={connectButton}
           >
             {connectButtonTitle}

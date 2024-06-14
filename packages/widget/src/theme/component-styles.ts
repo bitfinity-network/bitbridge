@@ -5,7 +5,16 @@ export const componentStyles: ThemeComponents = {
     baseStyle: {
       fontWeight: 'bold',
       textTransform: 'uppercase',
-      borderRadius: '12px'
+      borderRadius: '12px',
+      _disabled: {
+        pointerEvents: 'none',
+        cursor: 'not-allowed',
+        bg: `primary.alpha16`,
+        color: `text.disabled`,
+        _hover: {
+          bg: `primary.alpha16`
+        }
+      }
     },
     sizes: {
       xs: {
@@ -60,7 +69,8 @@ export const componentStyles: ThemeComponents = {
               bg: `${props.colorScheme}.hover`
             },
         _disabled: {
-          bg: `${props.colorScheme}.alpha16`
+          bg: `${props.colorScheme}.alpha16`,
+          cursor: 'not-allowed'
         }
       }),
       secondary: (props: StyleFunctionProps) => ({
@@ -91,14 +101,6 @@ export const componentStyles: ThemeComponents = {
               bg: `${props.colorScheme}.alpha12`
             },
         _disabled: {
-          bg: `${props.colorScheme}.alpha16`
-        }
-      }),
-      _disabled: (props: StyleFunctionProps) => ({
-        pointerEvents: 'none',
-        bg: `${props.colorScheme}.alpha16`,
-        color: `text.disabled`,
-        _hover: {
           bg: `${props.colorScheme}.alpha16`
         }
       })
