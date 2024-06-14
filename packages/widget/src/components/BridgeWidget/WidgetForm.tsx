@@ -116,12 +116,6 @@ export const WidgetForm = ({
     }
   }, [isPendingBridgeOrWalletOperation, setBridgingOrWalletOperation]);
 
-  console.log(
-    'strAmount',
-    Number(strAmount),
-    isWalletConnectionPending || !hasBridges || Number(strAmount) <= 0
-  );
-
   return (
     <Box>
       <form>
@@ -143,18 +137,18 @@ export const WidgetForm = ({
               height={hasBridges ? '70px' : 'initial'}
               fontSize={hasBridges ? '32px' : 'initial'}
             />
-            {hasBridges ? (
+            {token ? (
               <VStack gap="4px">
                 <TokenChip
-                  bridge={bridges[0]}
-                  target="from"
+                  token={token}
                   onClick={handleToggleTokenList}
+                  target="from"
                 />
                 <MdOutlineArrowDownward width="22px" height="22px" />
                 <TokenChip
-                  bridge={bridges[0]}
-                  target="destination"
+                  token={token}
                   onClick={handleToggleTokenList}
+                  target="destination"
                 />
               </VStack>
             ) : (
@@ -173,7 +167,7 @@ export const WidgetForm = ({
           <Button
             w="full"
             isLoading={isBridgingInProgress}
-            disabled={true}
+            disabled={isPendingBridgeOrWalletOperation || !hasBridges}
             onClick={connectButton}
           >
             {connectButtonTitle}

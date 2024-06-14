@@ -39,7 +39,7 @@ export type WalletInfo = {
   symbol: string;
 };
 
-const WALLETS_INFO: Record<WalletType, WalletInfo> = {
+export const WALLETS_INFO: Record<WalletType, WalletInfo> = {
   eth: {
     name: 'BITFINITY EVM',
     logo: BftIcon,
@@ -60,36 +60,20 @@ const WALLETS_INFO: Record<WalletType, WalletInfo> = {
 export type BridgeInfo = {
   name: string;
   logo: string;
-  fromName: string;
-  destinationName: string;
-  fromLogo: string;
-  destinationLogo: string;
 };
 
 const BRIDGES_INFO: Record<BridgeType, BridgeInfo> = {
   icrc_evm: {
     name: 'ICRC <-> EVM',
-    logo: BftIcon,
-    fromName: 'ICRC',
-    destinationName: 'EVM',
-    fromLogo: IcIcon,
-    destinationLogo: BftIcon
+    logo: BftIcon
   },
   btc_evm: {
     name: 'BITCOIN <-> EVM',
-    logo: BtcIcon,
-    fromName: 'BITCOIN',
-    destinationName: 'EVM',
-    fromLogo: BtcIcon,
-    destinationLogo: BftIcon
+    logo: BtcIcon
   },
   rune_evm: {
     name: 'RUNE <-> EVM',
-    logo: BtcIcon,
-    fromName: 'RUNE',
-    destinationName: 'EVM',
-    fromLogo: BtcIcon,
-    destinationLogo: BftIcon
+    logo: BtcIcon
   }
 };
 

@@ -1,14 +1,28 @@
 import { Box, HStack, Image, Text } from '@chakra-ui/react';
-import { Bridge } from '../../provider/BridgeProvider';
+import { Token } from '../../provider/TokensProvider';
+import { WALLETS_INFO } from '../../provider/BridgeProvider';
 
 type TokenChipProps = {
-  bridge: Bridge;
+  token: Token;
   onClick?: () => void;
   target?: 'from' | 'destination';
 };
-export const TokenChip = ({ bridge, onClick, target }: TokenChipProps) => {
-  const name = target === 'from' ? bridge.fromName : bridge.destinationName;
-  const logo = target === 'from' ? bridge.fromLogo : bridge.destinationLogo;
+export const TokenChip = ({ token, onClick, target }: TokenChipProps) => {
+  let name = token.name;
+  let logo = WALLETS_INFO[token.wallet].logo;
+
+  switch (token.type) {
+    case 'icrc':
+      name = target === 'from' ? token.name : `EVM`;
+      logo =
+        target === 'from' ? WALLETS_INFO['ic'].logo : WALLETS_INFO['eth'].logo;
+      break;
+    case 'evmc':
+      name = target === 'from' ? token.name : `IC`;
+      logo =
+        target === 'from' ? WALLETS_INFO['eth'].logo : WALLETS_INFO['ic'].logo;
+      break;
+  }
 
   return (
     <HStack
