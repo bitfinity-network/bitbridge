@@ -7,8 +7,7 @@ import {
   Image,
   Slide,
   Text,
-  VStack,
-  useColorModeValue
+  VStack
 } from '@chakra-ui/react';
 import { IoClose } from 'react-icons/io5';
 
@@ -53,11 +52,6 @@ const WalletItem = ({ wallet }: WalletItemProps) => {
 };
 
 export const WidgetWallets = () => {
-  const closeIconColor = useColorModeValue('light.text.main', 'dark.text.main');
-  const pannelBgColor = useColorModeValue(
-    'light.secondary.main',
-    'dark.secondary.main'
-  );
   const { wallets, walletsOpen, setWalletsOpen } = useBridgeContext();
 
   return (
@@ -80,7 +74,7 @@ export const WidgetWallets = () => {
           gap="16px"
           padding={4}
           maxHeight={500}
-          bg={pannelBgColor}
+          bg="secondary.main"
           boxShadow={
             walletsOpen ? '0 -16px 20px 0px rgba(0, 0, 0, 0.24)' : 'none'
           }
@@ -91,7 +85,7 @@ export const WidgetWallets = () => {
               Manage Wallets
             </Text>
             <Icon
-              color={closeIconColor}
+              color="text.main"
               h="28px"
               w="28px"
               onClick={() => setWalletsOpen(false)}

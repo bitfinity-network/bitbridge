@@ -60,20 +60,36 @@ const WALLETS_INFO: Record<WalletType, WalletInfo> = {
 export type BridgeInfo = {
   name: string;
   logo: string;
+  fromName: string;
+  destinationName: string;
+  fromLogo: string;
+  destinationLogo: string;
 };
 
 const BRIDGES_INFO: Record<BridgeType, BridgeInfo> = {
   icrc_evm: {
     name: 'ICRC <-> EVM',
-    logo: BftIcon
+    logo: BftIcon,
+    fromName: 'ICRC',
+    destinationName: 'EVM',
+    fromLogo: IcIcon,
+    destinationLogo: BftIcon
   },
   btc_evm: {
     name: 'BITCOIN <-> EVM',
-    logo: BtcIcon
+    logo: BtcIcon,
+    fromName: 'BITCOIN',
+    destinationName: 'EVM',
+    fromLogo: BtcIcon,
+    destinationLogo: BftIcon
   },
   rune_evm: {
     name: 'RUNE <-> EVM',
-    logo: BtcIcon
+    logo: BtcIcon,
+    fromName: 'RUNE',
+    destinationName: 'EVM',
+    fromLogo: BtcIcon,
+    destinationLogo: BftIcon
   }
 };
 
