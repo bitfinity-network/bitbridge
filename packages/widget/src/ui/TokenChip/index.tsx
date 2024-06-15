@@ -12,8 +12,7 @@ export const TokenToChip = ({ token, onClick }: TokenShortChipProps) => {
 
   switch (token.type) {
     case 'icrc':
-      logo =
-         WALLETS_INFO['eth'].logo;
+      logo = WALLETS_INFO['eth'].logo;
       break;
     case 'evmc':
       logo = WALLETS_INFO['ic'].logo;
@@ -33,7 +32,7 @@ export const TokenToChip = ({ token, onClick }: TokenShortChipProps) => {
       onClick={onClick}
       cursor="pointer"
     >
-      <Image src={logo} width="24px" height="24px" />
+      <Image src={logo} width="24px" height="24px" flexShrink="0" />
     </HStack>
   );
 };
@@ -63,7 +62,6 @@ export const TokenFromChip = ({ token, onClick, target }: TokenChipProps) => {
 
   return (
     <HStack
-      minW="70px"
       gap="8px"
       alignItems="center"
       justifyContent="space-between"
@@ -75,10 +73,10 @@ export const TokenFromChip = ({ token, onClick, target }: TokenChipProps) => {
       onClick={onClick}
       cursor="pointer"
     >
-      <Image src={logo} width="24px" height="24px" />
+      <Image src={logo} width="24px" height="24px" flexShrink="0" />
       <Box paddingRight="8px">
         <Text textStyle="body2" fontWeight="bold" color="secondary.white">
-          {token.type.toUpperCase()} {name}
+          {name}
         </Text>
       </Box>
     </HStack>

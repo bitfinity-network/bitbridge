@@ -69,6 +69,7 @@ const networks = {
       bridges: [
         {
           type: 'icrc_evm',
+          ethCain: 355113,
           icHost: IC_HOST,
           bftAddress: BFT_ETH_ADDRESS,
           iCRC2MinterCanisterId: ICRC2_MINTER_CANISTER_ID,
@@ -81,6 +82,7 @@ const networks = {
       bridges: [
         {
           type: 'icrc_evm',
+          ethCain: 355113,
           icHost: IC_HOST,
           bftAddress: BFT_ETH_ADDRESS,
           iCRC2MinterCanisterId: ICRC2_MINTER_CANISTER_ID,

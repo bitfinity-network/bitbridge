@@ -45,7 +45,7 @@ export const WidgetNetworks = () => {
     networksOpen,
     setNetworksOpen,
     switchNetwork,
-    network: networkName
+    networkName
   } = useBridgeContext();
 
   return (

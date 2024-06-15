@@ -90,6 +90,7 @@ export type WalletConnected = {
     address: string;
     provider: ethers.BrowserProvider;
     watchAsset: EthWalletWatchAsset;
+    chain: number;
   };
   ic?: { wallet: BitfinityWallet; address: string };
   btc?: { wallet: boolean; address: string };
@@ -147,7 +148,7 @@ export type BridgeData = IcBridgeData | BtcBridgeData | RuneBridgeData;
 export type Bridge = BridgeData & BridgeInfo;
 
 type BridgeContext = {
-  network: string;
+  networkName: string;
   wallets: Wallet[];
   bridges: Bridge[];
   isWalletConnectionPending: boolean;
@@ -196,13 +197,16 @@ const ethWalletWatchAsset: EthWalletWatchAsset = async (options) => {
 
 const useEthWalletConnection = ({
   onConnect,
-  onDisconnect
+  onDisconnect,
+  onChain
 }: {
   onConnect: (
     wallet: ethers.Signer,
     provider: ethers.BrowserProvider,
-    address: string
+    address: string,
+    chain: number
   ) => void;
+  onChain: (chain: number) => void;
   onDisconnect: () => void;
 }) => {
   const ethAccount = useAccount();
@@ -233,10 +237,24 @@ const useEthWalletConnection = ({
         const provider = new ethers.BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
 
-        onConnect(signer, provider, ethAccount.address);
+        onConnect(signer, provider, ethAccount.address, ethAccount.chainId);
       })();
     }
-  }, [ethAccountStatus, ethAccount.address, onConnect, onDisconnect]);
+  }, [
+    ethAccountStatus,
+    ethAccount.address,
+    ethAccount.chainId,
+    onConnect,
+    onDisconnect
+  ]);
+
+  useEffect(() => {
+    if (ethAccountStatus === 'connected') {
+      if (ethAccount.chainId) {
+        onChain(ethAccount.chainId);
+      }
+    }
+  }, [ethAccountStatus, ethAccount.chainId, onChain]);
 
   return {
     ethWalletConnect,
@@ -317,7 +335,7 @@ export const BridgeProvider = ({
   const isFetchedEffect = useRef(false);
   const [isFetched, setIsFetched] = useState(false);
 
-  const [network, setNetwork] = useState(netDefault);
+  const [networkName, setNetworkName] = useState(netDefault);
 
   const connector = useMemo(() => Connector.create(), []);
 
@@ -328,14 +346,15 @@ export const BridgeProvider = ({
     useEthWalletConnection(
       useMemo(() => {
         return {
-          onConnect(wallet, provider, address) {
+          onConnect(wallet, provider, address, chain) {
             setWalletsConnected((prev) => ({
               ...prev,
               eth: {
                 wallet,
                 provider,
                 address,
-                watchAsset: ethWalletWatchAsset
+                watchAsset: ethWalletWatchAsset,
+                chain
               }
             }));
             connector.connectEthWallet(wallet);
@@ -343,6 +362,18 @@ export const BridgeProvider = ({
           onDisconnect() {
             setWalletsConnected((prev) => ({ ...prev, eth: undefined }));
             connector.disconnectEthWallet();
+          },
+          onChain(chain) {
+            setWalletsConnected((prev) => {
+              if (!prev.eth) {
+                return prev;
+              }
+              if (prev.eth.chain === chain) {
+                return prev;
+              }
+
+              return { ...prev, eth: { ...prev.eth, chain } };
+            });
           }
         };
       }, [connector])
@@ -429,32 +460,43 @@ export const BridgeProvider = ({
   ]);
 
   const bridges = useMemo(() => {
+    const network = bridgeNetworks.find((n) => n.name === networkName);
+
     const ready: Bridge[] = [];
 
-    if (!bridgeNetworks.some((n) => n.name === network)) {
+    if (!network) {
       return ready;
     }
 
     if (walletsConnected.ic && walletsConnected.eth) {
-      const bridge = connector.getBridge(network, 'icrc_evm');
-      ready.push({ type: 'icrc_evm', bridge, ...BRIDGES_INFO.icrc_evm });
+      const networkChain = network.bridges.find(
+        (bridge) => bridge.type === 'icrc_evm'
+      );
+
+      if (networkChain?.type === 'icrc_evm') {
+        const walletChain = walletsConnected.eth.chain;
+        if (networkChain.ethCain === walletChain) {
+          const bridge = connector.getBridge(networkName, 'icrc_evm');
+          ready.push({ type: 'icrc_evm', bridge, ...BRIDGES_INFO.icrc_evm });
+        }
+      }
     }
 
     if (walletsConnected.btc && walletsConnected.eth) {
-      const bridge = connector.getBridge(network, 'btc_evm');
+      const bridge = connector.getBridge(networkName, 'btc_evm');
       ready.push({ type: 'btc_evm', bridge, ...BRIDGES_INFO.btc_evm });
     }
 
     if (walletsConnected.btc && walletsConnected.eth) {
-      const bridge = connector.getBridge(network, 'rune_evm');
+      const bridge = connector.getBridge(networkName, 'rune_evm');
       ready.push({ type: 'rune_evm', bridge, ...BRIDGES_INFO.rune_evm });
     }
 
     return ready;
-  }, [connector, bridgeNetworks, walletsConnected, network]);
+  }, [connector, bridgeNetworks, walletsConnected, networkName]);
 
   const switchNetwork = useCallback((networkName: string) => {
-    setNetwork(networkName);
+    setNetworkName(networkName);
   }, []);
 
   const isWalletConnectionPending = icPending || ethPending;
@@ -478,7 +520,7 @@ export const BridgeProvider = ({
     return {
       ...defaultCtx,
       bridges,
-      network,
+      networkName,
       walletsConnected,
       wallets,
       walletsOpen,
@@ -491,7 +533,7 @@ export const BridgeProvider = ({
     };
   }, [
     bridges,
-    network,
+    networkName,
     walletsConnected,
     wallets,
     walletsOpen,

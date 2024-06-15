@@ -56,7 +56,7 @@ const nativeCurrency = {
 export const BITFINITY_CHAINS: [Chain] | [Chain, Chain] = IS_DEV
   ? [
       {
-        id: 355110,
+        id: 355113,
         name: 'Bitfinity Devnet',
         nativeCurrency,
         rpcUrls: {
@@ -85,3 +85,5 @@ export const BITFINITY_CHAINS: [Chain] | [Chain, Chain] = IS_DEV
         }
       } as const satisfies Chain
     ];
+
+console.log(BITFINITY_CHAINS.map(c => c.id));
