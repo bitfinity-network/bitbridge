@@ -60,7 +60,7 @@ export const BridgeWidget = ({
   tokensListed = [],
   networkUrls = NETWORK_URLS,
   listsUrls = LIST_URLS,
-  showWidgetModal = true
+  showWidgetModal = false
 }: BridgeWidgetProps) => {
   const config = getDefaultConfig({
     appName: 'bridge-widget',

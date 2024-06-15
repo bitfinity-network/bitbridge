@@ -1,17 +1,20 @@
 import { Button, Flex, HStack, Icon, Text, VStack } from '@chakra-ui/react';
+import { IoWallet, IoSettings, IoClose } from 'react-icons/io5';
+
 import { WidgetForm } from './WidgetForm';
 import { WidgetWallets } from './WidgetWallets';
 import { Fragment, useState } from 'react';
 import { CustomModal } from '../../ui';
-import { IoWallet, IoSettings, IoClose } from 'react-icons/io5';
 import { useBridgeContext } from '../../provider/BridgeProvider';
 import { WidgetNetworks } from './WidgetNetworks';
 
-type WidgetProps = {
+export type WidgetProps = {
   showWidgetModal: boolean;
 };
+
 export function Widget({ showWidgetModal }: WidgetProps) {
   const [isModalOpen, setModalOpen] = useState(false);
+
   const { walletsOpen, setWalletsOpen } = useBridgeContext();
   const [isBridgingOrWalletOperation, setBridgingOrWalletOperation] =
     useState(false);
