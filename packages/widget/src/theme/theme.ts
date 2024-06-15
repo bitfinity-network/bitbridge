@@ -4,16 +4,27 @@ import { componentStyles } from './component-styles';
 import { globalStyles } from './global-styles';
 import { fontConfig, fontStyles } from './font-config';
 
+export const ThemeColors = [
+  'primary',
+  'secondary',
+  'success',
+  'mainBg',
+  'modalBg',
+  'primaryText',
+  'secondaryText'
+] as const;
+
+export type ThemeColor = Record<
+  (typeof ThemeColors)[number],
+  string | undefined
+>;
+
+export type ThemeColorMode = 'main' | '_dark' | '_light';
+
+export type ThemeColors = Record<ThemeColorMode, ThemeColor>;
+
 export type CustomThemeType = {
-  colors?: {
-    primary?: string;
-    secondary?: string;
-    success?: string;
-    mainBg?: string;
-    modalBg?: string;
-    primaryText?: string;
-    secondaryText?: string;
-  };
+  colors?: ThemeColors;
   config?: {
     colorMode?: 'light' | 'dark';
     useSystemColorMode?: boolean;
@@ -70,34 +81,31 @@ const darkenColor = (color: string, amount: number): string => {
   );
 };
 
+const assignColors = (
+  colors: ThemeColors,
+  theme: typeof defaultThemeObject.semanticTokens.colors
+) => {
+  Object.entries(colors).forEach((p) => {
+    const [mode, colors] = p as [ThemeColorMode, ThemeColor];
+
+    Object.entries(colors).forEach((p2) => {
+      const [color, value] = p2 as [(typeof ThemeColors)[number], string];
+
+      // TODO: assign colors
+    });
+  });
+};
+
 const consolidateCustomThemeWithDefault = (customTheme?: CustomThemeType) => {
   if (!customTheme) return defaultThemeObject;
 
   const { colors, config } = customTheme;
 
-  const defaultThemColors = defaultThemeObject.semanticTokens.colors;
-  const isDarkMode = config?.colorMode === 'dark';
-  const colorToUpdate = isDarkMode ? '_dark' : 'default';
+  const themeColors = defaultThemeObject.semanticTokens.colors;
 
-  defaultThemColors.primary.main[colorToUpdate] =
-    colors?.primary ?? defaultThemColors.primary.main[colorToUpdate];
-  defaultThemColors.primary.hover[colorToUpdate] = darkenColor(
-    colors?.primary ?? defaultThemColors.primary.main[colorToUpdate],
-    10
-  );
-  defaultThemColors.secondary.main[colorToUpdate] =
-    colors?.secondary ?? defaultThemColors.secondary.main[colorToUpdate];
-  defaultThemColors.success[500][colorToUpdate] =
-    colors?.success ?? defaultThemColors.success[500][colorToUpdate];
-  defaultThemColors.bg.main[colorToUpdate] =
-    colors?.mainBg ?? defaultThemColors.bg.main[colorToUpdate];
-  defaultThemColors.bg.modal[colorToUpdate] =
-    colors?.modalBg ?? defaultThemColors.bg.modal[colorToUpdate];
-  defaultThemColors.text.primary[colorToUpdate] =
-    colors?.primaryText ?? defaultThemColors.text.primary[colorToUpdate];
-  defaultThemColors.text.secondary[colorToUpdate] =
-    colors?.secondaryText ?? defaultThemColors.text.secondary[colorToUpdate];
-
+  if (colors) {
+    assignColors(colors, themeColors);
+  }
   const mergedConfig = config
     ? {
         ...defaultThemeObject.config,
@@ -112,7 +120,7 @@ const consolidateCustomThemeWithDefault = (customTheme?: CustomThemeType) => {
   return {
     ...defaultThemeObject,
     semanticTokens: {
-      colors: defaultThemColors
+      colors: themeColors
     },
     config: mergedConfig
   };

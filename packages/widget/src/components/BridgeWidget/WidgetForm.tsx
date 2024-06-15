@@ -1,12 +1,13 @@
 import { Dispatch, SetStateAction, useEffect, useState } from 'react';
-import { Box, Button, HStack, Input, VStack, useToast } from '@chakra-ui/react';
+import { Box, Button, HStack, Input, useToast } from '@chakra-ui/react';
+import { MdOutlineArrowRight } from 'react-icons/md';
+
 import { EnhancedFormControl } from '../../ui';
 import { TokenListModal } from '../TokenListModal';
 import { useBridgeContext } from '../../provider/BridgeProvider.tsx';
 import { useTokenContext } from '../../provider/TokensProvider.tsx';
 import { fromFloating } from '../../utils';
-import { TokenChip } from '../../ui/TokenChip/index.tsx';
-import { MdOutlineArrowDownward } from 'react-icons/md';
+import { TokenToChip, TokenFromChip } from '../../ui/TokenChip';
 
 type WidgetFormProps = {
   setBridgingOrWalletOperation?: Dispatch<SetStateAction<boolean>>;
@@ -138,19 +139,15 @@ export const WidgetForm = ({
               fontSize={hasBridges ? '32px' : 'initial'}
             />
             {token ? (
-              <VStack gap="4px">
-                <TokenChip
+              <HStack gap="4px" flexShrink="0">
+                <TokenFromChip
                   token={token}
                   onClick={handleToggleTokenList}
                   target="from"
                 />
-                <MdOutlineArrowDownward width="22px" height="22px" />
-                <TokenChip
-                  token={token}
-                  onClick={handleToggleTokenList}
-                  target="destination"
-                />
-              </VStack>
+                <MdOutlineArrowRight width="30px" height="30px" />
+                <TokenToChip token={token} onClick={handleToggleTokenList} />
+              </HStack>
             ) : (
               <Button
                 variant="outline"
