@@ -59,8 +59,9 @@ export function TokenListModal({
                     <Box
                       borderWidth={1}
                       borderColor="secondary.alpha12"
+                      borderRadius="8px"
                       cursor="pointer"
-                      py={2}
+                      py={3}
                       px={3}
                       key={token.id}
                       onClick={() => {

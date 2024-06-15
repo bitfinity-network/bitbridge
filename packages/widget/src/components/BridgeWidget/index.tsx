@@ -50,6 +50,7 @@ export interface BridgeWidgetProps {
   networkUrls?: BrdidgeNetworkUrl[];
   tokensListed?: TokenListed[];
   listsUrls?: ListsUrl[];
+  showWidgetModal?: boolean;
 }
 
 export const BridgeWidget = ({
@@ -58,7 +59,8 @@ export const BridgeWidget = ({
   network = 'devnet',
   tokensListed = [],
   networkUrls = NETWORK_URLS,
-  listsUrls = LIST_URLS
+  listsUrls = LIST_URLS,
+  showWidgetModal = false
 }: BridgeWidgetProps) => {
   const config = getDefaultConfig({
     appName: 'bridge-widget',
@@ -83,7 +85,7 @@ export const BridgeWidget = ({
             >
               <BridgeProvider network={network} networkUrls={networkUrls}>
                 <TokensProvider>
-                  <Widget />
+                  <Widget showWidgetModal={showWidgetModal} />
                 </TokensProvider>
               </BridgeProvider>
             </TokensListsProvider>

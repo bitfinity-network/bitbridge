@@ -1,4 +1,4 @@
-import { BottomSheet } from "react-spring-bottom-sheet";
+import { BottomSheet } from 'react-spring-bottom-sheet';
 import {
   Box,
   HStack,
@@ -10,21 +10,20 @@ import {
   ModalOverlay,
   ModalProps,
   Text,
-  useBreakpointValue,
-  useColorModeValue,
-} from "@chakra-ui/react";
-import { ReactNode } from "react";
-import "react-spring-bottom-sheet/dist/style.css";
-import "./style.css";
-import { IoClose } from "react-icons/io5";
-import { IconType } from "react-icons/lib";
+  useBreakpointValue
+} from '@chakra-ui/react';
+import { ReactNode } from 'react';
+import 'react-spring-bottom-sheet/dist/style.css';
+import './style.css';
+import { IoClose } from 'react-icons/io5';
+import { IconType } from 'react-icons/lib';
 
 type ModalHeaderProps = {
   title?: string;
   onClose: () => void;
   disableClose?: boolean;
-  iconPrefix?: IconType;
-  onIconPrefixClick?: () => void;
+  iconPrefix?: IconType[];
+  onIconPrefixClick?: (() => void)[];
 };
 type CustomModalProps = {
   isOpen: boolean;
@@ -32,7 +31,7 @@ type CustomModalProps = {
   modalContentProps?: ModalContentProps;
   modalHeaderProps?: Pick<
     ModalHeaderProps,
-    "title" | "disableClose" | "iconPrefix" | "onIconPrefixClick"
+    'title' | 'disableClose' | 'iconPrefix' | 'onIconPrefixClick'
   >;
 };
 
@@ -41,40 +40,36 @@ const ModalHeader = ({
   onClose,
   disableClose,
   iconPrefix,
-  onIconPrefixClick,
+  onIconPrefixClick
 }: ModalHeaderProps) => {
-  const iconPrefixColor = useColorModeValue(
-    "light.primary.main",
-    "dark.primary.main"
-  );
-  const closeIconColor = useColorModeValue(
-    disableClose ? "light.text.disabled" : "light.text.main",
-    disableClose ? "dark.text.disabled" : "dark.text.main"
-  );
-
   if (title) {
     return (
       <HStack justifyContent="space-between">
-        {iconPrefix && (
-          <Icon
-            color={iconPrefixColor}
-            h="28px"
-            w="28px"
-            onClick={onIconPrefixClick}
-            cursor="pointer"
-            size="48px"
-            as={iconPrefix}
-          />
+        {iconPrefix?.length && (
+          <HStack p={2} bg="secondary.alpha4" borderRadius="16px" gap="16px">
+            {iconPrefix.map((IconItem, index) => (
+              <Icon
+                key={index}
+                color="primary.main"
+                height="24px"
+                width="24px"
+                onClick={onIconPrefixClick?.[index]}
+                cursor="pointer"
+                size="48px"
+                as={IconItem}
+              />
+            ))}
+          </HStack>
         )}
         <Text color="brand.100" fontWeight={600} fontSize="20px">
           {title}
         </Text>
         <Icon
-          color={closeIconColor}
+          color="text.disabled"
           h="28px"
           w="28px"
           onClick={!disableClose ? onClose : undefined}
-          cursor={disableClose ? "default" : "pointer"}
+          cursor={disableClose ? 'default' : 'pointer'}
           size="48px"
           as={IoClose}
         />
@@ -92,18 +87,17 @@ const CustomModal = ({
   modalHeaderProps,
   ...rest
 }: CustomModalProps & ModalProps) => {
-  const breakpoint = useBreakpointValue({ base: "base", md: "md", lg: "lg" });
-  const modalBgColor = useColorModeValue("light.bg.modal", "dark.bg.modal");
+  const breakpoint = useBreakpointValue({ base: 'base', md: 'md', lg: 'lg' });
 
   const { title, disableClose, iconPrefix, onIconPrefixClick } =
     modalHeaderProps || {};
 
-  if (breakpoint === "base") {
+  if (breakpoint === 'base') {
     return (
       <BottomSheet
         open={isOpen}
         onDismiss={onClose}
-        style={{ background: "none" }}
+        style={{ background: 'none' }}
       >
         <Box bg="bg.300" p={6}>
           {title ? (
@@ -124,9 +118,9 @@ const CustomModal = ({
       <ModalContent
         boxShadow="0 20px 40px 0 rgba(0, 0, 0, 0.24)"
         p={4}
-        bg={modalBgColor}
+        bg="bg.modal"
         backdropFilter="blur(40px)"
-        borderRadius={0}
+        borderRadius="8px"
         {...modalContentProps}
       >
         {title ? (

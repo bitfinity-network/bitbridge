@@ -39,7 +39,7 @@ export type WalletInfo = {
   symbol: string;
 };
 
-const WALLETS_INFO: Record<WalletType, WalletInfo> = {
+export const WALLETS_INFO: Record<WalletType, WalletInfo> = {
   eth: {
     name: 'BITFINITY EVM',
     logo: BftIcon,
