@@ -187,7 +187,7 @@ const ethWalletWatchAsset: EthWalletWatchAsset = async (options) => {
   }
 
   try {
-    const result = await window.ethereum.request({
+    await window.ethereum.request({
       method: 'wallet_watchAsset',
       params: {
         type: 'ERC20',
@@ -197,10 +197,8 @@ const ethWalletWatchAsset: EthWalletWatchAsset = async (options) => {
 
     addedAssets.push(options.address);
     setStorageItems({ addedAssets });
-
-    return result;
   } catch (_) {
-    return false;
+    /* empty */
   }
 };
 
