@@ -22,3 +22,11 @@ export const createStore = <T>(key: string) => {
     getStorage
   };
 };
+
+type Storage = {
+  icConnected?: boolean;
+  addedAssets: string[];
+};
+
+export const { setStorageItems, getStorage } =
+  createStore<Storage>('bitbridge');

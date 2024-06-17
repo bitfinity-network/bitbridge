@@ -22,7 +22,11 @@ import { useAccount, useDisconnect } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { BitfinityWallet } from '@bitfinity-network/bitfinitywallet';
 
-import { BITFINITY_INSTALLATION_URL, createStore } from '../utils';
+import {
+  BITFINITY_INSTALLATION_URL,
+  getStorage,
+  setStorageItems
+} from '../utils';
 import BftIcon from '../assets/icons/bitfinity.svg';
 import BtcIcon from '../assets/icons/bitcoin.svg';
 import IcIcon from '../assets/icons/ic.svg';
@@ -169,27 +173,32 @@ const defaultCtx = {
 
 const BridgeContext = createContext<BridgeContext>(defaultCtx);
 
-type Storage = {
-  icConnected?: boolean;
-};
-
 export type BridgeProviderProps = {
   network: string;
   networkUrls: BrdidgeNetworkUrl[];
   children: ReactNode;
 };
 
-const { setStorageItems, getStorage } = createStore<Storage>('bitbridge');
-
 const ethWalletWatchAsset: EthWalletWatchAsset = async (options) => {
+  const { addedAssets = [] } = getStorage();
+
+  if (addedAssets.some((address) => address === options.address)) {
+    return;
+  }
+
   try {
-    return await window.ethereum.request({
+    const result = await window.ethereum.request({
       method: 'wallet_watchAsset',
       params: {
         type: 'ERC20',
         options
       }
     });
+
+    addedAssets.push(options.address);
+    setStorageItems({ addedAssets });
+
+    return result;
   } catch (_) {
     return false;
   }

@@ -7,7 +7,10 @@ import { ListsUrl } from '../provider/TokensListsProvider.tsx';
 export const BITFINITY_INSTALLATION_URL =
   'https://chrome.google.com/webstore/detail/bitfinity-wallet/jnldfbidonfeldmalbflbmlebbipcnle?hl=kk';
 
-export const IS_DEV = z.coerce.boolean().default(false).parse(process.env.IS_DEV);
+export const IS_DEV = z.coerce
+  .boolean()
+  .default(false)
+  .parse(process.env.IS_DEV);
 
 const NETWORK_URLS_BASE = IS_DEV
   ? ''
@@ -85,5 +88,3 @@ export const BITFINITY_CHAINS: [Chain] | [Chain, Chain] = IS_DEV
         }
       } as const satisfies Chain
     ];
-
-console.log(BITFINITY_CHAINS.map(c => c.id));
