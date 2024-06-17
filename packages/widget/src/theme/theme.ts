@@ -1,58 +1,56 @@
-import { extendTheme } from "@chakra-ui/react";
-import { ThemeColorsType, themeColors } from "./theme-colors";
-import { componentStyles } from "./component-styles";
-import { globalStyles } from "./global-styles";
-import { fontConfig, fontStyles } from "./font-config";
+import { extendTheme } from '@chakra-ui/react';
+import { ThemeColorsType, themeColors } from './theme-colors';
+import { componentStyles } from './component-styles';
+import { globalStyles } from './global-styles';
+import { fontConfig, fontStyles } from './font-config';
 
-import { defineStyleConfig } from '@chakra-ui/react'
+export const ThemeColors = [
+  'primary',
+  'secondary',
+  'success',
+  'mainBg',
+  'modalBg',
+  'primaryText',
+  'secondaryText'
+] as const;
 
-defineStyleConfig({
-  variants: {
+export type ThemeColor = Record<
+  (typeof ThemeColors)[number],
+  string | undefined
+>;
 
-  }
-})
+export type ThemeColorMode = 'main' | '_dark' | '_light';
+
+export type ThemeColors = Record<ThemeColorMode, ThemeColor>;
 
 export type CustomThemeType = {
-  colors?: {
-    primary?: string;
-    secondary?: string;
-    success?: string;
-    mainBg?: string;
-    modalBg?: string;
-    primaryText?: string;
-    secondaryText?: string;
-  };
+  colors?: ThemeColors;
   config?: {
     colorMode?: 'light' | 'dark';
     useSystemColorMode?: boolean;
   };
 };
 
-// TODO: use Chakra Semantic Tokens
-//       https://github.com/chakra-ui/chakra-ui/discussions/2169
-//       https://v2.chakra-ui.com/docs/styled-system/semantic-tokens
-//              !!! avoid usage of useColorMode hook !!!
-
 const defaultThemeObject = {
   styles: {
-    global: globalStyles,
+    global: globalStyles
   },
-  colors: themeColors as ThemeColorsType,
+  semanticTokens: {
+    colors: themeColors as ThemeColorsType
+  },
   fonts: fontConfig,
   textStyles: fontStyles,
   components: componentStyles,
   config: {
-    initialColorMode: "light", // TODO: rm when Chakra Semantic Tokens
-    useSystemColorMode: false, // TODO: switch to true when update to Chakra Semantic Tokens
-    cssVarPrefix: "bitbridge",
-  },
+    initialColorMode: 'light',
+    useSystemColorMode: true,
+    cssVarPrefix: 'bitbridge'
+  }
 };
 
 export type ThemeType = typeof defaultThemeObject;
 
 export const DefaultTheme = extendTheme(defaultThemeObject);
-
-type ThemeModeType = "light" | "dark";
 
 /**
  * Darken a color by a certain amount
@@ -61,7 +59,7 @@ type ThemeModeType = "light" | "dark";
  * @returns The darkened color
  */
 const darkenColor = (color: string, amount: number): string => {
-  const usePound = color[0] === "#";
+  const usePound = color[0] === '#';
   const num = parseInt(color.slice(1), 16);
 
   let r = (num >> 16) - amount;
@@ -73,57 +71,41 @@ const darkenColor = (color: string, amount: number): string => {
   b = b < 0 ? 0 : b;
 
   return (
-    (usePound ? "#" : "") +
-    (r < 16 ? "0" : "") +
+    (usePound ? '#' : '') +
+    (r < 16 ? '0' : '') +
     r.toString(16) +
-    (g < 16 ? "0" : "") +
+    (g < 16 ? '0' : '') +
     g.toString(16) +
-    (b < 16 ? "0" : "") +
+    (b < 16 ? '0' : '') +
     b.toString(16)
   );
+};
+
+const assignColors = (
+  colors: ThemeColors,
+  theme: typeof defaultThemeObject.semanticTokens.colors
+) => {
+  Object.entries(colors).forEach((p) => {
+    const [mode, colors] = p as [ThemeColorMode, ThemeColor];
+
+    Object.entries(colors).forEach((p2) => {
+      const [color, value] = p2 as [(typeof ThemeColors)[number], string];
+
+      // TODO: assign colors
+    });
+  });
 };
 
 const consolidateCustomThemeWithDefault = (customTheme?: CustomThemeType) => {
   if (!customTheme) return defaultThemeObject;
 
   const { colors, config } = customTheme;
-  const themeMode =
-    config?.colorMode ?? defaultThemeObject.config.initialColorMode;
 
-  const defaultThemColors =
-    defaultThemeObject.colors[themeMode as ThemeModeType];
+  const themeColors = defaultThemeObject.semanticTokens.colors;
 
-  const mergedColors = colors
-    ? {
-        ...defaultThemeObject.colors,
-        [themeMode]: {
-          ...defaultThemColors,
-          primary: {
-            ...defaultThemColors.primary,
-            main: colors.primary ?? defaultThemColors.primary.main,
-            hover: colors.primary
-              ? darkenColor(colors.primary, 10)
-              : defaultThemColors.primary.hover,
-          },
-          secondary: {
-            ...defaultThemColors.secondary,
-            main: colors.secondary ?? defaultThemColors.secondary.main,
-          },
-          bg: {
-            ...defaultThemColors.bg,
-            main: colors.mainBg ?? defaultThemColors.bg.main,
-            modal: colors.modalBg ?? defaultThemColors.bg.modal,
-          },
-          text: {
-            ...defaultThemColors.text,
-            primary: colors.primaryText ?? defaultThemColors.text.primary,
-            secondary: colors.secondaryText ?? defaultThemColors.text.secondary,
-          },
-          success: colors.success ?? defaultThemColors.success,
-        },
-      }
-    : defaultThemeObject.colors;
-
+  if (colors) {
+    assignColors(colors, themeColors);
+  }
   const mergedConfig = config
     ? {
         ...defaultThemeObject.config,
@@ -131,14 +113,16 @@ const consolidateCustomThemeWithDefault = (customTheme?: CustomThemeType) => {
           config.colorMode ?? defaultThemeObject.config.initialColorMode,
         useSystemColorMode:
           config.useSystemColorMode ??
-          defaultThemeObject.config.useSystemColorMode,
+          defaultThemeObject.config.useSystemColorMode
       }
     : defaultThemeObject.config;
 
   return {
     ...defaultThemeObject,
-    colors: mergedColors,
-    config: mergedConfig,
+    semanticTokens: {
+      colors: themeColors
+    },
+    config: mergedConfig
   };
 };
 

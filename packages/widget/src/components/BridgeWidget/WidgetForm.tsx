@@ -1,17 +1,23 @@
-import { useState } from 'react';
-import { Box, Button, FormLabel, Input, useToast } from '@chakra-ui/react';
+import { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import { Box, Button, HStack, Input, useToast } from '@chakra-ui/react';
+import { MdOutlineArrowRight } from 'react-icons/md';
 
-import { LabelValuePair, EnhancedFormControl } from '../../ui';
+import { EnhancedFormControl } from '../../ui';
 import { TokenListModal } from '../TokenListModal';
 import { useBridgeContext } from '../../provider/BridgeProvider.tsx';
 import { useTokenContext } from '../../provider/TokensProvider.tsx';
-import { TokenTag } from '../../ui/TokenTag';
 import { fromFloating } from '../../utils';
+import { TokenToChip, TokenFromChip } from '../../ui/TokenChip';
 
-export const WidgetForm = () => {
+type WidgetFormProps = {
+  setBridgingOrWalletOperation?: Dispatch<SetStateAction<boolean>>;
+};
+export const WidgetForm = ({
+  setBridgingOrWalletOperation
+}: WidgetFormProps) => {
   const toast = useToast();
 
-  const { setWalletsOpen, bridges, isWalletConnectionPending } =
+  const { bridges, isWalletConnectionPending, setWalletsOpen } =
     useBridgeContext();
   const {
     bridge: bridgeTo,
@@ -19,6 +25,8 @@ export const WidgetForm = () => {
     nativeEthBalance,
     tokens
   } = useTokenContext();
+
+  const hasBridges = bridges.length > 0;
 
   const [showTokenList, setShowTokenList] = useState(false);
 
@@ -28,7 +36,7 @@ export const WidgetForm = () => {
 
   const token = tokens.find(({ id }) => id === tokenId);
 
-  const connectButtonTitle = bridges.length > 0 ? 'Bridge' : 'Connect Wallets';
+  const connectButtonTitle = hasBridges ? 'Bridge' : 'Connect Wallets';
 
   const connectButton = () => {
     if (isWalletConnectionPending || isBridgingInProgress) {
@@ -96,48 +104,70 @@ export const WidgetForm = () => {
     }
   };
 
+  const handleToggleTokenList = () => {
+    setShowTokenList(!showTokenList);
+  };
+
+  const isPendingBridgeOrWalletOperation =
+    isBridgingInProgress || isWalletConnectionPending;
+
+  useEffect(() => {
+    if (setBridgingOrWalletOperation) {
+      setBridgingOrWalletOperation(isPendingBridgeOrWalletOperation);
+    }
+  }, [isPendingBridgeOrWalletOperation, setBridgingOrWalletOperation]);
+
   return (
     <Box>
       <form>
         <EnhancedFormControl pt={4}>
-          <FormLabel>Assets</FormLabel>
-          <Box
-            cursor="pointer"
-            onClick={() => setShowTokenList(!showTokenList)}
+          <HStack
+            width="full"
+            bg="secondary.main"
+            padding={3}
+            borderRadius="9px"
           >
+            <Input
+              placeholder="0.00"
+              variant="unstyled"
+              type="number"
+              disabled={isPendingBridgeOrWalletOperation || !hasBridges}
+              value={strAmount}
+              onChange={(e) => setStrAmount(e.target.value)}
+              size="lg"
+              height={hasBridges ? '70px' : 'initial'}
+              fontSize={hasBridges ? '32px' : 'initial'}
+            />
             {token ? (
-              <TokenTag token={token} variant="sm" />
+              <HStack gap="4px" flexShrink="0">
+                <TokenFromChip
+                  token={token}
+                  onClick={handleToggleTokenList}
+                  target="from"
+                />
+                <MdOutlineArrowRight width="30px" height="30px" />
+                <TokenToChip token={token} onClick={handleToggleTokenList} />
+              </HStack>
             ) : (
-              'Select token to bridge'
+              <Button
+                variant="outline"
+                onClick={handleToggleTokenList}
+                size="sm"
+              >
+                Select Token
+              </Button>
             )}
-          </Box>
+          </HStack>
+          {/* <LabelValuePair label="Service fee">0.00</LabelValuePair> */}
         </EnhancedFormControl>
-        <EnhancedFormControl pt={4} bg="success">
-          <FormLabel>Amount</FormLabel>
-          <Input
-            placeholder="0.00"
-            variant="unstyled"
-            type="number"
-            disabled={isWalletConnectionPending || isBridgingInProgress}
-            value={strAmount}
-            onChange={(e) => setStrAmount(e.target.value)}
-          />
-          <LabelValuePair label="Service fee">0.00</LabelValuePair>
-        </EnhancedFormControl>
-
         <Box width="full" pt={2}>
           <Button
             w="full"
             isLoading={isBridgingInProgress}
-            disabled={isWalletConnectionPending || isBridgingInProgress}
+            disabled={isPendingBridgeOrWalletOperation || !hasBridges}
             onClick={connectButton}
           >
             {connectButtonTitle}
-          </Button>
-        </Box>
-        <Box pt={2}>
-          <Button w="full" onClick={() => setWalletsOpen(true)}>
-            Open wallets
           </Button>
         </Box>
       </form>

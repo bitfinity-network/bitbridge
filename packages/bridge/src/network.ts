@@ -14,7 +14,8 @@ export const BridgeBase = z.object({
   type: BridgeType,
   bftAddress: z.string(),
   feeChargeAddress: z.string(),
-  icHost: z.string()
+  icHost: z.string(),
+  ethCain: z.number()
 });
 
 export const BridgeIcrc = BridgeBase.extend({

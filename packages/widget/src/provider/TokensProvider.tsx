@@ -149,7 +149,7 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
     );
   }, [tokensListed, tokensPairs]);
 
-  const tokensUnlistedInfoQueryResults = useQueries({
+  const evmcUnlistedInfoQueryResults = useQueries({
     queries: evmcUnlistedIds.map((id) => ({
       queryKey: ['tokens', 'unlisted', 'info', id],
       enabled: !!bridges.find(
@@ -190,14 +190,14 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
     }))
   });
 
-  const tokensUnlistedInfo = tokensUnlistedInfoQueryResults
+  const evmcUnlistedInfo = evmcUnlistedInfoQueryResults
     .map((result) => result.data!)
     .filter((result) => !!result);
 
   const tokensMeta = useMemo(() => {
     const tokens: Token[] = [];
 
-    tokensListed.concat(tokensUnlistedInfo).map((tokenListed) => {
+    tokensListed.concat(evmcUnlistedInfo).map((tokenListed) => {
       if (tokenListed.type === 'evmc') {
         const bridge = tokensPairs.find(({ tokens }) => {
           return tokens.some(({ wrapped }) => wrapped === tokenListed.id);
@@ -242,7 +242,7 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return tokens;
-  }, [tokensListed, tokensUnlistedInfo, tokensPairs]);
+  }, [tokensListed, evmcUnlistedInfo, tokensPairs]);
 
   const tokensBalancesQuery = useQueries({
     queries: tokensMeta.map((token) => ({
@@ -394,7 +394,7 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
                 address: wrapped.id,
                 symbol: wrapped.symbol,
                 image: wrapped.logo || '',
-                decimals: wrapped.decimals
+                decimals: Number(wrapped.decimals)
               });
             }
           }

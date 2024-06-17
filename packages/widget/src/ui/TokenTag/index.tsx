@@ -1,13 +1,5 @@
-import {
-  HStack,
-  VStack,
-  Image,
-  Text,
-  StackProps,
-  TextProps
-} from '@chakra-ui/react';
+import { HStack, Image, Text, StackProps, TextProps } from '@chakra-ui/react';
 import { Token } from '../../provider/TokensProvider.tsx';
-import { toFloating } from '../../utils';
 
 interface VariantType {
   sm: TextProps;
@@ -40,7 +32,7 @@ const TokenTag = ({
   const fallbackSrc = `https://api.dicebear.com/7.x/initials/svg?seed=${token.name}`;
 
   return (
-    <HStack alignItems="center" {...rest}>
+    <HStack alignItems="center" gap="12px" {...rest}>
       <Image
         src={token.logo || fallbackSrc}
         fallbackSrc={fallbackSrc}
@@ -49,14 +41,9 @@ const TokenTag = ({
         w={variants[variant].size}
       />
 
-      <VStack pl={2}>
-        <Text isTruncated={isTruncated} {...variants[variant]}>
-          {toFloating(token.balance, token.decimals)} {token.name}
-        </Text>
-        <Text isTruncated={isTruncated} {...variants[variant]}>
-          {token.wallet} {token.bridge} {token.wrapped ? 'W' : ''}
-        </Text>
-      </VStack>
+      <Text as="span" isTruncated={isTruncated} {...variants[variant]}>
+        {token.name.toLocaleUpperCase()} {token.wrapped ? 'W' : ''}
+      </Text>
     </HStack>
   );
 };

@@ -3,8 +3,10 @@ import type { Handler } from 'vite-plugin-mix';
 import {
   ICRC2_TOKEN_CANISTER_ID,
   BFT_ETH_ADDRESS,
-  ICRC2_MINTER_CANISTER_ID
+  ICRC2_MINTER_CANISTER_ID,
+  FEE_CHARGE_ADDRESS
 } from '@bitfinity-network/bridge';
+import { IC_HOST } from './utils';
 
 const icTokens = {
   tokens: [
@@ -67,8 +69,24 @@ const networks = {
       bridges: [
         {
           type: 'icrc_evm',
+          ethCain: 355113,
+          icHost: IC_HOST,
           bftAddress: BFT_ETH_ADDRESS,
-          iCRC2MinterCanisterId: ICRC2_MINTER_CANISTER_ID
+          iCRC2MinterCanisterId: ICRC2_MINTER_CANISTER_ID,
+          feeChargeAddress: FEE_CHARGE_ADDRESS
+        }
+      ]
+    },
+    {
+      name: 'devnet 2',
+      bridges: [
+        {
+          type: 'icrc_evm',
+          ethCain: 355113,
+          icHost: IC_HOST,
+          bftAddress: BFT_ETH_ADDRESS,
+          iCRC2MinterCanisterId: ICRC2_MINTER_CANISTER_ID,
+          feeChargeAddress: FEE_CHARGE_ADDRESS
         }
       ]
     }
