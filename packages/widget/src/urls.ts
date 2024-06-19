@@ -12,7 +12,7 @@ const icTokens = {
   tokens: [
     {
       id: ICRC2_TOKEN_CANISTER_ID,
-      logo: '/vite.svg',
+      logo: 'https://raw.githubusercontent.com/infinity-swap/token-lists/main/logos/boom.png',
       fee: 10000,
       decimals: 8,
       name: 'AUX',

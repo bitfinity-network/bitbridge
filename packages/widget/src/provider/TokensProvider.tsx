@@ -385,17 +385,28 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
 
           // Adding wrapped ERC20 token to eth based wallets
           if (ethWallet?.watchAsset) {
-            const wrapped = tokens.find(
-              ({ id }) => id === (token.wrapped || justWrapped)
-            );
+            const wrapped = tokens.find(({ id }) => id === token.wrapped);
+
+            let tokenInfo;
 
             if (wrapped) {
-              await ethWallet.watchAsset({
+              tokenInfo = {
                 address: wrapped.id,
                 symbol: wrapped.symbol,
-                image: wrapped.logo || '',
+                image: wrapped.logo || token.logo || '',
                 decimals: Number(wrapped.decimals)
-              });
+              };
+            } else if (justWrapped) {
+              tokenInfo = {
+                address: justWrapped,
+                symbol: token.symbol,
+                image: token.logo || '',
+                decimals: Number(token.decimals)
+              };
+            }
+
+            if (tokenInfo) {
+              await ethWallet.watchAsset(tokenInfo);
             }
           }
 

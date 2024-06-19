@@ -79,7 +79,8 @@ const fetchIcTokensLists = async (url: string): Promise<TokenListed[]> => {
         symbol: token.symbol,
         decimals: token.decimals,
         fee: token.fee,
-        type: 'icrc'
+        type: 'icrc',
+        logo: token.logo,
       } satisfies TokenListed;
     });
 };
@@ -94,7 +95,8 @@ const fetchEthTokensLists = async (url: string): Promise<TokenListed[]> => {
       symbol: token.symbol,
       decimals: token.decimals,
       fee: 0,
-      type: 'evmc'
+      type: 'evmc',
+      logo: token.logo,
     } satisfies TokenListed;
   });
 };
