@@ -1,9 +1,15 @@
-import { HStack, Image, Text, StackProps } from "@chakra-ui/react";
-import { DropDownItemProp } from "../../types";
+import { HStack, Image, Text, StackProps, TextProps } from '@chakra-ui/react';
+
+export type DropDownItemProp = {
+  name: string;
+  img?: string;
+  hideImage?: boolean;
+  labelProps?: TextProps;
+};
 
 export const SelectedItem = ({
   name,
-  img = "",
+  img = '',
   hideImage = false,
   labelProps,
   ...rest
