@@ -3,6 +3,7 @@ import svgr from 'vite-plugin-svgr';
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
 import mix from 'vite-plugin-mix';
+import dts from 'vite-plugin-dts';
 import 'dotenv/config';
 
 export default defineConfig({
@@ -13,6 +14,7 @@ export default defineConfig({
   plugins: [
     react(),
     svgr(),
+    dts({ rollupTypes: true }),
     ...(process.env.IS_DEV
       ? [
           // hack the module export problem
@@ -27,13 +29,12 @@ export default defineConfig({
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'widget',
       fileName: 'index',
-      formats: ['es']
+      formats: ['es', 'cjs']
     },
     rollupOptions: {
-      external: ['react', 'react-dom', '@rainbow-me/rainbowkit', ''],
+      external: ['react', 'react-dom', '@rainbow-me/rainbowkit'],
       input: resolve(__dirname, 'src/index.ts'),
       output: {
-        // inlineDynamicImports: true,
         format: 'es',
         globals: {
           react: 'React',
