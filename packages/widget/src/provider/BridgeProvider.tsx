@@ -19,7 +19,7 @@ import {
 } from '@bitfinity-network/bridge';
 import * as ethers from 'ethers';
 import { useAccount, useDisconnect } from 'wagmi';
-import { useConnectModal } from '@rainbow-me/rainbowkit';
+// import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { BitfinityWallet } from '@bitfinity-network/bitfinitywallet';
 
 import {
@@ -219,6 +219,7 @@ const useEthWalletConnection = ({
   const ethAccount = useAccount();
   const ethAccountStatus = ethAccount.status;
   const { disconnect: ethDisconnect } = useDisconnect();
+  const useConnectModal: any = () => { return {connectModalOpen: false, openConnectModal: () => {}} }
   const { openConnectModal, connectModalOpen } = useConnectModal();
 
   const ethWalletConnect = useCallback(() => {

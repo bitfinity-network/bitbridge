@@ -19,7 +19,7 @@ import {
 } from './BridgeProvider.tsx';
 import { TokenListed, useTokenListsContext } from './TokensListsProvider.tsx';
 import { fromFloating, IS_DEV } from '../utils';
-import { reactQueryClient } from '../components/BridgeWidget';
+import { reactQueryClient } from './ReactQuery.tsx';
 
 export type TokensContext = {
   tokens: Token[];
