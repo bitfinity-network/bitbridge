@@ -1,5 +1,5 @@
 import { Button, Flex, HStack, Icon, Text, VStack } from '@chakra-ui/react';
-import { IoWallet, IoSettings, IoClose } from 'react-icons/io5';
+import { IoWallet, IoSettings } from 'react-icons/io5';
 
 import { WidgetForm } from './WidgetForm';
 import { WidgetWallets } from './WidgetWallets';
@@ -34,7 +34,6 @@ export function Widget({ showWidgetModal }: WidgetProps) {
   const handleToggleWallets = () => {
     setWalletsOpen(!walletsOpen);
   };
-  const onIconPrefixClick = [handleToggleWallets, handleToggleNetworks];
 
   return (
     <Fragment>
@@ -69,36 +68,26 @@ export function Widget({ showWidgetModal }: WidgetProps) {
         ) : (
           <VStack justifyContent="center" alignItems="center">
             <HStack width="full" justifyContent="space-between">
-              <HStack
-                p={2}
-                bg="secondary.alpha4"
-                borderRadius="16px"
-                gap="16px"
-              >
-                {[IoWallet, IoSettings].map((IconItem, index) => (
-                  <Icon
-                    key={index}
-                    color="primary.main"
-                    height="24px"
-                    width="24px"
-                    onClick={onIconPrefixClick?.[index]}
-                    cursor="pointer"
-                    size="48px"
-                    as={IconItem}
-                  />
-                ))}
-              </HStack>
+              <Icon
+                color="primary.main"
+                height="24px"
+                width="24px"
+                onClick={handleToggleWallets}
+                cursor="pointer"
+                size="48px"
+                as={IoWallet}
+              />
               <Text color="brand.100" fontWeight={600} fontSize="20px">
                 Bridge Token
               </Text>
               <Icon
-                color="text.disabled"
-                h="28px"
-                w="28px"
-                onClick={handleCloseModal}
+                color="primary.main"
+                height="24px"
+                width="24px"
+                onClick={handleToggleNetworks}
                 cursor="pointer"
                 size="48px"
-                as={IoClose}
+                as={IoSettings}
               />
             </HStack>
             <WidgetForm
