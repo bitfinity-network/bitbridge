@@ -14,7 +14,7 @@ export const IS_DEV = z.coerce
 
 const NETWORK_URLS_BASE = IS_DEV
   ? ''
-  : 'https://raw.githubusercontent.com/infinity-swap/token-lists/main/src/';
+  : 'https://raw.githubusercontent.com/infinity-swap/token-lists/main/src';
 
 export const NETWORK_URLS: BrdidgeNetworkUrl[] = [
   BrdidgeNetworkUrl.parse({
@@ -24,7 +24,7 @@ export const NETWORK_URLS: BrdidgeNetworkUrl[] = [
 ];
 
 const TOKENS_URL_BASE =
-  'https://raw.githubusercontent.com/infinity-swap/token-lists/main/src/';
+  'https://raw.githubusercontent.com/infinity-swap/token-lists/main/src';
 
 const IC_TOKENS_URL_MAIN = `${TOKENS_URL_BASE}/tokenlist.json`;
 const IC_TOKENS_URL_TEST = `${TOKENS_URL_BASE}/tokenlist.testnet.json`;
@@ -32,20 +32,26 @@ const IC_TOKENS_URL_TEST = `${TOKENS_URL_BASE}/tokenlist.testnet.json`;
 const ETH_TOKENS_URL_MAIN = `${TOKENS_URL_BASE}/evm.tokenlist.json`;
 const ETH_TOKENS_URL_TEST = `${TOKENS_URL_BASE}/evm.tokenlist.testnet.json`;
 
-export const LIST_URLS: ListsUrl[] = (
-  IS_DEV
-    ? [
-        {
-          name: 'devnet',
-          icUrl: '/tokenlist.json',
-          ethUrl: '/evm.tokenlist.json'
-        }
-      ]
-    : []
-).concat([
-  { name: 'mainnet', icUrl: IC_TOKENS_URL_MAIN, ethUrl: ETH_TOKENS_URL_MAIN },
-  { name: 'testnet', icUrl: IC_TOKENS_URL_TEST, ethUrl: ETH_TOKENS_URL_TEST }
-]);
+export const LIST_URLS: ListsUrl[] = IS_DEV
+  ? [
+      {
+        name: 'devnet',
+        icUrl: '/tokenlist.json',
+        ethUrl: '/evm.tokenlist.json'
+      }
+    ]
+  : [
+      {
+        name: 'mainnet',
+        icUrl: IC_TOKENS_URL_MAIN,
+        ethUrl: ETH_TOKENS_URL_MAIN
+      },
+      {
+        name: 'testnet',
+        icUrl: IC_TOKENS_URL_TEST,
+        ethUrl: ETH_TOKENS_URL_TEST
+      }
+    ];
 
 export const IC_HOST = z.string().parse(process.env.IC_HOST);
 export const RPC_URL = z.string().parse(process.env.RPC_URL);
