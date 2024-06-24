@@ -307,10 +307,14 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const checkBalance = async () => {
-      const balance =
-        (await ethWallet?.provider?.getBalance(ethWallet?.address)) ?? 0n;
+      try {
+        const balance =
+          (await ethWallet?.provider?.getBalance(ethWallet?.address)) ?? 0n;
 
-      setNativeEthBalance(balance);
+        setNativeEthBalance(balance);
+      } catch (_) {
+        setNativeEthBalance(0n);
+      }
     };
 
     checkBalance();
@@ -320,7 +324,7 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       ethWallet?.provider?.off('block', checkBalance);
     };
-  }, [ethWallet, ethWallet?.provider]);
+  }, [ethWallet, ethWallet?.provider, ethWallet?.chainMatch]);
 
   const bridge = useCallback(
     async (token: Token, floatingAmount: number) => {
@@ -337,6 +341,8 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
       const { bridge } = bridgeInfo;
 
       const amount = fromFloating(floatingAmount, token.decimals);
+
+      console.log(floatingAmount, token.decimals, amount);
 
       if (token.balance <= amount) {
         return;
@@ -435,6 +441,8 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
     },
     [ethWallet, icWallet, bridges, nativeEthBalance, tokens]
   );
+
+  console.log('t', tokens);
 
   const ctx: TokensContext = useMemo(() => {
     return {

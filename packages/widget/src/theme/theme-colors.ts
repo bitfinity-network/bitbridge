@@ -66,6 +66,9 @@ export const themeColors = {
   success: {
     500: { default: '#05D7B7', _dark: '#05D7B7' }
   },
+  error: {
+    500: { default: '#fd4084', _dark: '#fd4084' }
+  },
   gradients: {
     primary: {
       default:

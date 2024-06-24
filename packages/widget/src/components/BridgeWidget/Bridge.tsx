@@ -1,5 +1,5 @@
 import { ChakraProvider } from '@chakra-ui/react';
-import { BrdidgeNetworkUrl } from '@bitfinity-network/bridge';
+import { BrdidgeNetworkUrl, BridgeNetwork } from '@bitfinity-network/bridge';
 
 import { Widget } from './Widget';
 import { extendDefaultTheme, CustomThemeType } from '../../theme/theme';
@@ -14,6 +14,7 @@ import { LIST_URLS, NETWORK_URLS } from '../../utils';
 
 export interface BridgeWidgetProps {
   theme?: CustomThemeType;
+  networks?: BridgeNetwork[];
   network?: string;
   networkUrls?: BrdidgeNetworkUrl[];
   tokensListed?: TokenListed[];
@@ -23,6 +24,7 @@ export interface BridgeWidgetProps {
 
 export const Bridge = ({
   theme,
+  networks = [],
   network = 'devnet',
   tokensListed = [],
   networkUrls = NETWORK_URLS,
@@ -38,7 +40,11 @@ export const Bridge = ({
         network={network}
         listsUrls={listsUrls}
       >
-        <BridgeProvider network={network} networkUrls={networkUrls}>
+        <BridgeProvider
+          network={network}
+          networks={networks}
+          networkUrls={networkUrls}
+        >
           <TokensProvider>
             <Widget showWidgetModal={showWidgetModal} />
           </TokensProvider>

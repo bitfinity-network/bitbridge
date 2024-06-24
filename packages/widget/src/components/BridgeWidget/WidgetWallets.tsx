@@ -1,8 +1,8 @@
 import { Button, HStack, Image, Text, VStack } from '@chakra-ui/react';
 
 import { useBridgeContext, Wallet } from '../../provider/BridgeProvider.tsx';
-import { CustomModal } from '../../ui/index.ts';
-import { shortenAddress } from '../../utils/format.ts';
+import { CustomModal } from '../../ui';
+import { shortenAddress } from '../../utils';
 
 type WalletItemProps = {
   wallet: Wallet;
@@ -26,9 +26,16 @@ const WalletItem = ({ wallet }: WalletItemProps) => {
           <Text isTruncated textStyle="h6">
             {wallet.name}
           </Text>
-          <Text color="secondary.alpha72" textStyle="body">
-            {shortenAddress(wallet.address)}
-          </Text>
+
+          {wallet.chainMatch ? (
+            <Text color="error.500" textStyle="body">
+              Wrong chain, must be: {wallet.chainMatch}
+            </Text>
+          ) : (
+            <Text color="secondary.alpha72" textStyle="body">
+              {shortenAddress(wallet.address)}{' '}
+            </Text>
+          )}
         </VStack>
       </HStack>
       <Button

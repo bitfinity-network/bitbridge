@@ -27,13 +27,17 @@ export class RuneBridge implements Bridge {
     this.wallets = wallets;
   }
 
+  protected get icHost() {
+    return this.networks.get(this.networkName).icHost;
+  }
+
   protected get network() {
     return this.networks.getBridge(this.networkName, 'rune_evm');
   }
 
   protected get runeActor(): RuneActor {
     return this.wallets.getActor(
-      this.network.icHost,
+      this.icHost,
       this.network.runeBridgeCanisterId,
       RuneBridgeIdlFactory
     );
