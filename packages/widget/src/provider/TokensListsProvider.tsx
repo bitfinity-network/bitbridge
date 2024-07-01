@@ -6,11 +6,13 @@ import { IS_DEV } from '../utils';
 export type TokensListsContext = {
   tokensListed: TokenListed[];
   tokensListsPending: boolean;
+  tokensListsError: boolean;
 };
 
 const defaultCtx = {
   tokensListed: [],
-  tokensListsPending: false
+  tokensListsPending: false,
+  tokensListsError: false
 } as TokensListsContext;
 
 const TokensListsContext = createContext<TokensListsContext>(defaultCtx);
@@ -80,7 +82,7 @@ const fetchIcTokensLists = async (url: string): Promise<TokenListed[]> => {
         decimals: token.decimals,
         fee: token.fee,
         type: 'icrc',
-        logo: token.logo,
+        logo: token.logo
       } satisfies TokenListed;
     });
 };
@@ -96,7 +98,7 @@ const fetchEthTokensLists = async (url: string): Promise<TokenListed[]> => {
       decimals: token.decimals,
       fee: 0,
       type: 'evmc',
-      logo: token.logo,
+      logo: token.logo
     } satisfies TokenListed;
   });
 };
@@ -119,39 +121,34 @@ export const TokensListsProvider = ({
   const tokensListsQuery = useQueries({
     queries: listsUrls
       .filter(({ name }) => name === network)
-      .map((listUrl) => {
-        return [
-          { type: 'ic', url: listUrl.icUrl },
-          { type: 'eth', url: listUrl.ethUrl }
-        ] as const;
-      })
-      .flat()
-      .map(({ url, type }) => {
-        return {
-          queryKey: ['token-lists', url],
-          queryFn: () =>
-            type === 'ic' ? fetchIcTokensLists(url) : fetchEthTokensLists(url),
-          staleTime: IS_DEV ? 0 : 60 * 1000,
-          gcTime: IS_DEV ? 0 : undefined
-        };
-      })
+      .flatMap((listUrl) => [
+        { type: 'ic', url: listUrl.icUrl },
+        { type: 'eth', url: listUrl.ethUrl }
+      ])
+      .map(({ url, type }) => ({
+        queryKey: ['token-lists', url],
+        queryFn: () =>
+          type === 'ic' ? fetchIcTokensLists(url) : fetchEthTokensLists(url),
+        staleTime: IS_DEV ? 0 : 60 * 1000,
+        gcTime: IS_DEV ? 0 : undefined
+      }))
   });
 
   const tokens = tokensListsQuery
-    .map((result) => result.data!)
-    .filter((result) => !!result)
+    .map((result) => result.data)
+    .filter((result): result is TokenListed[] => !!result)
     .flat();
 
-  const isLoading = tokensListsQuery
-    .map((result) => result.isLoading)
-    .some((loading) => loading);
+  const isLoading = tokensListsQuery.some((result) => result.isLoading);
+  const isError = tokensListsQuery.some((result) => result.isError);
 
   const ctx: TokensListsContext = useMemo(() => {
     return {
       tokensListed: tokens.concat(tokensListed),
-      tokensListsPending: isLoading
+      tokensListsPending: isLoading,
+      tokensListsError: isError
     };
-  }, [tokens, isLoading, tokensListed]);
+  }, [tokens, isLoading, isError, tokensListed]);
 
   return (
     <TokensListsContext.Provider value={ctx}>

@@ -1,8 +1,8 @@
 export const themeColors = {
   primary: {
     main: {
-      default: '#63B3ED',
-      _dark: '#03FEFF'
+      default: '#247dfc',
+      _dark: '#247dfc'
     },
     hover: {
       default: '#90CDF4',
@@ -81,7 +81,8 @@ export const themeColors = {
     modal: {
       default: 'rgba(255, 255, 255, 0.40)',
       _dark: 'rgba(24, 24, 24, 0.40)'
-    }
+    },
+    border: { default: '#f4f5f8', _dark: '#f4f5f8' }
   },
   text: {
     primary: { default: '#03FEFF', _dark: '#03FEFF' },

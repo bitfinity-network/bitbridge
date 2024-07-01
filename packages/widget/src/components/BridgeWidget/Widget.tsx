@@ -1,9 +1,9 @@
 import { Button, Flex, HStack, Icon, Text, VStack } from '@chakra-ui/react';
 import { IoWallet, IoSettings } from 'react-icons/io5';
+import { Fragment, useState, useCallback } from 'react';
 
 import { WidgetForm } from './WidgetForm';
 import { WidgetWallets } from './WidgetWallets';
-import { Fragment, useState } from 'react';
 import { CustomModal } from '../../ui';
 import { useBridgeContext } from '../../provider/BridgeProvider';
 import { WidgetNetworks } from './WidgetNetworks';
@@ -14,26 +14,26 @@ export type WidgetProps = {
 
 export function Widget({ showWidgetModal }: WidgetProps) {
   const [isModalOpen, setModalOpen] = useState(false);
-
-  const { walletsOpen, setWalletsOpen } = useBridgeContext();
+  const { walletsOpen, setWalletsOpen, networksOpen, setNetworksOpen } =
+    useBridgeContext();
   const [isBridgingOrWalletOperation, setBridgingOrWalletOperation] =
     useState(false);
-  const { setNetworksOpen, networksOpen } = useBridgeContext();
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setModalOpen(false);
-  };
+  }, []);
 
-  const handleOpenModal = () => {
+  const handleOpenModal = useCallback(() => {
     setModalOpen(true);
-  };
+  }, []);
 
-  const handleToggleNetworks = () => {
+  const handleToggleNetworks = useCallback(() => {
     setNetworksOpen(!networksOpen);
-  };
-  const handleToggleWallets = () => {
+  }, [networksOpen, setNetworksOpen]);
+
+  const handleToggleWallets = useCallback(() => {
     setWalletsOpen(!walletsOpen);
-  };
+  }, [walletsOpen, setWalletsOpen]);
 
   return (
     <Fragment>
@@ -66,29 +66,36 @@ export function Widget({ showWidgetModal }: WidgetProps) {
             </CustomModal>
           </Fragment>
         ) : (
-          <VStack justifyContent="center" alignItems="center">
+          <VStack
+            justifyContent="center"
+            alignItems="center"
+            borderRadius="24px"
+            border="2px solid"
+            borderColor="bg.border"
+            padding="20px"
+          >
             <HStack width="full" justifyContent="space-between">
-              <Icon
-                color="primary.main"
-                height="24px"
-                width="24px"
-                onClick={handleToggleWallets}
-                cursor="pointer"
-                size="48px"
-                as={IoWallet}
-              />
               <Text color="brand.100" fontWeight={600} fontSize="20px">
                 Bridge Token
               </Text>
-              <Icon
-                color="primary.main"
-                height="24px"
-                width="24px"
-                onClick={handleToggleNetworks}
-                cursor="pointer"
-                size="48px"
-                as={IoSettings}
-              />
+              <HStack gap="16px">
+                <Icon
+                  height="24px"
+                  width="24px"
+                  onClick={handleToggleWallets}
+                  cursor="pointer"
+                  size="48px"
+                  as={IoWallet}
+                />
+                <Icon
+                  height="24px"
+                  width="24px"
+                  onClick={handleToggleNetworks}
+                  cursor="pointer"
+                  size="48px"
+                  as={IoSettings}
+                />
+              </HStack>
             </HStack>
             <WidgetForm
               setBridgingOrWalletOperation={setBridgingOrWalletOperation}

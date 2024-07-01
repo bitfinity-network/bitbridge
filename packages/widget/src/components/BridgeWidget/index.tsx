@@ -24,6 +24,7 @@ import { BITFINITY_CHAINS, LIST_URLS, NETWORK_URLS } from '../../utils';
 import '@rainbow-me/rainbowkit/styles.css';
 
 import { QueryClient } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 const persister = {
   persister: createSyncStoragePersister({
@@ -62,13 +63,17 @@ export const BridgeWidget = ({
   listsUrls = LIST_URLS,
   showWidgetModal = false
 }: BridgeWidgetProps) => {
-  const config = getDefaultConfig({
-    appName: 'bridge-widget',
-    projectId: 'YOUR_PROJECT_ID',
-    chains: [...BITFINITY_CHAINS, ...chains]
-  });
+  const config = useMemo(
+    () =>
+      getDefaultConfig({
+        appName: 'bridge-widget',
+        projectId: 'YOUR_PROJECT_ID',
+        chains: [...BITFINITY_CHAINS, ...chains]
+      }),
+    [chains]
+  );
 
-  const extendedTheme = extendDefaultTheme(theme);
+  const extendedTheme = useMemo(() => extendDefaultTheme(theme), [theme]);
 
   return (
     <ChakraProvider theme={extendedTheme}>

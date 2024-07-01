@@ -25,6 +25,7 @@ type ModalHeaderProps = {
   iconPrefix?: IconType[];
   onIconPrefixClick?: (() => void)[];
 };
+
 type CustomModalProps = {
   isOpen: boolean;
   children: ReactNode;
@@ -38,45 +39,44 @@ type CustomModalProps = {
 const ModalHeader = ({
   title,
   onClose,
-  disableClose,
-  iconPrefix,
-  onIconPrefixClick
+  disableClose = false,
+  iconPrefix = [],
+  onIconPrefixClick = []
 }: ModalHeaderProps) => {
-  if (title) {
-    return (
-      <HStack justifyContent="space-between">
-        {iconPrefix?.length && (
-          <HStack p={2} bg="secondary.alpha4" borderRadius="16px" gap="16px">
-            {iconPrefix.map((IconItem, index) => (
-              <Icon
-                key={index}
-                color="primary.main"
-                height="24px"
-                width="24px"
-                onClick={onIconPrefixClick?.[index]}
-                cursor="pointer"
-                size="48px"
-                as={IconItem}
-              />
-            ))}
-          </HStack>
-        )}
-        <Text color="brand.100" fontWeight={600} fontSize="20px">
-          {title}
-        </Text>
-        <Icon
-          color="text.disabled"
-          h="28px"
-          w="28px"
-          onClick={!disableClose ? onClose : undefined}
-          cursor={disableClose ? 'default' : 'pointer'}
-          size="48px"
-          as={IoClose}
-        />
-      </HStack>
-    );
-  }
-  return null;
+  if (!title) return null;
+
+  return (
+    <HStack justifyContent="space-between">
+      {iconPrefix.length > 0 && (
+        <HStack p={2} bg="secondary.alpha4" borderRadius="16px" gap="16px">
+          {iconPrefix.map((IconItem, index) => (
+            <Icon
+              key={index}
+              color="primary.main"
+              height="24px"
+              width="24px"
+              onClick={onIconPrefixClick[index]}
+              cursor="pointer"
+              size="48px"
+              as={IconItem}
+            />
+          ))}
+        </HStack>
+      )}
+      <Text color="brand.100" fontWeight={600} fontSize="20px">
+        {title}
+      </Text>
+      <Icon
+        color="text.disabled"
+        h="28px"
+        w="28px"
+        onClick={!disableClose ? onClose : undefined}
+        cursor={disableClose ? 'default' : 'pointer'}
+        size="48px"
+        as={IoClose}
+      />
+    </HStack>
+  );
 };
 
 const CustomModal = ({
@@ -84,13 +84,15 @@ const CustomModal = ({
   onClose,
   children,
   modalContentProps,
-  modalHeaderProps,
+  modalHeaderProps: {
+    title,
+    disableClose = false,
+    iconPrefix = [],
+    onIconPrefixClick = []
+  } = {},
   ...rest
 }: CustomModalProps & ModalProps) => {
   const breakpoint = useBreakpointValue({ base: 'base', md: 'md', lg: 'lg' });
-
-  const { title, disableClose, iconPrefix, onIconPrefixClick } =
-    modalHeaderProps || {};
 
   if (breakpoint === 'base') {
     return (
@@ -100,18 +102,21 @@ const CustomModal = ({
         style={{ background: 'none' }}
       >
         <Box bg="bg.300" p={6}>
-          {title ? (
+          {title && (
             <ModalHeader
               title={title}
               onClose={onClose}
               disableClose={disableClose}
+              iconPrefix={iconPrefix}
+              onIconPrefixClick={onIconPrefixClick}
             />
-          ) : null}
+          )}
           {children}
         </Box>
       </BottomSheet>
     );
   }
+
   return (
     <Modal size="sm" isOpen={isOpen} onClose={onClose} isCentered {...rest}>
       <ModalOverlay bg="" />
@@ -123,7 +128,7 @@ const CustomModal = ({
         borderRadius="8px"
         {...modalContentProps}
       >
-        {title ? (
+        {title && (
           <ModalHeader
             onClose={onClose}
             title={title}
@@ -131,7 +136,7 @@ const CustomModal = ({
             iconPrefix={iconPrefix}
             onIconPrefixClick={onIconPrefixClick}
           />
-        ) : null}
+        )}
         <ModalBody p={0}>{children}</ModalBody>
       </ModalContent>
     </Modal>

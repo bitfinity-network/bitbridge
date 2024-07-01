@@ -4,6 +4,7 @@ import { componentStyles } from './component-styles';
 import { globalStyles } from './global-styles';
 import { fontStyles } from './font-config';
 
+// Define the available theme colors
 export const ThemeColors = [
   'primary',
   'hover',
@@ -15,15 +16,16 @@ export const ThemeColors = [
   'secondaryText'
 ] as const;
 
-export type ThemeColor = Record<
-  (typeof ThemeColors)[number],
-  string | undefined
->;
+// Define the type for individual theme color
+export type ThemeColor = Partial<Record<(typeof ThemeColors)[number], string>>;
 
+// Define the type for theme color modes
 export type ThemeColorMode = 'main' | '_dark';
 
-export type ThemeColors = Partial<Record<ThemeColorMode, Partial<ThemeColor>>>;
+// Define the type for theme colors with modes
+export type ThemeColors = Partial<Record<ThemeColorMode, ThemeColor>>;
 
+// Define the type for custom theme configuration
 export type CustomThemeType = {
   colors?: ThemeColors;
   config?: {
@@ -32,6 +34,7 @@ export type CustomThemeType = {
   };
 };
 
+// Default theme object
 const defaultThemeObject = {
   styles: {
     global: globalStyles
@@ -48,16 +51,18 @@ const defaultThemeObject = {
   }
 };
 
+// Define the type for the default theme object
 export type ThemeType = typeof defaultThemeObject;
 
+// Extend the default theme
 export const DefaultTheme = extendTheme(defaultThemeObject);
 
-const assignColors = (
+// Assign custom colors to the target theme colors
+const assignCustomColors = (
   targetColors: ThemeColorsType,
   sourceColors: ThemeColors,
   colorMode: ThemeColorMode
 ) => {
-  console.log('colors', sourceColors, targetColors, colorMode);
   Object.entries(sourceColors[colorMode] || {}).forEach(([key, value]) => {
     if (value && key in targetColors) {
       const targetColor = targetColors[key as keyof ThemeColorsType];
@@ -70,7 +75,8 @@ const assignColors = (
   });
 };
 
-const consolidateCustomThemeWithDefault = (customTheme?: CustomThemeType) => {
+// Consolidate custom theme with the default theme
+const consolidateTheme = (customTheme?: CustomThemeType) => {
   if (!customTheme) return defaultThemeObject;
 
   const { colors, config } = customTheme;
@@ -78,7 +84,7 @@ const consolidateCustomThemeWithDefault = (customTheme?: CustomThemeType) => {
   const colorMode = config?.colorMode === 'dark' ? '_dark' : 'main';
 
   if (colors) {
-    assignColors(defaultThemeColors, colors, colorMode);
+    assignCustomColors(defaultThemeColors, colors, colorMode);
   }
 
   const mergedConfig = {
@@ -99,8 +105,9 @@ const consolidateCustomThemeWithDefault = (customTheme?: CustomThemeType) => {
   };
 };
 
+// Extend the default theme with custom theme
 export const extendDefaultTheme = (customTheme?: CustomThemeType) => {
-  const consolidatedTheme = consolidateCustomThemeWithDefault(customTheme);
+  const consolidatedTheme = consolidateTheme(customTheme);
 
   return extendTheme(consolidatedTheme);
 };

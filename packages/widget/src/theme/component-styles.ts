@@ -9,10 +9,10 @@ export const componentStyles: ThemeComponents = {
       _disabled: {
         pointerEvents: 'none',
         cursor: 'not-allowed',
-        bg: `primary.alpha16`,
-        color: `text.disabled`,
+        bg: 'primary.alpha16',
+        color: 'text.disabled',
         _hover: {
-          bg: `primary.alpha16`
+          bg: 'primary.alpha16'
         }
       }
     },
@@ -55,53 +55,47 @@ export const componentStyles: ThemeComponents = {
       }
     },
     variants: {
-      solid: (props: StyleFunctionProps) => ({
-        bg: props.isDisabled
-          ? `${props.colorScheme}.alpha16`
-          : `${props.colorScheme}.main`,
-        color: props.isDisabled ? `text.disabled` : `text.black`,
-        _hover: props.isDisabled
+      solid: ({ isDisabled, colorScheme }: StyleFunctionProps) => ({
+        bg: isDisabled ? `${colorScheme}.alpha16` : `${colorScheme}.main`,
+        color: isDisabled ? 'text.disabled' : 'text.white',
+        _hover: isDisabled
           ? {
-              bg: `secondary.alpha40`,
+              bg: 'secondary.alpha40',
               cursor: 'not-allowed'
             }
           : {
-              bg: `${props.colorScheme}.hover`
+              bg: `${colorScheme}.hover`
             },
         _disabled: {
-          bg: `${props.colorScheme}.alpha16`,
+          bg: `${colorScheme}.alpha16`,
           cursor: 'not-allowed'
         }
       }),
-      secondary: (props: StyleFunctionProps) => ({
-        bg: props.isDisabled
-          ? `${props.colorScheme}.alpha16`
-          : `${props.colorScheme}.alpha16`,
-        color: props.isDisabled ? `text.disabled` : `secondary.alpha40`,
-        _hover: props.isDisabled
+      secondary: ({ isDisabled, colorScheme }: StyleFunctionProps) => ({
+        bg: `${colorScheme}.alpha16`,
+        color: isDisabled ? 'text.disabled' : 'secondary.alpha40',
+        _hover: isDisabled
           ? {}
           : {
-              bg: `${props.colorScheme}.hover`
+              bg: `${colorScheme}.hover`
             },
         _disabled: {
-          bg: `${props.colorScheme}.alpha16`
+          bg: `${colorScheme}.alpha16`
         }
       }),
-      outline: (props: StyleFunctionProps) => ({
-        bg: props.isDisabled
-          ? `${props.colorScheme}.alpha16`
-          : `${props.colorScheme}.alpha72`,
-        borderColor: props.isDisabled
-          ? `${props.colorScheme}.alpha16`
-          : `${props.colorScheme}.main`,
-        color: props.isDisabled ? `text.disabled` : `text.black`,
-        _hover: props.isDisabled
+      outline: ({ isDisabled, colorScheme }: StyleFunctionProps) => ({
+        bg: isDisabled ? `${colorScheme}.alpha16` : `${colorScheme}.alpha72`,
+        borderColor: isDisabled
+          ? `${colorScheme}.alpha16`
+          : `${colorScheme}.main`,
+        color: isDisabled ? 'text.disabled' : 'text.black',
+        _hover: isDisabled
           ? {}
           : {
-              bg: `${props.colorScheme}.alpha12`
+              bg: `${colorScheme}.alpha12`
             },
         _disabled: {
-          bg: `${props.colorScheme}.alpha16`
+          bg: `${colorScheme}.alpha16`
         }
       })
     },
@@ -115,15 +109,15 @@ export const componentStyles: ThemeComponents = {
     }
   },
   FormLabel: {
-    baseStyle: (props: StyleFunctionProps) => ({
+    baseStyle: ({ colorScheme }: StyleFunctionProps) => ({
       fontWeight: 'bold',
-      color: `${props.colorScheme}.main`
+      color: `${colorScheme}.main`
     })
   },
   Link: {
-    baseStyle: (props: StyleFunctionProps) => ({
+    baseStyle: ({ colorScheme }: StyleFunctionProps) => ({
       fontWeight: 'bold',
-      color: `${props.colorScheme}.main`
+      color: `${colorScheme}.main`
     })
   },
   Input: {
@@ -134,15 +128,15 @@ export const componentStyles: ThemeComponents = {
       }
     },
     variants: {
-      unstyled: (props: StyleFunctionProps) => ({
+      unstyled: ({ colorScheme }: StyleFunctionProps) => ({
         field: {
-          bg: `${props.colorScheme}.alpha8`,
+          bg: `${colorScheme}.alpha8`,
           borderRadius: '0px',
           height: '48px',
           px: 3,
           _placeholder: {
             fontWeight: 600,
-            color: `${props.colorScheme}.alpha60`
+            color: `${colorScheme}.alpha60`
           }
         }
       })
