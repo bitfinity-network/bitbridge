@@ -49,12 +49,28 @@ export const WidgetWallets: React.FC = () => {
 
   return (
     <CustomModal
-      modalHeaderProps={{ title: 'Manage Wallets' }}
+      modalHeaderProps={{ title: 'Connect Wallets' }}
       isOpen={walletsOpen}
       onClose={() => setWalletsOpen(false)}
       size="lg"
+      modalContentProps={{
+        width: '500px',
+        height: 'auto',
+        borderRadius: '20px',
+        overflowY: 'hidden'
+      }}
     >
-      <VStack w="full" paddingY={4} gap={4}>
+      <VStack
+        w="full"
+        paddingY={4}
+        gap={4}
+        marginTop={4}
+        borderTop="1px solid"
+        borderColor="bg.border"
+      >
+        <Text textStyle="h6" color="text.secondary">
+          Please connect wallets to start bridging
+        </Text>
         <VStack width="full" gap="8px">
           {wallets.map((wallet) => (
             <WalletItem key={wallet.type} wallet={wallet} />

@@ -24,6 +24,8 @@ type ModalHeaderProps = {
   disableClose?: boolean;
   iconPrefix?: IconType[];
   onIconPrefixClick?: (() => void)[];
+  iconSuffix?: IconType[];
+  onIconSuffixClick?: (() => void)[];
 };
 
 type CustomModalProps = {
@@ -32,7 +34,12 @@ type CustomModalProps = {
   modalContentProps?: ModalContentProps;
   modalHeaderProps?: Pick<
     ModalHeaderProps,
-    'title' | 'disableClose' | 'iconPrefix' | 'onIconPrefixClick'
+    | 'title'
+    | 'disableClose'
+    | 'iconPrefix'
+    | 'onIconPrefixClick'
+    | 'iconSuffix'
+    | 'onIconSuffixClick'
   >;
 };
 
@@ -41,7 +48,9 @@ const ModalHeader = ({
   onClose,
   disableClose = false,
   iconPrefix = [],
-  onIconPrefixClick = []
+  onIconPrefixClick = [],
+  iconSuffix = [],
+  onIconSuffixClick = []
 }: ModalHeaderProps) => {
   if (!title) return null;
 
@@ -52,7 +61,7 @@ const ModalHeader = ({
           {iconPrefix.map((IconItem, index) => (
             <Icon
               key={index}
-              color="primary.main"
+              color="misc.icon.main"
               height="24px"
               width="24px"
               onClick={onIconPrefixClick[index]}
@@ -66,15 +75,43 @@ const ModalHeader = ({
       <Text color="brand.100" fontWeight={600} fontSize="20px">
         {title}
       </Text>
-      <Icon
-        color="text.disabled"
-        h="28px"
-        w="28px"
-        onClick={!disableClose ? onClose : undefined}
-        cursor={disableClose ? 'default' : 'pointer'}
-        size="48px"
-        as={IoClose}
-      />
+
+      <HStack gap="16px">
+        <>
+          {iconSuffix.length > 0 && (
+            <HStack gap="16px">
+              {iconSuffix.map((IconItem, index) => (
+                <Icon
+                  key={index}
+                  color="misc.icon.main"
+                  height="24px"
+                  width="24px"
+                  onClick={onIconSuffixClick[index]}
+                  cursor="pointer"
+                  size="48px"
+                  as={IconItem}
+                />
+              ))}
+            </HStack>
+          )}
+          {iconSuffix.length > 0 && (
+            <Box
+              height="24px"
+              borderLeft="1.5px solid"
+              borderColor="misc.icon.hover"
+            />
+          )}
+          <Icon
+            color="misc.icon.main"
+            h="28px"
+            w="28px"
+            onClick={!disableClose ? onClose : undefined}
+            cursor={disableClose ? 'default' : 'pointer'}
+            size="48px"
+            as={IoClose}
+          />
+        </>
+      </HStack>
     </HStack>
   );
 };
@@ -88,7 +125,9 @@ const CustomModal = ({
     title,
     disableClose = false,
     iconPrefix = [],
-    onIconPrefixClick = []
+    onIconPrefixClick = [],
+    iconSuffix = [],
+    onIconSuffixClick = []
   } = {},
   ...rest
 }: CustomModalProps & ModalProps) => {
@@ -109,6 +148,8 @@ const CustomModal = ({
               disableClose={disableClose}
               iconPrefix={iconPrefix}
               onIconPrefixClick={onIconPrefixClick}
+              iconSuffix={iconSuffix}
+              onIconSuffixClick={onIconSuffixClick}
             />
           )}
           {children}
@@ -123,7 +164,7 @@ const CustomModal = ({
       <ModalContent
         boxShadow="0 20px 40px 0 rgba(0, 0, 0, 0.24)"
         p={4}
-        bg="bg.modal"
+        bg="bg.main"
         backdropFilter="blur(40px)"
         borderRadius="8px"
         {...modalContentProps}
@@ -135,6 +176,8 @@ const CustomModal = ({
             disableClose={disableClose}
             iconPrefix={iconPrefix}
             onIconPrefixClick={onIconPrefixClick}
+            iconSuffix={iconSuffix}
+            onIconSuffixClick={onIconSuffixClick}
           />
         )}
         <ModalBody p={0}>{children}</ModalBody>

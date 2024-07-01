@@ -5,8 +5,8 @@ export const themeColors = {
       _dark: '#247dfc'
     },
     hover: {
-      default: '#90CDF4',
-      _dark: '#02E1E1'
+      default: '#0a6fff',
+      _dark: '#3186ff'
     },
     500: { default: '#3182CE', _dark: '#03FEFF' },
     alpha4: { default: 'rgba(255, 255, 255, 0.04)' },
@@ -80,18 +80,18 @@ export const themeColors = {
     }
   },
   bg: {
-    main: { default: '#FFFFFF', _dark: '#181818' },
+    main: { default: '#FFFFFF', _dark: '#0A131F' },
     modal: {
       default: 'rgba(255, 255, 255, 0.40)',
       _dark: 'rgba(24, 24, 24, 0.40)'
     },
-    border: { default: '#f4f5f8', _dark: '#f4f5f8' }
+    border: { default: '#cccdd6', _dark: '#f4f5f8' }
   },
   text: {
-    primary: { default: '#03FEFF', _dark: '#03FEFF' },
+    primary: { default: '#00013A', _dark: '#FFFFFF' },
     secondary: {
-      default: 'rgba(255, 255, 255, 0.60)',
-      _dark: 'rgba(255, 255, 255, 0.60)'
+      default: '#606775',
+      _dark: '#9AA1AF'
     },
     white: { default: '#FFFFFF', _dark: '#FFFFFF' },
     white60: {
@@ -110,6 +110,16 @@ export const themeColors = {
     green: { default: '#05d7b7' },
     greenGradient: {
       default: 'linear-gradient(to bottom, #05d7b7 0%, #a7ffc5)'
+    },
+    icon: {
+      main: {
+        default: '#606775',
+        _dark: '#9AA1AF'
+      },
+      hover: {
+        default: '#b8bfcd',
+        _dark: '#b8bfcd'
+      }
     }
   }
 };

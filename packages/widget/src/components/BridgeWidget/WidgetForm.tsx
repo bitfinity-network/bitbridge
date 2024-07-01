@@ -5,9 +5,11 @@ import {
   useEffect,
   useState
 } from 'react';
-import { Box, Button, HStack, Input, useToast } from '@chakra-ui/react';
-import { MdOutlineArrowRight } from 'react-icons/md';
-
+import { Box, Button, HStack, Icon, Input, useToast } from '@chakra-ui/react';
+import {
+  MdOutlineArrowRight,
+  MdOutlineKeyboardArrowDown
+} from 'react-icons/md';
 import { EnhancedFormControl } from '../../ui';
 import { TokenListModal } from '../TokenListModal';
 import { useBridgeContext } from '../../provider/BridgeProvider.tsx';
@@ -153,22 +155,22 @@ export const WidgetForm = ({
                 <TokenToChip token={token} onClick={handleToggleTokenList} />
               </HStack>
             ) : (
-              <Box
+              <Button
                 onClick={handleToggleTokenList}
-                borderRadius="8px"
-                padding="8px"
-                bg="bg.main"
-                fontSize="12px"
-                textTransform="none"
+                variant="outline"
                 width="auto"
-                minWidth="100px"
-                border="1px solid"
-                borderColor="border.default"
-                fontWeight="bold"
-                cursor="pointer"
+                size="sm"
+                textTransform="none"
+                rightIcon={
+                  <Icon
+                    as={MdOutlineKeyboardArrowDown}
+                    fontSize="18px"
+                    color="misc.icon.main"
+                  />
+                }
               >
                 Select Token
-              </Box>
+              </Button>
             )}
           </HStack>
         </EnhancedFormControl>
@@ -178,6 +180,7 @@ export const WidgetForm = ({
             isLoading={isBridgingInProgress}
             disabled={isPendingBridgeOrWalletOperation || !hasBridges}
             onClick={handleConnectButtonClick}
+            size="lg"
           >
             {hasBridges ? 'Bridge' : 'Connect Wallets'}
           </Button>

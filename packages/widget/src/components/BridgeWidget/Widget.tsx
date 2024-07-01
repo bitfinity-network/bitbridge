@@ -1,7 +1,6 @@
 import { Button, Flex, HStack, Icon, Text, VStack } from '@chakra-ui/react';
-import { IoWallet, IoSettings } from 'react-icons/io5';
 import { Fragment, useState, useCallback } from 'react';
-
+import { LuSettings, LuWallet } from 'react-icons/lu';
 import { WidgetForm } from './WidgetForm';
 import { WidgetWallets } from './WidgetWallets';
 import { CustomModal } from '../../ui';
@@ -45,8 +44,8 @@ export function Widget({ showWidgetModal }: WidgetProps) {
               modalHeaderProps={{
                 title: 'Bridge Token',
                 disableClose: isBridgingOrWalletOperation,
-                iconPrefix: [IoWallet, IoSettings],
-                onIconPrefixClick: [handleToggleWallets, handleToggleNetworks]
+                iconSuffix: [LuWallet, LuSettings],
+                onIconSuffixClick: [handleToggleWallets, handleToggleNetworks]
               }}
               isOpen={isModalOpen}
               onClose={handleCloseModal}
@@ -85,7 +84,8 @@ export function Widget({ showWidgetModal }: WidgetProps) {
                   onClick={handleToggleWallets}
                   cursor="pointer"
                   size="48px"
-                  as={IoWallet}
+                  as={LuWallet}
+                  color="misc.icon.main"
                 />
                 <Icon
                   height="24px"
@@ -93,7 +93,8 @@ export function Widget({ showWidgetModal }: WidgetProps) {
                   onClick={handleToggleNetworks}
                   cursor="pointer"
                   size="48px"
-                  as={IoSettings}
+                  as={LuSettings}
+                  color="misc.icon.main"
                 />
               </HStack>
             </HStack>

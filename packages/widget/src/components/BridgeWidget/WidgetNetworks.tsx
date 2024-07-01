@@ -1,4 +1,4 @@
-import { HStack, Text, VStack, Button } from '@chakra-ui/react';
+import { HStack, Text, VStack, Button, Box } from '@chakra-ui/react';
 import { BridgeNetwork } from '@bitfinity-network/bridge';
 import { useBridgeContext } from '../../provider/BridgeProvider.tsx';
 import { CustomModal } from '../../ui/index.ts';
@@ -28,9 +28,12 @@ const NetworkItem = React.memo(
       >
         <HStack alignItems="center" paddingY={2} w="full">
           <VStack alignItems="flex-start" gap="0">
-            <Text isTruncated textStyle="h6">
-              {network.name}
-            </Text>
+            <HStack>
+              <Box w="12px" h="12px" bg="primary.main" borderRadius="full" />
+              <Text isTruncated textStyle="h6" fontWeight="bold">
+                {network.name}
+              </Text>
+            </HStack>
           </VStack>
         </HStack>
         <Button
@@ -61,8 +64,21 @@ export const WidgetNetworks: React.FC = () => {
       isOpen={networksOpen}
       onClose={() => setNetworksOpen(false)}
       size="lg"
+      modalContentProps={{
+        width: '500px',
+        height: 'auto',
+        borderRadius: '20px',
+        overflowY: 'hidden'
+      }}
     >
-      <VStack w="full" paddingY={4} gap={4}>
+      <VStack
+        w="full"
+        paddingY={4}
+        gap={4}
+        marginTop={4}
+        borderTop="1px solid"
+        borderColor="bg.border"
+      >
         <VStack width="full" gap="8px">
           {bridgeNetworks.map((network) => (
             <NetworkItem

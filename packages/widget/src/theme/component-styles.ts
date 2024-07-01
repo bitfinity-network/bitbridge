@@ -4,8 +4,8 @@ export const componentStyles: ThemeComponents = {
   Button: {
     baseStyle: {
       fontWeight: 'bold',
-      textTransform: 'uppercase',
-      borderRadius: '12px',
+      textTransform: 'none',
+      borderRadius: '8px',
       _disabled: {
         pointerEvents: 'none',
         cursor: 'not-allowed',
@@ -85,9 +85,7 @@ export const componentStyles: ThemeComponents = {
       }),
       outline: ({ isDisabled, colorScheme }: StyleFunctionProps) => ({
         bg: isDisabled ? `${colorScheme}.alpha16` : `${colorScheme}.alpha72`,
-        borderColor: isDisabled
-          ? `${colorScheme}.alpha16`
-          : `${colorScheme}.main`,
+        borderColor: isDisabled ? `${colorScheme}.alpha16` : 'bg.border',
         color: isDisabled ? 'text.disabled' : 'text.black',
         _hover: isDisabled
           ? {}
