@@ -85,7 +85,15 @@ export const themeColors = {
       default: 'rgba(255, 255, 255, 0.40)',
       _dark: 'rgba(24, 24, 24, 0.40)'
     },
-    border: { default: '#cccdd6', _dark: '#f4f5f8' }
+    border: { default: '#cccdd6', _dark: '#f4f5f8' },
+    module: {
+      default: '#eff1f4',
+      _dark: '#323741'
+    },
+    interactive: {
+      main: { default: '#d7d9e0', _dark: '#494e5a' },
+      hover: { default: '#c6c8d2', _dark: '#525967' }
+    }
   },
   text: {
     primary: { default: '#00013A', _dark: '#FFFFFF' },

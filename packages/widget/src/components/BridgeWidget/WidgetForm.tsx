@@ -5,11 +5,18 @@ import {
   useEffect,
   useState
 } from 'react';
-import { Box, Button, HStack, Icon, Input, useToast } from '@chakra-ui/react';
 import {
-  MdOutlineArrowRight,
-  MdOutlineKeyboardArrowDown
-} from 'react-icons/md';
+  Box,
+  Button,
+  Divider,
+  HStack,
+  Icon,
+  Image,
+  Input,
+  Text,
+  useToast
+} from '@chakra-ui/react';
+import { MdArrowForward, MdOutlineKeyboardArrowDown } from 'react-icons/md';
 import { EnhancedFormControl } from '../../ui';
 import { TokenListModal } from '../TokenListModal';
 import { useBridgeContext } from '../../provider/BridgeProvider.tsx';
@@ -145,14 +152,46 @@ export const WidgetForm = ({
               fontSize={hasBridges ? '32px' : 'initial'}
             />
             {token ? (
-              <HStack gap="4px" flexShrink="0">
-                <TokenFromChip
-                  token={token}
-                  onClick={handleToggleTokenList}
-                  target="from"
+              <HStack
+                gap={4}
+                flexShrink="0"
+                bg="bg.main"
+                paddingX="8px"
+                paddingY="6px"
+                borderRadius="8px"
+                onClick={handleToggleTokenList}
+                cursor="pointer"
+                _hover={{ bg: 'misc.icon.hover' }}
+              >
+                <HStack gap={2}>
+                  <Image
+                    src={token.logo}
+                    width="24px"
+                    height="24px"
+                    flexShrink="0"
+                  />
+                  <Text>{token.name}</Text>
+                </HStack>
+                <Divider
+                  orientation="vertical"
+                  width="1.5px"
+                  height="20px"
+                  bg="bg.border"
                 />
-                <MdOutlineArrowRight width="30px" height="30px" />
-                <TokenToChip token={token} onClick={handleToggleTokenList} />
+                <HStack
+                  bg="bg.module"
+                  paddingX="8px"
+                  paddingY="4px"
+                  borderRadius="6px"
+                >
+                  <TokenFromChip token={token} target="from" />
+                  <Icon
+                    as={MdArrowForward}
+                    fontSize="16px"
+                    color="primary.main"
+                  />
+                  <TokenToChip token={token} />
+                </HStack>
               </HStack>
             ) : (
               <Button
