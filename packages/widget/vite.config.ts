@@ -26,14 +26,14 @@ export default defineConfig({
   ],
   build: {
     lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
+      entry: resolve(__dirname, 'src/index.tsx'),
       name: 'widget',
       fileName: 'index',
       formats: ['es', 'cjs']
     },
     rollupOptions: {
-      external: ['react', 'react-dom', '@rainbow-me/rainbowkit'],
-      input: resolve(__dirname, 'src/index.ts'),
+      external: ['react', 'react-dom'],
+      input: resolve(__dirname, 'src/index.tsx'),
       output: {
         format: 'es',
         globals: {

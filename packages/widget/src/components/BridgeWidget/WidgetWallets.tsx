@@ -2,8 +2,8 @@ import React from 'react';
 
 import { Button, HStack, Image, Text, VStack } from '@chakra-ui/react';
 import { useBridgeContext, Wallet } from '../../provider/BridgeProvider.tsx';
-import { CustomModal } from '../../ui/index.ts';
-import { shortenAddress } from '../../utils/format.ts';
+import { CustomModal } from '../../ui';
+import { shortenAddress } from '../../utils';
 
 type WalletItemProps = {
   wallet: Wallet;

@@ -1,9 +1,18 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
-import App from "./App.tsx";
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
+import { BridgeWidget } from './components/BridgeWidget';
+import { BITFINITY_CHAINS } from './utils';
+
+const config = getDefaultConfig({
+  appName: 'bridge-widget',
+  projectId: 'YOUR_PROJECT_ID',
+  chains: [...BITFINITY_CHAINS]
+});
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    <BridgeWidget config={config} />
   </React.StrictMode>
 );

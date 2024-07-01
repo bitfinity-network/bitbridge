@@ -102,6 +102,7 @@ export type WalletConnected = {
 
 interface BaseWalletData {
   type: WalletType;
+  chainMatch?: number;
   connected: boolean;
   address: string;
   toggle: () => void;
@@ -175,6 +176,7 @@ const BridgeContext = createContext<BridgeContext>(defaultCtx);
 
 export type BridgeProviderProps = {
   network: string;
+  networks: BridgeNetwork[];
   networkUrls: BrdidgeNetworkUrl[];
   children: ReactNode;
 };
@@ -328,6 +330,7 @@ const useIcWalletConnection = (
 
 export const BridgeProvider = ({
   network: netDefault,
+  networks,
   networkUrls,
   children
 }: BridgeProviderProps) => {
@@ -344,7 +347,13 @@ export const BridgeProvider = ({
 
   const [networkName, setNetworkName] = useState(netDefault);
 
-  const connector = useMemo(() => Connector.create(), []);
+  const connector = useMemo(() => {
+    const connector = Connector.create();
+
+    connector.addNetworks(networks);
+
+    return connector;
+  }, [networks]);
 
   const [networksOpen, setNetworksOpen] = useState(false);
   const [bridgeNetworks, setBridgeNetworks] = useState<BridgeNetwork[]>([]);
@@ -446,13 +455,31 @@ export const BridgeProvider = ({
         }
       };
 
+      const provider =
+        wallet && 'provider' in wallet ? wallet.provider : undefined;
+      const watchAsset =
+        wallet && 'watchAsset' in wallet ? wallet.watchAsset : undefined;
+
+      const chainNet = bridgeNetworks.find(
+        ({ name }) => name === networkName
+      )?.ethCain;
+      const chainWallet =
+        wallet && 'chain' in wallet ? wallet.chain : undefined;
+
+      const chainMatch =
+        type === 'eth'
+          ? chainNet === chainWallet
+            ? undefined
+            : chainNet
+          : undefined;
+
       return {
         type,
         connected,
         wallet: wallet?.wallet,
-        provider: wallet && 'provider' in wallet ? wallet.provider : undefined,
-        watchAsset:
-          wallet && 'watchAsset' in wallet ? wallet.watchAsset : undefined,
+        provider,
+        watchAsset,
+        chainMatch,
         address,
         toggle,
         ...info
@@ -463,7 +490,9 @@ export const BridgeProvider = ({
     ethWalletConnect,
     ethWalletDisconnect,
     icWalletConnect,
-    icWalletDisconnect
+    icWalletDisconnect,
+    bridgeNetworks,
+    networkName
   ]);
 
   const bridges = useMemo(() => {
@@ -476,16 +505,10 @@ export const BridgeProvider = ({
     }
 
     if (walletsConnected.ic && walletsConnected.eth) {
-      const networkChain = network.bridges.find(
-        (bridge) => bridge.type === 'icrc_evm'
-      );
-
-      if (networkChain?.type === 'icrc_evm') {
-        const walletChain = walletsConnected.eth.chain;
-        if (networkChain.ethCain === walletChain) {
-          const bridge = connector.getBridge(networkName, 'icrc_evm');
-          ready.push({ type: 'icrc_evm', bridge, ...BRIDGES_INFO.icrc_evm });
-        }
+      const walletChain = walletsConnected.eth.chain;
+      if (network.ethCain === walletChain) {
+        const bridge = connector.getBridge(networkName, 'icrc_evm');
+        ready.push({ type: 'icrc_evm', bridge, ...BRIDGES_INFO.icrc_evm });
       }
     }
 

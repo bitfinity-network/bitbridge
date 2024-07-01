@@ -44,7 +44,7 @@ export class FeeCharge {
     const tx: ethers.ethers.TransactionRequest = {
       nonce,
       to: await this.feeCharge.getAddress(),
-      value: BigInt(Math.pow(10, 17)),
+      value: BigInt(Math.pow(10, 14)),
       data
     };
 

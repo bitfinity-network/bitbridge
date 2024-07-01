@@ -17,10 +17,10 @@ import { BridgeNetwork, BridgeIcrc } from '../network';
 
 export const testNetwork: BridgeNetwork = BridgeNetwork.parse({
   name: 'devnet',
+  icHost: IC_HOST,
+  ethCain: 355113,
   bridges: [
     BridgeIcrc.parse({
-      icHost: IC_HOST,
-      ethCain: 355113,
       bftAddress: BFT_ETH_ADDRESS,
       feeChargeAddress: FEE_CHARGE_ADDRESS,
       iCRC2MinterCanisterId: ICRC2_MINTER_CANISTER_ID
