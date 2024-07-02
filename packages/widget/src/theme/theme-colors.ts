@@ -85,7 +85,7 @@ export const themeColors = {
       default: 'rgba(255, 255, 255, 0.40)',
       _dark: 'rgba(24, 24, 24, 0.40)'
     },
-    border: { default: '#cccdd6', _dark: '#f4f5f8' },
+    border: { default: '#f4f5f8', _dark: '#f4f5f8' },
     module: {
       default: '#eff1f4',
       _dark: '#323741'
