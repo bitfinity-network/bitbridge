@@ -27,7 +27,7 @@ const WalletItem = ({ wallet }: WalletItemProps) => {
             {wallet.name}
           </Text>
 
-          {wallet.chainMatch ? (
+          {wallet.connected && wallet.chainMatch ? (
             <Text color="error.500" textStyle="body">
               Wrong chain, must be: {wallet.chainMatch}
             </Text>

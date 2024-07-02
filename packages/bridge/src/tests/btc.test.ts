@@ -1,5 +1,4 @@
 import { describe, expect, test } from 'vitest';
-import bitcore from 'bitcore-lib';
 
 import { BTC_TOKEN_WRAPPED_ADDRESS, Connector } from '..';
 import {

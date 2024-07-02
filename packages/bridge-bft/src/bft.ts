@@ -12,10 +12,7 @@ export interface BftOptions {
 }
 
 export class Bft {
-  protected eth: {
-    bft?: ethers.Contract;
-    feeCharge?: ethers.Contract;
-  } = {};
+  protected eth: { bft?: ethers.Contract } = {};
   protected wallet: ethers.Signer;
   protected address: string;
 
@@ -152,7 +149,7 @@ export class Bft {
       amount: IDL.Text,
       icrc2_token_principal: IDL.Principal,
       from_subaccount: IDL.Opt(IDL.Vec(IDL.Nat8)),
-      recipient_address: IDL.Text, // IDL.Vec(IDL.Nat8),
+      recipient_address: IDL.Text,
       fee_payer: IDL.Opt(IDL.Text)
     });
 

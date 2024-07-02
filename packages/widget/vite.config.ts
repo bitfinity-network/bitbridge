@@ -4,6 +4,7 @@ import { resolve } from 'path';
 import { defineConfig } from 'vite';
 import mix from 'vite-plugin-mix';
 import dts from 'vite-plugin-dts';
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import 'dotenv/config';
 
 export default defineConfig({
@@ -12,6 +13,12 @@ export default defineConfig({
     global: 'window'
   },
   plugins: [
+    nodePolyfills({
+      include: ['buffer'],
+      globals: {
+        Buffer: true
+      }
+    }),
     react(),
     svgr(),
     dts({ rollupTypes: true }),
@@ -37,6 +44,7 @@ export default defineConfig({
       output: {
         format: 'es',
         globals: {
+          Buffer: 'Buffer',
           react: 'React',
           'react-dom': 'React-dom'
         }

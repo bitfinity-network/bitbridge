@@ -19,7 +19,10 @@ import {
 } from './BridgeProvider.tsx';
 import { TokenListed, useTokenListsContext } from './TokensListsProvider.tsx';
 import { fromFloating, IS_DEV } from '../utils';
-import { reactQueryClient } from './ReactQuery.tsx';
+import {
+  reactQueryClient,
+  TANSTACK_GARBAGE_COLLECTION_TIME
+} from './ReactQuery.tsx';
 
 export type TokensContext = {
   tokens: Token[];
@@ -37,7 +40,7 @@ const defaultCtx = {
 
 const TokensContext = createContext<TokensContext>(defaultCtx);
 
-export type TokenType = 'icrc' | 'btc' | 'rune' | 'eth' | 'evmc';
+export type TokenType = 'icrc' | 'btc' | 'rune' | 'evmc';
 
 interface TokenBase {
   type: TokenType;
@@ -87,17 +90,17 @@ export type TokenBalance = {
 const queriesCaching = {
   tokensPairs: {
     staleTime: IS_DEV ? 0 : 60 * 1000,
-    gcTime: IS_DEV ? 0 : undefined
+    gcTime: IS_DEV ? 0 : TANSTACK_GARBAGE_COLLECTION_TIME
   },
   tokensUnlistedInfo: {
     staleTime: IS_DEV ? 0 : 60 * 1000,
-    gcTime: IS_DEV ? 0 : undefined
+    gcTime: IS_DEV ? 0 : TANSTACK_GARBAGE_COLLECTION_TIME
   },
   tokensBalances: {
     refetchOnWindowFocus: true,
     refetchInterval: 5 * 1000,
     staleTime: IS_DEV ? 0 : 1000,
-    gcTime: IS_DEV ? 0 : undefined
+    gcTime: IS_DEV ? 0 : TANSTACK_GARBAGE_COLLECTION_TIME
   }
 };
 
@@ -342,8 +345,6 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
 
       const amount = fromFloating(floatingAmount, token.decimals);
 
-      console.log(floatingAmount, token.decimals, amount);
-
       if (token.balance <= amount) {
         return;
       }
@@ -441,8 +442,6 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
     },
     [ethWallet, icWallet, bridges, nativeEthBalance, tokens]
   );
-
-  console.log('t', tokens);
 
   const ctx: TokensContext = useMemo(() => {
     return {

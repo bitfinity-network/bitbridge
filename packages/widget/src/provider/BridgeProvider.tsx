@@ -20,6 +20,11 @@ import {
 import * as ethers from 'ethers';
 import { useAccount, useDisconnect } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
+import {
+  useConnectModal as useBtcConnectModal,
+  useAccounts as useBtcAccounts
+} from '@particle-network/btc-connectkit';
+
 import { BitfinityWallet } from '@bitfinity-network/bitfinitywallet';
 
 import {
@@ -328,6 +333,47 @@ const useIcWalletConnection = (
   };
 };
 
+const useBtcWalletConnection = ({
+  onConnect,
+  onDisconnect
+}: {
+  onConnect: (address: string) => void;
+  onDisconnect: () => void;
+}) => {
+  const { openConnectModal, disconnect } = useBtcConnectModal();
+  const { accounts } = useBtcAccounts();
+
+  const isConnectChecked = useRef(false);
+
+  useEffect(() => {
+    if (accounts.length) {
+      if (isConnectChecked.current) {
+        return;
+      }
+
+      isConnectChecked.current = true;
+
+      onConnect(accounts[0]);
+    }
+  }, [accounts, onConnect]);
+
+  const handleConnect = () => {
+    isConnectChecked.current = false;
+    openConnectModal();
+  };
+
+  const handleDisconnect = () => {
+    disconnect();
+    onDisconnect();
+  };
+
+  return {
+    btcWalletConnect: handleConnect,
+    btcWalletDisconnect: handleDisconnect,
+    btcPending: false
+  };
+};
+
 export const BridgeProvider = ({
   network: netDefault,
   networks,
@@ -432,6 +478,26 @@ export const BridgeProvider = ({
       }, [connector, tokensListed])
     );
 
+  const { btcWalletConnect, btcWalletDisconnect, btcPending } =
+    useBtcWalletConnection(
+      useMemo(() => {
+        return {
+          onConnect(address) {
+            setWalletsConnected((prev) => ({
+              ...prev,
+              btc: {
+                wallet: true,
+                address
+              }
+            }));
+          },
+          onDisconnect() {
+            setWalletsConnected((prev) => ({ ...prev, btc: undefined }));
+          }
+        };
+      }, [])
+    );
+
   const wallets = useMemo(() => {
     return WALLET_TYPES.map((type) => {
       const connected = !!walletsConnected[type];
@@ -451,6 +517,12 @@ export const BridgeProvider = ({
             icWalletConnect().then(() => {});
           } else {
             icWalletDisconnect().then(() => {});
+          }
+        } else if (type === 'btc') {
+          if (!walletsConnected.btc) {
+            btcWalletConnect();
+          } else {
+            btcWalletDisconnect();
           }
         }
       };
@@ -513,13 +585,13 @@ export const BridgeProvider = ({
     }
 
     if (walletsConnected.btc && walletsConnected.eth) {
-      const bridge = connector.getBridge(networkName, 'btc_evm');
-      ready.push({ type: 'btc_evm', bridge, ...BRIDGES_INFO.btc_evm });
+      // const bridge = connector.getBridge(networkName, 'btc_evm');
+      // ready.push({ type: 'btc_evm', bridge, ...BRIDGES_INFO.btc_evm });
     }
 
     if (walletsConnected.btc && walletsConnected.eth) {
-      const bridge = connector.getBridge(networkName, 'rune_evm');
-      ready.push({ type: 'rune_evm', bridge, ...BRIDGES_INFO.rune_evm });
+      // const bridge = connector.getBridge(networkName, 'rune_evm');
+      // ready.push({ type: 'rune_evm', bridge, ...BRIDGES_INFO.rune_evm });
     }
 
     return ready;
@@ -529,7 +601,7 @@ export const BridgeProvider = ({
     setNetworkName(networkName);
   }, []);
 
-  const isWalletConnectionPending = icPending || ethPending;
+  const isWalletConnectionPending = icPending || ethPending || btcPending;
 
   // Networks fetching effect
   useEffect(() => {
