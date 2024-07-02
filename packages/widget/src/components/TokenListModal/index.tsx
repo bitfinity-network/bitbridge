@@ -81,7 +81,13 @@ export function TokenListModal({
 
   const panels = ['eth', 'btc', 'ic'].map((symbol) => {
     return (
-      <TabPanel paddingX="0" paddingY={4} key={symbol}>
+      <TabPanel
+        paddingX="0"
+        paddingY={4}
+        key={symbol}
+        height="300px"
+        overflowY="auto"
+      >
         <SearchInput
           placeholder="Search token"
           value={search}
