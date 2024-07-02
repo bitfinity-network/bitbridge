@@ -136,7 +136,7 @@ export const WidgetForm = ({
   }, [isPendingBridgeOrWalletOperation, setBridgingOrWalletOperation]);
 
   return (
-    <Box minW={['300px', '450px']}>
+    <Box minW="auto">
       <form>
         <EnhancedFormControl pt={4}>
           <HStack width="full" padding={1} borderRadius="9px">
@@ -148,8 +148,10 @@ export const WidgetForm = ({
               value={strAmount}
               onChange={(e) => setStrAmount(e.target.value)}
               size="lg"
-              height={hasBridges ? '70px' : 'initial'}
-              fontSize={hasBridges ? '32px' : 'initial'}
+              maxWidth="200px"
+              bg="bg.module"
+              height="36px"
+              fontSize="24px"
             />
             {token ? (
               <HStack
@@ -170,7 +172,14 @@ export const WidgetForm = ({
                     height="24px"
                     flexShrink="0"
                   />
-                  <Text>{token.name}</Text>
+                  <Text
+                    maxW="50px"
+                    whiteSpace="nowrap"
+                    textOverflow="ellipsis"
+                    overflow="hidden"
+                  >
+                    {token.symbol}
+                  </Text>
                 </HStack>
                 <Divider
                   orientation="vertical"
@@ -199,6 +208,8 @@ export const WidgetForm = ({
                 variant="outline"
                 width="auto"
                 size="sm"
+                paddingX="12px"
+                paddingY="8px"
                 textTransform="none"
                 rightIcon={
                   <Icon
