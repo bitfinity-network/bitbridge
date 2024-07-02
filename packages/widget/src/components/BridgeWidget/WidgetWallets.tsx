@@ -41,7 +41,7 @@ const WalletItem = React.memo(({ wallet }: WalletItemProps) => {
       </HStack>
       <Button
         variant={!connected ? 'solid' : 'outline'}
-        size="sm"
+        size="md"
         onClick={toggle}
         disabled={connected}
       >

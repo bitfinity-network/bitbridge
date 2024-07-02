@@ -38,7 +38,7 @@ const NetworkItem = React.memo(
         </HStack>
         <Button
           variant={current ? 'solid' : 'outline'}
-          size="sm"
+          size="md"
           onClick={handleSelect}
           disabled={current}
         >
