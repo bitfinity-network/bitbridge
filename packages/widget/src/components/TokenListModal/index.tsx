@@ -37,14 +37,14 @@ export function TokenListModal({
   onClose,
   selectToken
 }: TokenListModelProps) {
-  const [tab, setTab] = useState('eth');
+  const [tabIndex, setTabIndex] = useState(0);
   const { tokens } = useTokenContext();
 
   const tabTokens = useMemo(() => {
     return tokens.filter(({ type }) => {
-      return tokenMap[type] === tab;
+      return tokenMap[type] === Object.keys(WALLETS_INFO)[tabIndex];
     });
-  }, [tokens, tab]);
+  }, [tokens, tabIndex]);
 
   const [search, setSearch] = useState<string>('');
 
@@ -63,14 +63,7 @@ export function TokenListModal({
 
   const tabsLabels = Object.entries(WALLETS_INFO).map(([symbol, { logo }]) => {
     return (
-      <Tab
-        _selected={{ color: 'primary.main' }}
-        onSelect={() => {
-          console.log('1');
-          setTab(symbol);
-        }}
-        key={symbol}
-      >
+      <Tab _selected={{ color: 'primary.main' }} key={symbol}>
         <HStack gap="12px">
           <Image src={logo} width="24px" height="24px" flexShrink="0" />
           <Text>{symbol.toUpperCase()}</Text>
@@ -79,7 +72,7 @@ export function TokenListModal({
     );
   });
 
-  const panels = ['eth', 'btc', 'ic'].map((symbol) => {
+  const panels = Object.keys(WALLETS_INFO).map((symbol) => {
     return (
       <TabPanel
         paddingX="0"
@@ -125,10 +118,6 @@ export function TokenListModal({
     );
   });
 
-  const handleTabChange = (index: number) => {
-    setTab(Object.keys(WALLETS_INFO)[index]);
-  };
-
   return (
     <CustomModal
       modalHeaderProps={{
@@ -149,7 +138,7 @@ export function TokenListModal({
     >
       <Box>
         <Box py={2}>
-          <Tabs onChange={handleTabChange}>
+          <Tabs index={tabIndex} onChange={setTabIndex}>
             <TabList>{tabsLabels}</TabList>
             <TabIndicator
               mt="-1.5px"
