@@ -10,7 +10,7 @@ type WalletItemProps = {
 };
 
 const WalletItem = React.memo(({ wallet }: WalletItemProps) => {
-  const { connected, logo, name, address, toggle } = wallet;
+  const { connected, logo, name, address, chainMatch, toggle } = wallet;
 
   return (
     <HStack
@@ -28,13 +28,13 @@ const WalletItem = React.memo(({ wallet }: WalletItemProps) => {
             {name}
           </Text>
 
-          {wallet.connected && wallet.chainMatch ? (
+          {connected && chainMatch ? (
             <Text color="error.500" textStyle="body">
               Wrong chain, must be: {wallet.chainMatch}
             </Text>
           ) : (
             <Text color="secondary.alpha72" textStyle="body">
-              {shortenAddress(wallet.address)}{' '}
+              {shortenAddress(address)}{' '}
             </Text>
           )}
         </VStack>

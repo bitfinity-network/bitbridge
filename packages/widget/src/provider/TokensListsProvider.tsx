@@ -136,8 +136,8 @@ export const TokensListsProvider = ({
   });
 
   const tokens = tokensListsQuery
-    .map((result) => result.data)
-    .filter((result): result is TokenListed[] => !!result)
+    .map((result) => result.data!)
+    .filter(result => !!result)
     .flat();
 
   const isLoading = tokensListsQuery.some((result) => result.isLoading);
