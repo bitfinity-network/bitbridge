@@ -1,7 +1,22 @@
-import { Dispatch, SetStateAction, useEffect, useState } from 'react';
-import { Box, Button, HStack, Input, useToast } from '@chakra-ui/react';
-import { MdOutlineArrowRight } from 'react-icons/md';
-
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useState
+} from 'react';
+import {
+  Box,
+  Button,
+  Divider,
+  HStack,
+  Icon,
+  Image,
+  Input,
+  Text,
+  useToast
+} from '@chakra-ui/react';
+import { MdArrowForward, MdOutlineKeyboardArrowDown } from 'react-icons/md';
 import { EnhancedFormControl } from '../../ui';
 import { TokenListModal } from '../TokenListModal';
 import { useBridgeContext } from '../../provider/BridgeProvider.tsx';
@@ -12,11 +27,11 @@ import { TokenToChip, TokenFromChip } from '../../ui/TokenChip';
 type WidgetFormProps = {
   setBridgingOrWalletOperation?: Dispatch<SetStateAction<boolean>>;
 };
+
 export const WidgetForm = ({
   setBridgingOrWalletOperation
 }: WidgetFormProps) => {
   const toast = useToast();
-
   const { bridges, isWalletConnectionPending, setWalletsOpen } =
     useBridgeContext();
   const {
@@ -26,24 +41,23 @@ export const WidgetForm = ({
     tokens
   } = useTokenContext();
 
-  const hasBridges = bridges.length > 0;
-
   const [showTokenList, setShowTokenList] = useState(false);
-
   const [tokenId, setTokenId] = useState<string | undefined>(undefined);
-
   const [strAmount, setStrAmount] = useState('');
 
   const token = tokens.find(({ id }) => id === tokenId);
+  const hasBridges = bridges.length > 0;
+  const isPendingBridgeOrWalletOperation =
+    isBridgingInProgress || isWalletConnectionPending;
 
-  const connectButtonTitle = hasBridges ? 'Bridge' : 'Connect Wallets';
+  const handleToggleTokenList = useCallback(() => {
+    setShowTokenList((prev) => !prev);
+  }, []);
 
-  const connectButton = () => {
-    if (isWalletConnectionPending || isBridgingInProgress) {
-      return;
-    }
+  const handleConnectButtonClick = useCallback(async () => {
+    if (isPendingBridgeOrWalletOperation) return;
 
-    if (bridges.length > 0) {
+    if (hasBridges) {
       const floatingAmount = Number(strAmount);
 
       if (nativeEthBalance <= 0) {
@@ -56,6 +70,7 @@ export const WidgetForm = ({
         });
         return;
       }
+
       if (!token) {
         toast({
           title: 'No tokens selected',
@@ -66,6 +81,7 @@ export const WidgetForm = ({
         });
         return;
       }
+
       if (token.balance <= fromFloating(floatingAmount, token.decimals)) {
         toast({
           title: "You don't have enough token balance",
@@ -76,6 +92,7 @@ export const WidgetForm = ({
         });
         return;
       }
+
       if (floatingAmount <= 0) {
         toast({
           title: 'Insufficient bridge amount',
@@ -87,29 +104,30 @@ export const WidgetForm = ({
         return;
       }
 
-      (async () => {
-        await bridgeTo(token, floatingAmount);
+      await bridgeTo(token, floatingAmount);
 
-        toast({
-          title: 'Bridged successful',
-          description: 'You received your tokens!',
-          status: 'success',
-          duration: 9000,
-          isClosable: true
-        });
-        setStrAmount('');
-      })();
+      toast({
+        title: 'Bridged successfully',
+        description: 'You received your tokens!',
+        status: 'success',
+        duration: 9000,
+        isClosable: true
+      });
+
+      setStrAmount('');
     } else {
       setWalletsOpen(true);
     }
-  };
-
-  const handleToggleTokenList = () => {
-    setShowTokenList(!showTokenList);
-  };
-
-  const isPendingBridgeOrWalletOperation =
-    isBridgingInProgress || isWalletConnectionPending;
+  }, [
+    isPendingBridgeOrWalletOperation,
+    hasBridges,
+    strAmount,
+    nativeEthBalance,
+    token,
+    bridgeTo,
+    toast,
+    setWalletsOpen
+  ]);
 
   useEffect(() => {
     if (setBridgingOrWalletOperation) {
@@ -118,15 +136,10 @@ export const WidgetForm = ({
   }, [isPendingBridgeOrWalletOperation, setBridgingOrWalletOperation]);
 
   return (
-    <Box>
+    <Box minW={['300px', '450px']}>
       <form>
         <EnhancedFormControl pt={4}>
-          <HStack
-            width="full"
-            bg="secondary.main"
-            padding={3}
-            borderRadius="9px"
-          >
+          <HStack width="full" padding={1} borderRadius="9px">
             <Input
               placeholder="0.00"
               variant="unstyled"
@@ -139,35 +152,76 @@ export const WidgetForm = ({
               fontSize={hasBridges ? '32px' : 'initial'}
             />
             {token ? (
-              <HStack gap="4px" flexShrink="0">
-                <TokenFromChip
-                  token={token}
-                  onClick={handleToggleTokenList}
-                  target="from"
+              <HStack
+                gap={4}
+                flexShrink="0"
+                bg="bg.main"
+                paddingX="8px"
+                paddingY="6px"
+                borderRadius="8px"
+                onClick={handleToggleTokenList}
+                cursor="pointer"
+                _hover={{ bg: 'misc.icon.hover' }}
+              >
+                <HStack gap={2}>
+                  <Image
+                    src={token.logo}
+                    width="24px"
+                    height="24px"
+                    flexShrink="0"
+                  />
+                  <Text>{token.name}</Text>
+                </HStack>
+                <Divider
+                  orientation="vertical"
+                  width="1.5px"
+                  height="20px"
+                  bg="bg.border"
                 />
-                <MdOutlineArrowRight width="30px" height="30px" />
-                <TokenToChip token={token} onClick={handleToggleTokenList} />
+                <HStack
+                  bg="bg.module"
+                  paddingX="8px"
+                  paddingY="4px"
+                  borderRadius="6px"
+                >
+                  <TokenFromChip token={token} target="from" />
+                  <Icon
+                    as={MdArrowForward}
+                    fontSize="16px"
+                    color="primary.main"
+                  />
+                  <TokenToChip token={token} />
+                </HStack>
               </HStack>
             ) : (
               <Button
-                variant="outline"
                 onClick={handleToggleTokenList}
+                variant="outline"
+                width="auto"
                 size="sm"
+                textTransform="none"
+                rightIcon={
+                  <Icon
+                    as={MdOutlineKeyboardArrowDown}
+                    fontSize="18px"
+                    color="misc.icon.main"
+                  />
+                }
               >
                 Select Token
               </Button>
             )}
           </HStack>
-          {/* <LabelValuePair label="Service fee">0.00</LabelValuePair> */}
         </EnhancedFormControl>
         <Box width="full" pt={2}>
           <Button
             w="full"
             isLoading={isBridgingInProgress}
             disabled={isPendingBridgeOrWalletOperation || !hasBridges}
-            onClick={connectButton}
+            onClick={handleConnectButtonClick}
+            size="lg"
           >
-            {connectButtonTitle}
+            {hasBridges ? 'Bridge' : 'Connect Wallets'}
           </Button>
         </Box>
       </form>
