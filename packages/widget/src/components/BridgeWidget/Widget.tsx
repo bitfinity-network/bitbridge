@@ -53,7 +53,7 @@ export function Widget({ showWidgetModal }: WidgetProps) {
               blockScrollOnMount
               closeOnOverlayClick={false}
               modalContentProps={{
-                width: '500px',
+                width: 'auto',
                 height: 'auto',
                 borderRadius: '20px',
                 overflowY: 'hidden'
