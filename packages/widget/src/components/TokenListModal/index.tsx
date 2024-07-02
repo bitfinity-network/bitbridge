@@ -25,7 +25,7 @@ type TokenListModelProps = {
   selectToken: (tokenId: string) => void;
 };
 
-export const tokenMap: Record<TokenType, WalletType> = {
+const tokenMap: Record<TokenType, WalletType> = {
   icrc: 'ic',
   btc: 'btc',
   evmc: 'eth',

@@ -10,10 +10,9 @@ export const componentStyles: ThemeComponents = {
       _disabled: {
         pointerEvents: 'none',
         cursor: 'not-allowed',
-        bg: 'primary.alpha16',
-        color: 'text.disabled',
+        opacity: 0.4,
         _hover: {
-          bg: 'primary.alpha16'
+          opacity: 0.4
         }
       }
     },
@@ -63,8 +62,8 @@ export const componentStyles: ThemeComponents = {
     },
     variants: {
       solid: ({ isDisabled, colorScheme }: StyleFunctionProps) => ({
-        bg: isDisabled ? `${colorScheme}.alpha16` : `${colorScheme}.main`,
-        color: isDisabled ? 'text.disabled' : 'text.white',
+        bg: `${colorScheme}.main`,
+        color: 'text.white',
         boxShadow:
           'inset 0 -4px 1px 0 rgba(0, 0, 0, 0.16), inset 0 3px 3px 0 rgba(255, 255, 255, 0.12)',
         _hover: isDisabled
@@ -76,13 +75,12 @@ export const componentStyles: ThemeComponents = {
               bg: `${colorScheme}.hover`
             },
         _disabled: {
-          bg: `${colorScheme}.alpha16`,
           cursor: 'not-allowed'
         }
       }),
       secondary: ({ isDisabled, colorScheme }: StyleFunctionProps) => ({
         bg: `${colorScheme}.alpha16`,
-        color: isDisabled ? 'text.disabled' : 'secondary.alpha40',
+        color: 'secondary.alpha40',
         _hover: isDisabled
           ? {}
           : {
@@ -93,9 +91,9 @@ export const componentStyles: ThemeComponents = {
         }
       }),
       outline: ({ isDisabled, colorScheme }: StyleFunctionProps) => ({
-        bg: isDisabled ? `${colorScheme}.alpha16` : `${colorScheme}.alpha72`,
+        bg: `${colorScheme}.alpha72`,
         borderColor: isDisabled ? `${colorScheme}.alpha16` : 'bg.border',
-        color: isDisabled ? 'text.disabled' : 'text.black',
+        color: 'text.black',
         _hover: isDisabled
           ? {}
           : {

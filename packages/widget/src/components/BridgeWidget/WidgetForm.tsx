@@ -13,6 +13,7 @@ import {
   Icon,
   Image,
   Input,
+  Spinner,
   Text,
   useToast
 } from '@chakra-ui/react';
@@ -224,11 +225,23 @@ export const WidgetForm = ({
             )}
           </HStack>
         </EnhancedFormControl>
+        {isBridgingInProgress && (
+          <HStack
+            width="full"
+            gap="8px"
+            padding="12px"
+            borderRadius="12px"
+            bg="bg.module"
+            marginBottom="8px"
+          >
+            <Spinner color="primary.main" size="sm" />
+            <Text textStyle="body">Processing transaction...</Text>
+          </HStack>
+        )}
         <Box width="full" pt={2}>
           <Button
             w="full"
-            isLoading={isBridgingInProgress}
-            disabled={isPendingBridgeOrWalletOperation || !hasBridges}
+            isDisabled={isPendingBridgeOrWalletOperation || !hasBridges}
             onClick={handleConnectButtonClick}
             size="lg"
           >
