@@ -6,6 +6,7 @@ export const componentStyles: ThemeComponents = {
       fontWeight: 'bold',
       textTransform: 'none',
       borderRadius: '8px',
+      minW: 'auto',
       _disabled: {
         pointerEvents: 'none',
         cursor: 'not-allowed',
@@ -21,43 +22,51 @@ export const componentStyles: ThemeComponents = {
         paddingX: '8px',
         paddingY: '6px',
         fontSize: '12px',
-        lineHeight: '16px'
+        lineHeight: '16px',
+        minW: 'auto'
       },
       sm: {
         paddingX: '24px',
         paddingY: '12px',
         fontSize: '12px',
-        lineHeight: '16px'
+        lineHeight: '16px',
+        minW: 'auto'
       },
       md: {
         paddingX: '16px',
-        paddingY: '12px',
-        fontSize: '12px',
-        lineHeight: '16px'
+        paddingY: '10px',
+        fontSize: '14px',
+        lineHeight: '20px',
+        minW: 'auto'
       },
       lg: {
         paddingX: '20px',
         paddingY: '14px',
-        fontSize: '12px',
-        lineHeight: '16px'
+        fontSize: '18px',
+        lineHeight: '24px',
+        minW: 'auto'
       },
       xl: {
         paddingX: '24px',
         paddingY: '16px',
         fontSize: '12px',
-        lineHeight: '16px'
+        lineHeight: '16px',
+        minW: 'auto'
       },
       jumbo: {
         paddingX: '48px',
         paddingY: '16px',
         fontSize: '24px',
-        lineHeight: '32px'
+        lineHeight: '32px',
+        minW: 'auto'
       }
     },
     variants: {
       solid: ({ isDisabled, colorScheme }: StyleFunctionProps) => ({
         bg: isDisabled ? `${colorScheme}.alpha16` : `${colorScheme}.main`,
         color: isDisabled ? 'text.disabled' : 'text.white',
+        boxShadow:
+          'inset 0 -4px 1px 0 rgba(0, 0, 0, 0.16), inset 0 3px 3px 0 rgba(255, 255, 255, 0.12)',
         _hover: isDisabled
           ? {
               bg: 'secondary.alpha40',
