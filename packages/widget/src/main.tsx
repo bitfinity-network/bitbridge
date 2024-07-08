@@ -92,7 +92,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               }
             ]
           }
-        },
+        }
         // walletOptions: {
         //   // optional: wallet options
         //   visible: true

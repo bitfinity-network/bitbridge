@@ -86,6 +86,9 @@ export function Widget({ showWidgetModal }: WidgetProps) {
                   size="48px"
                   as={LuWallet}
                   color="misc.icon.main"
+                  _hover={{
+                    color: 'misc.icon.hover'
+                  }}
                 />
                 <Icon
                   height="24px"
@@ -95,6 +98,9 @@ export function Widget({ showWidgetModal }: WidgetProps) {
                   size="48px"
                   as={LuSettings}
                   color="misc.icon.main"
+                  _hover={{
+                    color: 'misc.icon.hover'
+                  }}
                 />
               </HStack>
             </HStack>

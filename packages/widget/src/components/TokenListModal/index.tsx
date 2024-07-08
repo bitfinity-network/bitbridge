@@ -108,6 +108,9 @@ export function TokenListModal({
                   selectToken(id);
                   onClose();
                 }}
+                _hover={{
+                  bg: 'bg.border'
+                }}
               >
                 <TokenTag token={{ id, ...token }} variant="sm" />
               </Box>

@@ -71,6 +71,9 @@ const ModalHeader = ({
               cursor="pointer"
               size="48px"
               as={IconItem}
+              _hover={{
+                color: 'misc.icon.hover'
+              }}
             />
           ))}
           {!showCloseIcon && (
@@ -100,6 +103,9 @@ const ModalHeader = ({
                   cursor="pointer"
                   size="48px"
                   as={IconItem}
+                  _hover={{
+                    color: 'misc.icon.hover'
+                  }}
                 />
               ))}
             </HStack>
@@ -120,6 +126,9 @@ const ModalHeader = ({
               cursor={disableClose ? 'default' : 'pointer'}
               size="48px"
               as={IoClose}
+              _hover={{
+                color: 'misc.icon.hover'
+              }}
             />
           )}
         </>
