@@ -29,13 +29,17 @@ export type TokensContext = {
   bridge: (token: Token, floatingAmount: number) => Promise<void>;
   isBridgingInProgress: boolean;
   nativeEthBalance: bigint;
+  selectedToken: string | undefined;
+  setSelectedToken: (id: string | undefined) => void;
 };
 
 const defaultCtx = {
   tokens: [],
   async bridge() {},
   isBridgingInProgress: false,
-  nativeEthBalance: 0n
+  nativeEthBalance: 0n,
+  selectedToken: undefined,
+  setSelectedToken() {}
 } as TokensContext;
 
 const TokensContext = createContext<TokensContext>(defaultCtx);
@@ -105,6 +109,7 @@ const queriesCaching = {
 };
 
 export const TokensProvider = ({ children }: { children: ReactNode }) => {
+  const [selectedToken, setSelectedToken] = useState<string | undefined>();
   const { wallets, bridges } = useBridgeContext();
   const { tokensListed } = useTokenListsContext();
 
@@ -248,47 +253,52 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
   }, [tokensListed, evmcUnlistedInfo, tokensPairs]);
 
   const tokensBalancesQuery = useQueries({
-    queries: tokensMeta.map((token) => ({
-      enabled:
-        !!bridges.find((bridge) => bridge.type === token.bridge) &&
-        !!(ethWallet || icWallet),
-      queryKey: ['tokens', 'balance', token.type, token.id],
-      queryFn: async () => {
-        const bridge = bridges.find(
-          (bridge) => bridge.type === token.bridge
-        )?.bridge;
+    queries: tokensMeta
+      .filter((token) => token.id === selectedToken)
+      .map((token) => ({
+        enabled:
+          !!selectedToken &&
+          !!bridges.find((bridge) => bridge.type === token.bridge) &&
+          !!(ethWallet || icWallet),
+        queryKey: ['tokens', 'balance', token.type, token.id],
+        queryFn: async () => {
+          const bridge = bridges.find(
+            (bridge) => bridge.type === token.bridge
+          )?.bridge;
 
-        let balance = 0n;
+          let balance = 0n;
 
-        if (bridge) {
-          if (token.type === 'evmc' && ethWallet) {
-            balance = await bridge.getWrappedTokenBalance(
-              token.id,
-              ethWallet.address
-            );
+          if (bridge) {
+            if (token.type === 'evmc' && ethWallet) {
+              balance = await bridge.getWrappedTokenBalance(
+                token.id,
+                ethWallet.address
+              );
+            }
+
+            if (token.type === 'icrc' && icWallet) {
+              balance = await bridge.getBaseTokenBalance(
+                token.id,
+                icWallet.address
+              );
+            }
           }
 
-          if (token.type === 'icrc' && icWallet) {
-            balance = await bridge.getBaseTokenBalance(
-              token.id,
-              icWallet.address
-            );
-          }
-        }
-
-        return {
-          id: token.id,
-          balance
-        } as TokenBalance;
-      },
-      placeholder: { id: token.id, balance: 0n } as TokenBalance,
-      ...queriesCaching.tokensBalances
-    }))
+          return {
+            id: token.id,
+            balance
+          } as TokenBalance;
+        },
+        placeholder: { id: token.id, balance: 0n } as TokenBalance,
+        ...queriesCaching.tokensBalances
+      }))
   });
 
   const tokensBalances = tokensBalancesQuery
     .map((result) => result.data!)
     .filter((result) => !!result);
+
+  console.log(tokensBalances);
 
   const tokens: Token[] = useMemo(() => {
     return tokensMeta
@@ -448,9 +458,18 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
       tokens,
       bridge,
       isBridgingInProgress,
-      nativeEthBalance
+      nativeEthBalance,
+      selectedToken,
+      setSelectedToken
     };
-  }, [tokens, bridge, isBridgingInProgress, nativeEthBalance]);
+  }, [
+    tokens,
+    bridge,
+    isBridgingInProgress,
+    nativeEthBalance,
+    selectedToken,
+    setSelectedToken
+  ]);
 
   return (
     <TokensContext.Provider value={ctx}>{children}</TokensContext.Provider>

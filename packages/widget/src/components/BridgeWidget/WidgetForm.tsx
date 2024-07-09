@@ -12,6 +12,7 @@ import {
   useToast
 } from '@chakra-ui/react';
 import { MdArrowForward, MdOutlineKeyboardArrowDown } from 'react-icons/md';
+
 import { EnhancedFormControl } from '../../ui';
 import { TokenListModal } from '../TokenListModal';
 import { useBridgeContext } from '../../provider/BridgeProvider.tsx';
@@ -26,14 +27,14 @@ export const WidgetForm = () => {
     bridge: bridgeTo,
     isBridgingInProgress,
     nativeEthBalance,
-    tokens
+    tokens,
+    selectedToken
   } = useTokenContext();
 
   const [showTokenList, setShowTokenList] = useState(false);
-  const [tokenId, setTokenId] = useState<string | undefined>(undefined);
   const [strAmount, setStrAmount] = useState('');
 
-  const token = tokens.find(({ id }) => id === tokenId);
+  const token = tokens.find(({ id }) => id === selectedToken);
   const hasBridges = bridges.length > 0;
   const isPendingBridgeOrWalletOperation =
     isBridgingInProgress || isWalletConnectionPending;
@@ -277,7 +278,6 @@ export const WidgetForm = () => {
       <TokenListModal
         isOpen={showTokenList}
         onClose={() => setShowTokenList(false)}
-        selectToken={setTokenId}
       />
     </Box>
   );

@@ -22,7 +22,6 @@ import { TokenType } from '../../provider/TokensListsProvider.tsx';
 type TokenListModelProps = {
   isOpen: boolean;
   onClose: () => void;
-  selectToken: (tokenId: string) => void;
 };
 
 const tokenMap: Record<TokenType, WalletType> = {
@@ -32,13 +31,9 @@ const tokenMap: Record<TokenType, WalletType> = {
   rune: 'btc'
 };
 
-export function TokenListModal({
-  isOpen,
-  onClose,
-  selectToken
-}: TokenListModelProps) {
+export function TokenListModal({ isOpen, onClose }: TokenListModelProps) {
   const [tabIndex, setTabIndex] = useState(0);
-  const { tokens } = useTokenContext();
+  const { tokens, setSelectedToken } = useTokenContext();
 
   const tabTokens = useMemo(() => {
     return tokens.filter(({ type }) => {
@@ -105,7 +100,7 @@ export function TokenListModal({
                 px={3}
                 key={id}
                 onClick={() => {
-                  selectToken(id);
+                  setSelectedToken(id);
                   onClose();
                 }}
                 _hover={{
