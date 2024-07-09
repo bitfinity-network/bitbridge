@@ -6,6 +6,7 @@ import { WidgetWallets } from './WidgetWallets';
 import { CustomModal } from '../../ui';
 import { useBridgeContext } from '../../provider/BridgeProvider';
 import { WidgetNetworks } from './WidgetNetworks';
+import { useTokenContext } from '../../provider/TokensProvider.tsx';
 
 export type WidgetProps = {
   showWidgetModal: boolean;
@@ -13,10 +14,14 @@ export type WidgetProps = {
 
 export function Widget({ showWidgetModal }: WidgetProps) {
   const [isModalOpen, setModalOpen] = useState(false);
-  const { walletsOpen, setWalletsOpen, networksOpen, setNetworksOpen } =
-    useBridgeContext();
-  const [isBridgingOrWalletOperation, setBridgingOrWalletOperation] =
-    useState(false);
+  const {
+    walletsOpen,
+    setWalletsOpen,
+    networksOpen,
+    setNetworksOpen,
+    isWalletConnectionPending
+  } = useBridgeContext();
+  const { isBridgingInProgress } = useTokenContext();
 
   const handleCloseModal = useCallback(() => {
     setModalOpen(false);
@@ -33,6 +38,9 @@ export function Widget({ showWidgetModal }: WidgetProps) {
   const handleToggleWallets = useCallback(() => {
     setWalletsOpen(!walletsOpen);
   }, [walletsOpen, setWalletsOpen]);
+
+  const isBridgingOrWalletOperation =
+    isBridgingInProgress || isWalletConnectionPending;
 
   return (
     <Fragment>
@@ -59,9 +67,7 @@ export function Widget({ showWidgetModal }: WidgetProps) {
                 overflowY: 'hidden'
               }}
             >
-              <WidgetForm
-                setBridgingOrWalletOperation={setBridgingOrWalletOperation}
-              />
+              <WidgetForm />
             </CustomModal>
           </Fragment>
         ) : (
@@ -104,9 +110,7 @@ export function Widget({ showWidgetModal }: WidgetProps) {
                 />
               </HStack>
             </HStack>
-            <WidgetForm
-              setBridgingOrWalletOperation={setBridgingOrWalletOperation}
-            />
+            <WidgetForm />
           </VStack>
         )}
       </Flex>

@@ -9,25 +9,12 @@ import {
 
 import { BridgeWidget } from './components/BridgeWidget';
 import { BITFINITY_CHAINS } from './utils';
-// import { TokenListed } from './provider/TokensListsProvider.tsx';
 
 const config = getDefaultConfig({
   appName: 'bridge-widget',
   projectId: 'YOUR_PROJECT_ID',
   chains: [...BITFINITY_CHAINS]
 });
-
-/*
-
-ICRC-2 Minter  = "drcah-cqaaa-aaaal-qjfva-cai"
-MinterAddress = "0x914d667275fb624f6ca5f95ca2c0fc12aaf8f763"
-
-/// Contracts
-FeechargeAddress = "0x37f0688d93d7897b00a5da8fbbac157954506f61"
-
-Implementation address: 0x56fd6a2ac7a7aa46795e4afe06c3798ece302a6b
-BFT Proxy address: 0xce0c298fa7f12afb68ce6ba8a1644c9e5410ee54
- */
 
 const networks = [
   {
@@ -58,18 +45,6 @@ const networks = [
   }
 ];
 
-// const tokens = [
-//   {
-//     type: 'icrc',
-//     id: '',
-//     name: '',
-//     symbol: '',
-//     decimals: 8,
-//     fee: 10,
-//     logo: ''
-//   } as TokenListed
-// ];
-
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BridgeWidget
@@ -92,11 +67,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               }
             ]
           }
-        }
-        // walletOptions: {
-        //   // optional: wallet options
-        //   visible: true
-        // }
+        },
       }}
       btcConnectors={[
         new UnisatConnector(),

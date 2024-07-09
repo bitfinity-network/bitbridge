@@ -1,10 +1,4 @@
-import {
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useState
-} from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -25,16 +19,9 @@ import { useTokenContext } from '../../provider/TokensProvider.tsx';
 import { fromFloating } from '../../utils';
 import { TokenToChip, TokenFromChip } from '../../ui/TokenChip';
 
-type WidgetFormProps = {
-  setBridgingOrWalletOperation?: Dispatch<SetStateAction<boolean>>;
-};
-
-export const WidgetForm = ({
-  setBridgingOrWalletOperation
-}: WidgetFormProps) => {
+export const WidgetForm = () => {
   const toast = useToast();
-  const { bridges, isWalletConnectionPending, setWalletsOpen } =
-    useBridgeContext();
+  const { wallets, bridges, isWalletConnectionPending } = useBridgeContext();
   const {
     bridge: bridgeTo,
     isBridgingInProgress,
@@ -55,8 +42,39 @@ export const WidgetForm = ({
     setShowTokenList((prev) => !prev);
   }, []);
 
-  const handleConnectButtonClick = useCallback(async () => {
-    if (isPendingBridgeOrWalletOperation) return;
+  const evmWallet = useMemo(
+    () => wallets.find((wallet) => wallet.type === 'eth'),
+    [wallets]
+  );
+  const icWallet = useMemo(
+    () => wallets.find((wallet) => wallet.type === 'ic'),
+    [wallets]
+  );
+
+  const handleButtonClick = useCallback(async () => {
+    if (isPendingBridgeOrWalletOperation) {
+      return;
+    }
+
+    if (!evmWallet) {
+      return;
+    }
+
+    if (!evmWallet.connected) {
+      evmWallet.toggle();
+      return;
+    }
+
+    if (!token) {
+      toast({
+        title: 'No tokens selected',
+        description: 'Please select a token to bridge',
+        status: 'error',
+        duration: 9000,
+        isClosable: true
+      });
+      return;
+    }
 
     if (hasBridges) {
       const floatingAmount = Number(strAmount);
@@ -65,17 +83,6 @@ export const WidgetForm = ({
         toast({
           title: "You don't have enough BFT balance",
           description: 'Please top up your balance',
-          status: 'error',
-          duration: 9000,
-          isClosable: true
-        });
-        return;
-      }
-
-      if (!token) {
-        toast({
-          title: 'No tokens selected',
-          description: 'Please select a token to bridge',
           status: 'error',
           duration: 9000,
           isClosable: true
@@ -117,7 +124,9 @@ export const WidgetForm = ({
 
       setStrAmount('');
     } else {
-      setWalletsOpen(true);
+      if (token.type === 'icrc' && !icWallet?.connected) {
+        icWallet?.toggle();
+      }
     }
   }, [
     isPendingBridgeOrWalletOperation,
@@ -125,16 +134,32 @@ export const WidgetForm = ({
     strAmount,
     nativeEthBalance,
     token,
+    evmWallet,
+    icWallet,
     bridgeTo,
-    toast,
-    setWalletsOpen
+    toast
   ]);
 
-  useEffect(() => {
-    if (setBridgingOrWalletOperation) {
-      setBridgingOrWalletOperation(isPendingBridgeOrWalletOperation);
+  const connectButton = useMemo(() => {
+    const button = {
+      isDisabled: isPendingBridgeOrWalletOperation,
+      label: 'Bridge'
+    };
+
+    if (!evmWallet) {
+      return button;
     }
-  }, [isPendingBridgeOrWalletOperation, setBridgingOrWalletOperation]);
+
+    if (!evmWallet.connected) {
+      button.label = 'Connect to Bitfinity';
+    } else if (token) {
+      if (token.type === 'icrc' && !icWallet?.connected) {
+        button.label = 'Connect IC wallet';
+      }
+    }
+
+    return button;
+  }, [isPendingBridgeOrWalletOperation, evmWallet, icWallet, token]);
 
   return (
     <Box minW="auto">
@@ -241,11 +266,11 @@ export const WidgetForm = ({
         <Box width="full" pt={2}>
           <Button
             w="full"
-            isDisabled={isPendingBridgeOrWalletOperation || !hasBridges}
-            onClick={handleConnectButtonClick}
+            isDisabled={connectButton.isDisabled}
+            onClick={handleButtonClick}
             size="lg"
           >
-            {hasBridges ? 'Bridge' : 'Connect Wallets'}
+            {connectButton.label}
           </Button>
         </Box>
       </form>
