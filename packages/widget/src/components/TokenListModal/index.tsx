@@ -56,7 +56,7 @@ export function TokenListModal({ isOpen, onClose }: TokenListModelProps) {
     });
   }, [search, tabTokens]);
 
-  const tabsLabels = Object.entries(WALLETS_INFO).map(([symbol, { logo }]) => {
+  const tabsLabels = Object.values(WALLETS_INFO).map(({ logo, symbol }) => {
     return (
       <Tab _selected={{ color: 'primary.main' }} key={symbol}>
         <HStack gap="12px">
