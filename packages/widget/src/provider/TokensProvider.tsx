@@ -298,8 +298,6 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
     .map((result) => result.data!)
     .filter((result) => !!result);
 
-  console.log(tokensBalances);
-
   const tokens: Token[] = useMemo(() => {
     return tokensMeta
       .map((token) => {
