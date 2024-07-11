@@ -38,8 +38,8 @@ const networks = [
       {
         type: 'icrc_evm',
         iCRC2MinterCanisterId: 'zzh7g-qiaaa-aaaag-aldva-cai',
-        bftAddress: '0x1328fd8c11977e0056955ad2b2def7a6e3c35ce4',
-        feeChargeAddress: '0x99c968d7f6b30a21e29d611553cc3f58ebbdf139'
+        bftAddress: '0x880548aa74d8955f42764d336c9bc37bf49669d1',
+        feeChargeAddress: '0x8435b704d20ec3a370c9ecfcec43773f7eaaff97'
       } as const
     ]
   }
@@ -67,7 +67,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               }
             ]
           }
-        },
+        }
       }}
       btcConnectors={[
         new UnisatConnector(),
