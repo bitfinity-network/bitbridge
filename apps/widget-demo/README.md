@@ -28,7 +28,10 @@ const config = getDefaultConfig({
   chains: [...BITFINITY_CHAINS]
 });
 
-// default mainnet bridge configuration
+// 
+// Sample mainnet bridge configuration
+// Use at your own caution. Bridges have not been audited, and Bitfinity makes no warrantee about the security. 
+// This is hooks up to an example bridge that is not deployed by Bitfinity.
 const networks = [
   {
     name: 'mainnet',
