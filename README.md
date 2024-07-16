@@ -2,7 +2,7 @@
 
 ## Application demo
 
-You can find the demo and instructions for the integration in the `apps/widget-demo`.
+You can find the demo and instructions for the integration in the [apps/widget-demo](apps/widget-demo/README.md).
 
 ## Packages
 

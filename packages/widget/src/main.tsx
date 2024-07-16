@@ -18,19 +18,6 @@ const config = getDefaultConfig({
 
 const networks = [
   {
-    name: 'testnet',
-    icHost: 'https://ic0.app',
-    ethCain: 355113,
-    bridges: [
-      {
-        type: 'icrc_evm',
-        iCRC2MinterCanisterId: 'hvqpb-hyaaa-aaaal-qjfoq-cai',
-        bftAddress: '0x87d8d72876fcaa4580b961563c2e6802371bd56f',
-        feeChargeAddress: '0xad662954110b46cb91dd83c664c0f9983d2fa75c'
-      } as const
-    ]
-  },
-  {
     name: 'mainnet',
     icHost: 'https://ic0.app',
     ethCain: 355110,

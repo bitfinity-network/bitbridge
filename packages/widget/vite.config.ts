@@ -39,7 +39,12 @@ export default defineConfig({
       formats: ['es', 'cjs']
     },
     rollupOptions: {
-      external: ['react', 'react-dom'],
+      external: [
+        'react',
+        'react-dom',
+        'bitcoin-lib',
+        '@particle-network/btc-connectkit'
+      ],
       input: resolve(__dirname, 'src/index.tsx'),
       output: {
         format: 'es',
