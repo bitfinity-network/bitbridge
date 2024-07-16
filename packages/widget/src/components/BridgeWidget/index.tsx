@@ -1,98 +1,36 @@
-import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
-import { ChakraProvider } from '@chakra-ui/react';
+import { WagmiProvider, WagmiProviderProps } from 'wagmi';
+import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import {
-  getDefaultConfig,
-  RainbowKitProvider,
-  Chain
-} from '@rainbow-me/rainbowkit';
-import { WagmiProvider } from 'wagmi';
-import { BrdidgeNetworkUrl } from '@bitfinity-network/bridge';
-
-import { Widget } from './Widget';
-import { extendDefaultTheme, CustomThemeType } from '../../theme/theme';
-import { BridgeProvider } from '../../provider/BridgeProvider';
-import { TokensProvider } from '../../provider/TokensProvider.tsx';
-import {
-  ListsUrl,
-  TokenListed,
-  TokensListsProvider
-} from '../../provider/TokensListsProvider.tsx';
-import { BITFINITY_CHAINS, LIST_URLS, NETWORK_URLS } from '../../utils';
+  ConnectProvider as BTCConnectProvider,
+  BaseConnector
+} from '@particle-network/btc-connectkit';
 
 import '@rainbow-me/rainbowkit/styles.css';
 
-import { QueryClient } from '@tanstack/react-query';
+import { Bridge, BridgeWidgetProps } from './Bridge.tsx';
+import { ReactQuery } from '../../provider/ReactQuery.tsx';
 
-const persister = {
-  persister: createSyncStoragePersister({
-    storage: window.localStorage
-  })
-};
-
-export const TANSTACK_GARBAGE_COLLECTION_TIME = 1000 * 60 * 8; // 8 minutes
-
-export const reactQueryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      gcTime: TANSTACK_GARBAGE_COLLECTION_TIME,
-      staleTime: Infinity,
-      refetchOnWindowFocus: false
-    }
-  }
-});
-
-export interface BridgeWidgetProps {
-  chains?: Chain[];
-  theme?: CustomThemeType;
-  network?: string;
-  networkUrls?: BrdidgeNetworkUrl[];
-  tokensListed?: TokenListed[];
-  listsUrls?: ListsUrl[];
-  showWidgetModal?: boolean;
-}
+export type BtcOptions = Parameters<typeof BTCConnectProvider>[0]['options'];
 
 export const BridgeWidget = ({
-  theme,
-  chains = [],
-  network = 'devnet',
-  tokensListed = [],
-  networkUrls = NETWORK_URLS,
-  listsUrls = LIST_URLS,
-  showWidgetModal = false
-}: BridgeWidgetProps) => {
-  const config = getDefaultConfig({
-    appName: 'bridge-widget',
-    projectId: 'YOUR_PROJECT_ID',
-    chains: [...BITFINITY_CHAINS, ...chains]
-  });
-
-  const extendedTheme = extendDefaultTheme(theme);
-
+  config,
+  btcOptions,
+  btcConnectors,
+  ...props
+}: BridgeWidgetProps & {
+  config: WagmiProviderProps['config'];
+  btcOptions: BtcOptions;
+  btcConnectors: BaseConnector[];
+}) => {
   return (
-    <ChakraProvider theme={extendedTheme}>
+    <BTCConnectProvider options={btcOptions} connectors={btcConnectors}>
       <WagmiProvider config={config}>
-        <PersistQueryClientProvider
-          client={reactQueryClient}
-          persistOptions={persister}
-        >
+        <ReactQuery>
           <RainbowKitProvider>
-            <TokensListsProvider
-              tokensListed={tokensListed}
-              network={network}
-              listsUrls={listsUrls}
-            >
-              <BridgeProvider network={network} networkUrls={networkUrls}>
-                <TokensProvider>
-                  <Widget showWidgetModal={showWidgetModal} />
-                </TokensProvider>
-              </BridgeProvider>
-            </TokensListsProvider>
+            <Bridge {...props} />
           </RainbowKitProvider>
-          <ReactQueryDevtools initialIsOpen={false} />
-        </PersistQueryClientProvider>
+        </ReactQuery>
       </WagmiProvider>
-    </ChakraProvider>
+    </BTCConnectProvider>
   );
 };

@@ -4,15 +4,15 @@ export const componentStyles: ThemeComponents = {
   Button: {
     baseStyle: {
       fontWeight: 'bold',
-      textTransform: 'uppercase',
-      borderRadius: '12px',
+      textTransform: 'none',
+      borderRadius: '8px',
+      minW: 'auto',
       _disabled: {
         pointerEvents: 'none',
         cursor: 'not-allowed',
-        bg: `primary.alpha16`,
-        color: `text.disabled`,
+        opacity: 0.4,
         _hover: {
-          bg: `primary.alpha16`
+          opacity: 0.4
         }
       }
     },
@@ -21,87 +21,86 @@ export const componentStyles: ThemeComponents = {
         paddingX: '8px',
         paddingY: '6px',
         fontSize: '12px',
-        lineHeight: '16px'
+        lineHeight: '16px',
+        minW: 'auto'
       },
       sm: {
         paddingX: '24px',
         paddingY: '12px',
         fontSize: '12px',
-        lineHeight: '16px'
+        lineHeight: '16px',
+        minW: 'auto'
       },
       md: {
         paddingX: '16px',
-        paddingY: '12px',
-        fontSize: '12px',
-        lineHeight: '16px'
+        paddingY: '10px',
+        fontSize: '14px',
+        lineHeight: '20px',
+        minW: 'auto'
       },
       lg: {
         paddingX: '20px',
         paddingY: '14px',
-        fontSize: '12px',
-        lineHeight: '16px'
+        fontSize: '18px',
+        lineHeight: '24px',
+        minW: 'auto'
       },
       xl: {
         paddingX: '24px',
         paddingY: '16px',
         fontSize: '12px',
-        lineHeight: '16px'
+        lineHeight: '16px',
+        minW: 'auto'
       },
       jumbo: {
         paddingX: '48px',
         paddingY: '16px',
         fontSize: '24px',
-        lineHeight: '32px'
+        lineHeight: '32px',
+        minW: 'auto'
       }
     },
     variants: {
-      solid: (props: StyleFunctionProps) => ({
-        bg: props.isDisabled
-          ? `${props.colorScheme}.alpha16`
-          : `${props.colorScheme}.main`,
-        color: props.isDisabled ? `text.disabled` : `text.black`,
-        _hover: props.isDisabled
+      solid: ({ isDisabled, colorScheme }: StyleFunctionProps) => ({
+        bg: `${colorScheme}.main`,
+        color: 'text.white',
+        boxShadow:
+          'inset 0 -4px 1px 0 rgba(0, 0, 0, 0.16), inset 0 3px 3px 0 rgba(255, 255, 255, 0.12)',
+        _hover: isDisabled
           ? {
-              bg: `secondary.alpha40`,
+              bg: 'secondary.alpha40',
               cursor: 'not-allowed'
             }
           : {
-              bg: `${props.colorScheme}.hover`
+              bg: `${colorScheme}.hover`
             },
         _disabled: {
-          bg: `${props.colorScheme}.alpha16`,
           cursor: 'not-allowed'
         }
       }),
-      secondary: (props: StyleFunctionProps) => ({
-        bg: props.isDisabled
-          ? `${props.colorScheme}.alpha16`
-          : `${props.colorScheme}.alpha16`,
-        color: props.isDisabled ? `text.disabled` : `secondary.alpha40`,
-        _hover: props.isDisabled
+      secondary: ({ isDisabled, colorScheme }: StyleFunctionProps) => ({
+        bg: `${colorScheme}.alpha16`,
+        color: 'secondary.alpha40',
+        _hover: isDisabled
           ? {}
           : {
-              bg: `${props.colorScheme}.hover`
+              bg: `${colorScheme}.hover`
             },
         _disabled: {
-          bg: `${props.colorScheme}.alpha16`
+          bg: `${colorScheme}.alpha16`
         }
       }),
-      outline: (props: StyleFunctionProps) => ({
-        bg: props.isDisabled
-          ? `${props.colorScheme}.alpha16`
-          : `${props.colorScheme}.alpha72`,
-        borderColor: props.isDisabled
-          ? `${props.colorScheme}.alpha16`
-          : `${props.colorScheme}.main`,
-        color: props.isDisabled ? `text.disabled` : `text.black`,
-        _hover: props.isDisabled
+      outline: ({ isDisabled, colorScheme }: StyleFunctionProps) => ({
+        bg: `${colorScheme}.alpha72`,
+        borderColor: isDisabled ? `${colorScheme}.alpha16` : 'bg.border',
+        color: 'text.black',
+        _hover: isDisabled
           ? {}
           : {
-              bg: `${props.colorScheme}.alpha12`
+              bg: `${colorScheme}.alpha12`
             },
         _disabled: {
-          bg: `${props.colorScheme}.alpha16`
+          bg: `${colorScheme}.alpha16`
         }
       })
     },
@@ -115,15 +114,15 @@ export const componentStyles: ThemeComponents = {
     }
   },
   FormLabel: {
-    baseStyle: (props: StyleFunctionProps) => ({
+    baseStyle: ({ colorScheme }: StyleFunctionProps) => ({
       fontWeight: 'bold',
-      color: `${props.colorScheme}.main`
+      color: `${colorScheme}.main`
     })
   },
   Link: {
-    baseStyle: (props: StyleFunctionProps) => ({
+    baseStyle: ({ colorScheme }: StyleFunctionProps) => ({
       fontWeight: 'bold',
-      color: `${props.colorScheme}.main`
+      color: `${colorScheme}.main`
     })
   },
   Input: {
@@ -134,15 +133,15 @@ export const componentStyles: ThemeComponents = {
       }
     },
     variants: {
-      unstyled: (props: StyleFunctionProps) => ({
+      unstyled: ({ colorScheme }: StyleFunctionProps) => ({
         field: {
-          bg: `${props.colorScheme}.alpha8`,
+          bg: `${colorScheme}.alpha8`,
           borderRadius: '0px',
           height: '48px',
           px: 3,
           _placeholder: {
             fontWeight: 600,
-            color: `${props.colorScheme}.alpha60`
+            color: `${colorScheme}.alpha60`
           }
         }
       })

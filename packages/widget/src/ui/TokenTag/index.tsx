@@ -42,7 +42,7 @@ const TokenTag = ({
       />
 
       <Text as="span" isTruncated={isTruncated} {...variants[variant]}>
-        {token.name.toLocaleUpperCase()} {token.wrapped ? 'W' : ''}
+        {token.name.toLocaleUpperCase()}
       </Text>
     </HStack>
   );

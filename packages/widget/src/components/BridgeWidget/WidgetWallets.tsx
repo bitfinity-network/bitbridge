@@ -1,15 +1,16 @@
-import { Button, HStack, Image, Text, VStack } from '@chakra-ui/react';
+import React from 'react';
 
+import { Button, HStack, Image, Text, VStack } from '@chakra-ui/react';
 import { useBridgeContext, Wallet } from '../../provider/BridgeProvider.tsx';
-import { CustomModal } from '../../ui/index.ts';
-import { shortenAddress } from '../../utils/format.ts';
+import { CustomModal } from '../../ui';
+import { shortenAddress } from '../../utils';
 
 type WalletItemProps = {
   wallet: Wallet;
 };
 
-const WalletItem = ({ wallet }: WalletItemProps) => {
-  const isConnected = wallet.connected;
+const WalletItem = React.memo(({ wallet }: WalletItemProps) => {
+  const { connected, logo, name, address, chainMatch, toggle } = wallet;
 
   return (
     <HStack
@@ -21,29 +22,36 @@ const WalletItem = ({ wallet }: WalletItemProps) => {
       bg="light.secondary.alpha4"
     >
       <HStack alignItems="center" paddingY={2} w="full">
-        <Image src={wallet.logo} alt={wallet.name} width={10} height={10} />
+        <Image src={logo} alt={name} width={10} height={10} />
         <VStack alignItems="flex-start" gap="0">
           <Text isTruncated textStyle="h6">
-            {wallet.name}
+            {name}
           </Text>
-          <Text color="secondary.alpha72" textStyle="body">
-            {shortenAddress(wallet.address)}
-          </Text>
+
+          {connected && chainMatch ? (
+            <Text color="error.500" textStyle="body">
+              Wrong chain, must be: {wallet.chainMatch}
+            </Text>
+          ) : (
+            <Text color="secondary.alpha72" textStyle="body">
+              {shortenAddress(address)}{' '}
+            </Text>
+          )}
         </VStack>
       </HStack>
       <Button
-        variant={!isConnected ? 'solid' : 'outline'}
-        size="sm"
-        onClick={wallet.toggle}
-        disabled={isConnected}
+        variant={!connected ? 'solid' : 'outline'}
+        size="md"
+        onClick={toggle}
+        disabled={connected}
       >
-        {isConnected ? 'Disconnect' : 'Connect'}
+        {connected ? 'Disconnect' : 'Connect'}
       </Button>
     </HStack>
   );
-};
+});
 
-export const WidgetWallets = () => {
+export const WidgetWallets: React.FC = () => {
   const { wallets, walletsOpen, setWalletsOpen } = useBridgeContext();
 
   return (
@@ -52,12 +60,25 @@ export const WidgetWallets = () => {
       isOpen={walletsOpen}
       onClose={() => setWalletsOpen(false)}
       size="lg"
+      modalContentProps={{
+        width: '500px',
+        height: 'auto',
+        borderRadius: '20px',
+        overflowY: 'hidden'
+      }}
     >
-      <VStack w="full" paddingY={4} gap={4}>
+      <VStack
+        w="full"
+        paddingY={4}
+        gap={4}
+        marginTop={4}
+        borderTop="1px solid"
+        borderColor="bg.border"
+      >
         <VStack width="full" gap="8px">
-          {wallets.map((wallet) => {
-            return <WalletItem key={wallet.type} wallet={wallet} />;
-          })}
+          {wallets.map((wallet) => (
+            <WalletItem key={wallet.type} wallet={wallet} />
+          ))}
         </VStack>
       </VStack>
     </CustomModal>

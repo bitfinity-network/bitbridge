@@ -1,11 +1,3 @@
-import '@fontsource/open-sans';
-import '@fontsource/raleway';
-
-export const fontConfig = {
-  heading: `'Open Sans', sans-serif`,
-  body: `'Raleway', sans-serif`
-};
-
 export const fontStyles = {
   bodySmall: {
     fontSize: '11px',

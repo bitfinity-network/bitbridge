@@ -1,12 +1,12 @@
 import { Button, Flex, HStack, Icon, Text, VStack } from '@chakra-ui/react';
-import { IoWallet, IoSettings, IoClose } from 'react-icons/io5';
-
+import { Fragment, useState, useCallback } from 'react';
+import { LuSettings, LuWallet } from 'react-icons/lu';
 import { WidgetForm } from './WidgetForm';
 import { WidgetWallets } from './WidgetWallets';
-import { Fragment, useState } from 'react';
 import { CustomModal } from '../../ui';
 import { useBridgeContext } from '../../provider/BridgeProvider';
 import { WidgetNetworks } from './WidgetNetworks';
+import { useTokenContext } from '../../provider/TokensProvider.tsx';
 
 export type WidgetProps = {
   showWidgetModal: boolean;
@@ -14,27 +14,33 @@ export type WidgetProps = {
 
 export function Widget({ showWidgetModal }: WidgetProps) {
   const [isModalOpen, setModalOpen] = useState(false);
+  const {
+    walletsOpen,
+    setWalletsOpen,
+    networksOpen,
+    setNetworksOpen,
+    isWalletConnectionPending
+  } = useBridgeContext();
+  const { isBridgingInProgress } = useTokenContext();
 
-  const { walletsOpen, setWalletsOpen } = useBridgeContext();
-  const [isBridgingOrWalletOperation, setBridgingOrWalletOperation] =
-    useState(false);
-  const { setNetworksOpen, networksOpen } = useBridgeContext();
-
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setModalOpen(false);
-  };
+  }, []);
 
-  const handleOpenModal = () => {
+  const handleOpenModal = useCallback(() => {
     setModalOpen(true);
-  };
+  }, []);
 
-  const handleToggleNetworks = () => {
+  const handleToggleNetworks = useCallback(() => {
     setNetworksOpen(!networksOpen);
-  };
-  const handleToggleWallets = () => {
+  }, [networksOpen, setNetworksOpen]);
+
+  const handleToggleWallets = useCallback(() => {
     setWalletsOpen(!walletsOpen);
-  };
-  const onIconPrefixClick = [handleToggleWallets, handleToggleNetworks];
+  }, [walletsOpen, setWalletsOpen]);
+
+  const isBridgingOrWalletOperation =
+    isBridgingInProgress || isWalletConnectionPending;
 
   return (
     <Fragment>
@@ -46,8 +52,8 @@ export function Widget({ showWidgetModal }: WidgetProps) {
               modalHeaderProps={{
                 title: 'Bridge Token',
                 disableClose: isBridgingOrWalletOperation,
-                iconPrefix: [IoWallet, IoSettings],
-                onIconPrefixClick: [handleToggleWallets, handleToggleNetworks]
+                iconSuffix: [LuWallet, LuSettings],
+                onIconSuffixClick: [handleToggleWallets, handleToggleNetworks]
               }}
               isOpen={isModalOpen}
               onClose={handleCloseModal}
@@ -55,55 +61,56 @@ export function Widget({ showWidgetModal }: WidgetProps) {
               blockScrollOnMount
               closeOnOverlayClick={false}
               modalContentProps={{
-                width: '500px',
+                width: 'auto',
                 height: 'auto',
                 borderRadius: '20px',
                 overflowY: 'hidden'
               }}
             >
-              <WidgetForm
-                setBridgingOrWalletOperation={setBridgingOrWalletOperation}
-              />
+              <WidgetForm />
             </CustomModal>
           </Fragment>
         ) : (
-          <VStack justifyContent="center" alignItems="center">
+          <VStack
+            justifyContent="center"
+            alignItems="center"
+            borderRadius="24px"
+            border="2px solid"
+            borderColor="bg.border"
+            padding="20px"
+          >
             <HStack width="full" justifyContent="space-between">
-              <HStack
-                p={2}
-                bg="secondary.alpha4"
-                borderRadius="16px"
-                gap="16px"
-              >
-                {[IoWallet, IoSettings].map((IconItem, index) => (
-                  <Icon
-                    key={index}
-                    color="primary.main"
-                    height="24px"
-                    width="24px"
-                    onClick={onIconPrefixClick?.[index]}
-                    cursor="pointer"
-                    size="48px"
-                    as={IconItem}
-                  />
-                ))}
-              </HStack>
               <Text color="brand.100" fontWeight={600} fontSize="20px">
                 Bridge Token
               </Text>
-              <Icon
-                color="text.disabled"
-                h="28px"
-                w="28px"
-                onClick={handleCloseModal}
-                cursor="pointer"
-                size="48px"
-                as={IoClose}
-              />
+              <HStack gap="16px">
+                <Icon
+                  height="24px"
+                  width="24px"
+                  onClick={handleToggleWallets}
+                  cursor="pointer"
+                  size="48px"
+                  as={LuWallet}
+                  color="misc.icon.main"
+                  _hover={{
+                    color: 'misc.icon.hover'
+                  }}
+                />
+                <Icon
+                  height="24px"
+                  width="24px"
+                  onClick={handleToggleNetworks}
+                  cursor="pointer"
+                  size="48px"
+                  as={LuSettings}
+                  color="misc.icon.main"
+                  _hover={{
+                    color: 'misc.icon.hover'
+                  }}
+                />
+              </HStack>
             </HStack>
-            <WidgetForm
-              setBridgingOrWalletOperation={setBridgingOrWalletOperation}
-            />
+            <WidgetForm />
           </VStack>
         )}
       </Flex>

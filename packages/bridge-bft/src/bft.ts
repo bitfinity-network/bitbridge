@@ -12,10 +12,7 @@ export interface BftOptions {
 }
 
 export class Bft {
-  protected eth: {
-    bft?: ethers.Contract;
-    feeCharge?: ethers.Contract;
-  } = {};
+  protected eth: { bft?: ethers.Contract } = {};
   protected wallet: ethers.Signer;
   protected address: string;
 
@@ -147,13 +144,17 @@ export class Bft {
     recipient: string,
     amount: bigint
   ) {
+    const wrappedTokenAddress = await this.getWrappedTokenAddress(token);
+
     const Icrc2Burn = IDL.Record({
       sender: IDL.Principal,
       amount: IDL.Text,
+      erc20_token_address: IDL.Text,
       icrc2_token_principal: IDL.Principal,
       from_subaccount: IDL.Opt(IDL.Vec(IDL.Nat8)),
-      recipient_address: IDL.Text, // IDL.Vec(IDL.Nat8),
-      fee_payer: IDL.Opt(IDL.Text)
+      recipient_address: IDL.Text,
+      fee_payer: IDL.Opt(IDL.Text),
+      approve_after_mint: IDL.Opt(IDL.Vec(IDL.Nat8))
     });
 
     const encoded = IDL.encode(
@@ -163,14 +164,17 @@ export class Bft {
           sender: Principal.fromText(owner),
           from_subaccount: [],
           amount: `0x${BigInt(amount).toString(16)}`,
+          erc20_token_address: wrappedTokenAddress,
           icrc2_token_principal: Principal.fromText(token),
           recipient_address: recipient,
-          fee_payer: [recipient]
+          fee_payer: [recipient],
+          approve_after_mint: []
         }
       ]
     );
 
     const tx = await this.bftBridge.notifyMinter(0, encoded);
+
     await tx.wait(2);
   }
 

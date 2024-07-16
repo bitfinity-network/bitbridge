@@ -1,6 +1,17 @@
-import { Dispatch, SetStateAction, useEffect, useState } from 'react';
-import { Box, Button, HStack, Input, useToast } from '@chakra-ui/react';
-import { MdOutlineArrowRight } from 'react-icons/md';
+import { useCallback, useMemo, useState } from 'react';
+import {
+  Box,
+  Button,
+  Divider,
+  HStack,
+  Icon,
+  Image,
+  Input,
+  Spinner,
+  Text,
+  useToast
+} from '@chakra-ui/react';
+import { MdArrowForward, MdOutlineKeyboardArrowDown } from 'react-icons/md';
 
 import { EnhancedFormControl } from '../../ui';
 import { TokenListModal } from '../TokenListModal';
@@ -9,41 +20,64 @@ import { useTokenContext } from '../../provider/TokensProvider.tsx';
 import { fromFloating } from '../../utils';
 import { TokenToChip, TokenFromChip } from '../../ui/TokenChip';
 
-type WidgetFormProps = {
-  setBridgingOrWalletOperation?: Dispatch<SetStateAction<boolean>>;
-};
-export const WidgetForm = ({
-  setBridgingOrWalletOperation
-}: WidgetFormProps) => {
+export const WidgetForm = () => {
   const toast = useToast();
-
-  const { bridges, isWalletConnectionPending, setWalletsOpen } =
-    useBridgeContext();
+  const { wallets, bridges, isWalletConnectionPending } = useBridgeContext();
   const {
     bridge: bridgeTo,
     isBridgingInProgress,
     nativeEthBalance,
-    tokens
+    tokens,
+    selectedToken
   } = useTokenContext();
 
-  const hasBridges = bridges.length > 0;
-
   const [showTokenList, setShowTokenList] = useState(false);
-
-  const [tokenId, setTokenId] = useState<string | undefined>(undefined);
-
   const [strAmount, setStrAmount] = useState('');
 
-  const token = tokens.find(({ id }) => id === tokenId);
+  const token = tokens.find(({ id }) => id === selectedToken);
+  const hasBridges = bridges.length > 0;
+  const isPendingBridgeOrWalletOperation =
+    isBridgingInProgress || isWalletConnectionPending;
 
-  const connectButtonTitle = hasBridges ? 'Bridge' : 'Connect Wallets';
+  const handleToggleTokenList = useCallback(() => {
+    setShowTokenList((prev) => !prev);
+  }, []);
 
-  const connectButton = () => {
-    if (isWalletConnectionPending || isBridgingInProgress) {
+  const evmWallet = useMemo(
+    () => wallets.find((wallet) => wallet.type === 'eth'),
+    [wallets]
+  );
+  const icWallet = useMemo(
+    () => wallets.find((wallet) => wallet.type === 'ic'),
+    [wallets]
+  );
+
+  const handleButtonClick = useCallback(async () => {
+    if (isPendingBridgeOrWalletOperation) {
       return;
     }
 
-    if (bridges.length > 0) {
+    if (!evmWallet) {
+      return;
+    }
+
+    if (!evmWallet.connected) {
+      evmWallet.toggle();
+      return;
+    }
+
+    if (!token) {
+      toast({
+        title: 'No tokens selected',
+        description: 'Please select a token to bridge',
+        status: 'error',
+        duration: 9000,
+        isClosable: true
+      });
+      return;
+    }
+
+    if (hasBridges) {
       const floatingAmount = Number(strAmount);
 
       if (nativeEthBalance <= 0) {
@@ -56,16 +90,7 @@ export const WidgetForm = ({
         });
         return;
       }
-      if (!token) {
-        toast({
-          title: 'No tokens selected',
-          description: 'Please select a token to bridge',
-          status: 'error',
-          duration: 9000,
-          isClosable: true
-        });
-        return;
-      }
+
       if (token.balance <= fromFloating(floatingAmount, token.decimals)) {
         toast({
           title: "You don't have enough token balance",
@@ -76,6 +101,7 @@ export const WidgetForm = ({
         });
         return;
       }
+
       if (floatingAmount <= 0) {
         toast({
           title: 'Insufficient bridge amount',
@@ -87,46 +113,60 @@ export const WidgetForm = ({
         return;
       }
 
-      (async () => {
-        await bridgeTo(token, floatingAmount);
+      await bridgeTo(token, floatingAmount);
 
-        toast({
-          title: 'Bridged successful',
-          description: 'You received your tokens!',
-          status: 'success',
-          duration: 9000,
-          isClosable: true
-        });
-        setStrAmount('');
-      })();
+      toast({
+        title: 'Bridged successfully',
+        description: 'You received your tokens!',
+        status: 'success',
+        duration: 9000,
+        isClosable: true
+      });
+
+      setStrAmount('');
     } else {
-      setWalletsOpen(true);
+      if (token.type === 'icrc' && !icWallet?.connected) {
+        icWallet?.toggle();
+      }
     }
-  };
+  }, [
+    isPendingBridgeOrWalletOperation,
+    hasBridges,
+    strAmount,
+    nativeEthBalance,
+    token,
+    evmWallet,
+    icWallet,
+    bridgeTo,
+    toast
+  ]);
 
-  const handleToggleTokenList = () => {
-    setShowTokenList(!showTokenList);
-  };
+  const connectButton = useMemo(() => {
+    const button = {
+      isDisabled: isPendingBridgeOrWalletOperation,
+      label: 'Bridge'
+    };
 
-  const isPendingBridgeOrWalletOperation =
-    isBridgingInProgress || isWalletConnectionPending;
-
-  useEffect(() => {
-    if (setBridgingOrWalletOperation) {
-      setBridgingOrWalletOperation(isPendingBridgeOrWalletOperation);
+    if (!evmWallet) {
+      return button;
     }
-  }, [isPendingBridgeOrWalletOperation, setBridgingOrWalletOperation]);
+
+    if (!evmWallet.connected) {
+      button.label = 'Connect to Bitfinity';
+    } else if (token) {
+      if (token.type === 'icrc' && !icWallet?.connected) {
+        button.label = 'Connect IC wallet';
+      }
+    }
+
+    return button;
+  }, [isPendingBridgeOrWalletOperation, evmWallet, icWallet, token]);
 
   return (
-    <Box>
+    <Box minW="auto">
       <form>
-        <EnhancedFormControl pt={4}>
-          <HStack
-            width="full"
-            bg="secondary.main"
-            padding={3}
-            borderRadius="9px"
-          >
+        <EnhancedFormControl>
+          <HStack width="full" padding={4} borderRadius="9px">
             <Input
               placeholder="0.00"
               variant="unstyled"
@@ -135,46 +175,109 @@ export const WidgetForm = ({
               value={strAmount}
               onChange={(e) => setStrAmount(e.target.value)}
               size="lg"
-              height={hasBridges ? '70px' : 'initial'}
-              fontSize={hasBridges ? '32px' : 'initial'}
+              maxWidth="200px"
+              bg="bg.module"
+              height="36px"
+              fontSize="24px"
             />
             {token ? (
-              <HStack gap="4px" flexShrink="0">
-                <TokenFromChip
-                  token={token}
-                  onClick={handleToggleTokenList}
-                  target="from"
+              <HStack
+                gap={4}
+                flexShrink="0"
+                bg="bg.main"
+                paddingX="8px"
+                paddingY="6px"
+                borderRadius="8px"
+                onClick={handleToggleTokenList}
+                cursor="pointer"
+                _hover={{ bg: 'misc.icon.hover' }}
+              >
+                <HStack gap={2}>
+                  <Image
+                    src={token.logo}
+                    width="24px"
+                    height="24px"
+                    flexShrink="0"
+                  />
+                  <Text
+                    maxW="50px"
+                    whiteSpace="nowrap"
+                    textOverflow="ellipsis"
+                    overflow="hidden"
+                  >
+                    {token.symbol}
+                  </Text>
+                </HStack>
+                <Divider
+                  orientation="vertical"
+                  width="1.5px"
+                  height="20px"
+                  bg="bg.border"
                 />
-                <MdOutlineArrowRight width="30px" height="30px" />
-                <TokenToChip token={token} onClick={handleToggleTokenList} />
+                <HStack
+                  bg="bg.module"
+                  paddingX="8px"
+                  paddingY="4px"
+                  borderRadius="6px"
+                >
+                  <TokenFromChip token={token} target="from" />
+                  <Icon
+                    as={MdArrowForward}
+                    fontSize="16px"
+                    color="primary.main"
+                  />
+                  <TokenToChip token={token} />
+                </HStack>
               </HStack>
             ) : (
               <Button
-                variant="outline"
                 onClick={handleToggleTokenList}
+                variant="outline"
+                width="auto"
                 size="sm"
+                paddingX="12px"
+                paddingY="8px"
+                textTransform="none"
+                rightIcon={
+                  <Icon
+                    as={MdOutlineKeyboardArrowDown}
+                    fontSize="18px"
+                    color="misc.icon.main"
+                  />
+                }
               >
                 Select Token
               </Button>
             )}
           </HStack>
-          {/* <LabelValuePair label="Service fee">0.00</LabelValuePair> */}
         </EnhancedFormControl>
+        {isBridgingInProgress && (
+          <HStack
+            width="full"
+            gap="8px"
+            padding="12px"
+            borderRadius="12px"
+            bg="bg.module"
+            marginBottom="8px"
+          >
+            <Spinner color="primary.main" size="sm" />
+            <Text textStyle="body">Processing transaction...</Text>
+          </HStack>
+        )}
         <Box width="full" pt={2}>
           <Button
             w="full"
-            isLoading={isBridgingInProgress}
-            disabled={isPendingBridgeOrWalletOperation || !hasBridges}
-            onClick={connectButton}
+            isDisabled={connectButton.isDisabled}
+            onClick={handleButtonClick}
+            size="lg"
           >
-            {connectButtonTitle}
+            {connectButton.label}
           </Button>
         </Box>
       </form>
       <TokenListModal
         isOpen={showTokenList}
         onClose={() => setShowTokenList(false)}
-        selectToken={setTokenId}
       />
     </Box>
   );

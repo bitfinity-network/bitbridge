@@ -4,76 +4,58 @@ import { WALLETS_INFO } from '../../provider/BridgeProvider';
 
 type TokenShortChipProps = {
   token: Token;
-  onClick?: () => void;
 };
 
-export const TokenToChip = ({ token, onClick }: TokenShortChipProps) => {
+export const TokenToChip = ({ token }: TokenShortChipProps) => {
   let logo = WALLETS_INFO[token.wallet].logo;
+  let name = token.name;
 
   switch (token.type) {
     case 'icrc':
       logo = WALLETS_INFO['eth'].logo;
+      name = 'ETH';
       break;
     case 'evmc':
       logo = WALLETS_INFO['ic'].logo;
+      name = 'IC';
       break;
   }
 
   return (
-    <HStack
-      gap="8px"
-      alignItems="center"
-      justifyContent="space-between"
-      borderRadius="20px"
-      borderWidth="1px"
-      borderStyle="solid"
-      borderColor="primary.alpha72"
-      bgColor="secondary.alpha4"
-      onClick={onClick}
-      cursor="pointer"
-    >
-      <Image src={logo} width="24px" height="24px" flexShrink="0" />
+    <HStack gap="8px" alignItems="center" justifyContent="space-between">
+      <Image src={logo} width="18px" height="18px" flexShrink="0" />
+      <Text textStyle="body2" fontWeight="bold" color="secondary.white">
+        {name}
+      </Text>
     </HStack>
   );
 };
 
 type TokenChipProps = {
   token: Token;
-  onClick?: () => void;
   target?: 'from' | 'destination';
 };
 
-export const TokenFromChip = ({ token, onClick, target }: TokenChipProps) => {
+export const TokenFromChip = ({ token, target }: TokenChipProps) => {
   let name = token.name;
   let logo = WALLETS_INFO[token.wallet].logo;
 
   switch (token.type) {
     case 'icrc':
-      name = target === 'from' ? token.name : `EVM`;
+      name = 'IC';
       logo =
         target === 'from' ? WALLETS_INFO['ic'].logo : WALLETS_INFO['eth'].logo;
       break;
     case 'evmc':
-      name = target === 'from' ? token.name : `IC`;
+      name = 'ETH';
       logo =
         target === 'from' ? WALLETS_INFO['eth'].logo : WALLETS_INFO['ic'].logo;
       break;
   }
 
   return (
-    <HStack
-      gap="8px"
-      alignItems="center"
-      justifyContent="space-between"
-      borderRadius="20px"
-      borderWidth="1px"
-      borderStyle="solid"
-      borderColor="primary.alpha72"
-      bgColor="secondary.alpha4"
-      onClick={onClick}
-      cursor="pointer"
-    >
-      <Image src={logo} width="24px" height="24px" flexShrink="0" />
+    <HStack gap="8px" alignItems="center" justifyContent="space-between">
+      <Image src={logo} width="18px" height="18px" flexShrink="0" />
       <Box paddingRight="8px">
         <Text textStyle="body2" fontWeight="bold" color="secondary.white">
           {name}

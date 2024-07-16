@@ -29,13 +29,17 @@ export class BtcBridge implements Bridge {
     this.wallets = wallets;
   }
 
+  protected get icHost() {
+    return this.networks.get(this.networkName).icHost;
+  }
+
   protected get network() {
     return this.networks.getBridge(this.networkName, 'btc_evm');
   }
 
   get btcActor(): BtcActor {
     return this.wallets.getActor(
-      this.network.icHost,
+      this.icHost,
       this.network.btcBridgeCanisterId,
       BtcBridgeIdlFactory
     );

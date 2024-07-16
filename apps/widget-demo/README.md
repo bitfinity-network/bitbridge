@@ -1,30 +1,65 @@
-# React + TypeScript + Vite
+# The React Bitfinity Bridge Widget Application demo
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+You could clone this repository to bootstrap the integration.
 
-Currently, two official plugins are available:
+Or to get started use the following config to init the widget:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```typescript
+// import configuration for the ETH based wallet
+import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 
-## Expanding the ESLint configuration
+// importing BTC wallet connection methods
+import {
+  OKXConnector,
+  UnisatConnector,
+  XverseConnector
+} from '@particle-network/btc-connectkit';
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
 
-- Configure the top-level `parserOptions` property like this:
+import {
+  BridgeWidget,
+  BITFINITY_CHAINS
+} from '@bitfinity-network/bridge-widget';
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
+// use BITFINITY_CHAINS to allow wallet to connect to Bitfinity EVM
+// also you can add your custom chains
+const config = getDefaultConfig({
+  appName: 'bridge-widget',
+  projectId: 'YOUR_PROJECT_ID',
+  chains: [...BITFINITY_CHAINS]
+});
+
+// default mainnet bridge configuration
+const networks = [
+  {
+    name: 'mainnet',
+    icHost: 'https://ic0.app',
+    ethCain: 355110,
+    bridges: [
+      {
+        type: 'icrc_evm',
+        iCRC2MinterCanisterId: 'zzh7g-qiaaa-aaaag-aldva-cai',
+        bftAddress: '0x880548aa74d8955f42764d336c9bc37bf49669d1',
+        feeChargeAddress: '0x8435b704d20ec3a370c9ecfcec43773f7eaaff97'
+      } as const
+    ]
+  }
+];
+
+const widget = (
+  <BridgeWidget
+    showWidgetModal={false}
+    networks={networks}
+    networkUrls={[]}
+    network={'mainnet'}
+    config={config}
+    tokensListed={[]}
+    btcOptions={}
+    btcConnectors={[
+      new UnisatConnector(),
+      new OKXConnector(),
+      new XverseConnector()
+    ]}
+  />
+);
 ```
-
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list

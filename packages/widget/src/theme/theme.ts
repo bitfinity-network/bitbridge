@@ -2,10 +2,12 @@ import { extendTheme } from '@chakra-ui/react';
 import { ThemeColorsType, themeColors } from './theme-colors';
 import { componentStyles } from './component-styles';
 import { globalStyles } from './global-styles';
-import { fontConfig, fontStyles } from './font-config';
+import { fontStyles } from './font-config';
 
+// Define the available theme colors
 export const ThemeColors = [
   'primary',
+  'hover',
   'secondary',
   'success',
   'mainBg',
@@ -14,15 +16,16 @@ export const ThemeColors = [
   'secondaryText'
 ] as const;
 
-export type ThemeColor = Record<
-  (typeof ThemeColors)[number],
-  string | undefined
->;
+// Define the type for individual theme color
+export type ThemeColor = Partial<Record<(typeof ThemeColors)[number], string>>;
 
-export type ThemeColorMode = 'main' | '_dark' | '_light';
+// Define the type for theme color modes
+export type ThemeColorMode = 'main' | '_dark';
 
-export type ThemeColors = Record<ThemeColorMode, ThemeColor>;
+// Define the type for theme colors with modes
+export type ThemeColors = Partial<Record<ThemeColorMode, ThemeColor>>;
 
+// Define the type for custom theme configuration
 export type CustomThemeType = {
   colors?: ThemeColors;
   config?: {
@@ -31,6 +34,7 @@ export type CustomThemeType = {
   };
 };
 
+// Default theme object
 const defaultThemeObject = {
   styles: {
     global: globalStyles
@@ -38,7 +42,6 @@ const defaultThemeObject = {
   semanticTokens: {
     colors: themeColors as ThemeColorsType
   },
-  fonts: fontConfig,
   textStyles: fontStyles,
   components: componentStyles,
   config: {
@@ -48,86 +51,63 @@ const defaultThemeObject = {
   }
 };
 
+// Define the type for the default theme object
 export type ThemeType = typeof defaultThemeObject;
 
+// Extend the default theme
 export const DefaultTheme = extendTheme(defaultThemeObject);
 
-/**
- * Darken a color by a certain amount
- * @param color The color to darken
- * @param amount The amount to darken the color by
- * @returns The darkened color
- */
-const darkenColor = (color: string, amount: number): string => {
-  const usePound = color[0] === '#';
-  const num = parseInt(color.slice(1), 16);
-
-  let r = (num >> 16) - amount;
-  let g = ((num >> 8) & 0x00ff) - amount;
-  let b = (num & 0x0000ff) - amount;
-
-  r = r < 0 ? 0 : r;
-  g = g < 0 ? 0 : g;
-  b = b < 0 ? 0 : b;
-
-  return (
-    (usePound ? '#' : '') +
-    (r < 16 ? '0' : '') +
-    r.toString(16) +
-    (g < 16 ? '0' : '') +
-    g.toString(16) +
-    (b < 16 ? '0' : '') +
-    b.toString(16)
-  );
-};
-
-const assignColors = (
-  colors: ThemeColors,
-  theme: typeof defaultThemeObject.semanticTokens.colors
+// Assign custom colors to the target theme colors
+const assignCustomColors = (
+  targetColors: ThemeColorsType,
+  sourceColors: ThemeColors,
+  colorMode: ThemeColorMode
 ) => {
-  Object.entries(colors).forEach((p) => {
-    const [mode, colors] = p as [ThemeColorMode, ThemeColor];
-
-    Object.entries(colors).forEach((p2) => {
-      const [color, value] = p2 as [(typeof ThemeColors)[number], string];
-
-      // TODO: assign colors
-    });
+  Object.entries(sourceColors[colorMode] || {}).forEach(([key, value]) => {
+    if (value && key in targetColors) {
+      const targetColor = targetColors[key as keyof ThemeColorsType];
+      if (targetColor) {
+        (targetColor as unknown as Record<ThemeColorMode, string | undefined>)[
+          colorMode
+        ] = value;
+      }
+    }
   });
 };
 
-const consolidateCustomThemeWithDefault = (customTheme?: CustomThemeType) => {
+// Consolidate custom theme with the default theme
+const consolidateTheme = (customTheme?: CustomThemeType) => {
   if (!customTheme) return defaultThemeObject;
 
   const { colors, config } = customTheme;
-
-  const themeColors = defaultThemeObject.semanticTokens.colors;
+  const defaultThemeColors = defaultThemeObject.semanticTokens.colors;
+  const colorMode = config?.colorMode === 'dark' ? '_dark' : 'main';
 
   if (colors) {
-    assignColors(colors, themeColors);
+    assignCustomColors(defaultThemeColors, colors, colorMode);
   }
-  const mergedConfig = config
-    ? {
-        ...defaultThemeObject.config,
-        initialColorMode:
-          config.colorMode ?? defaultThemeObject.config.initialColorMode,
-        useSystemColorMode:
-          config.useSystemColorMode ??
-          defaultThemeObject.config.useSystemColorMode
-      }
-    : defaultThemeObject.config;
+
+  const mergedConfig = {
+    ...defaultThemeObject.config,
+    ...config,
+    initialColorMode:
+      config?.colorMode ?? defaultThemeObject.config.initialColorMode,
+    useSystemColorMode:
+      config?.useSystemColorMode ?? defaultThemeObject.config.useSystemColorMode
+  };
 
   return {
     ...defaultThemeObject,
     semanticTokens: {
-      colors: themeColors
+      colors: defaultThemeColors
     },
     config: mergedConfig
   };
 };
 
+// Extend the default theme with custom theme
 export const extendDefaultTheme = (customTheme?: CustomThemeType) => {
-  const consolidatedTheme = consolidateCustomThemeWithDefault(customTheme);
+  const consolidatedTheme = consolidateTheme(customTheme);
 
   return extendTheme(consolidatedTheme);
 };

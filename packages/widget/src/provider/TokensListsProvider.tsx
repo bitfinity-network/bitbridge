@@ -1,16 +1,19 @@
 import { createContext, ReactNode, useContext, useMemo } from 'react';
 import { useQueries } from '@tanstack/react-query';
 import z from 'zod';
+
 import { IS_DEV } from '../utils';
 
 export type TokensListsContext = {
   tokensListed: TokenListed[];
   tokensListsPending: boolean;
+  tokensListsError: boolean;
 };
 
 const defaultCtx = {
   tokensListed: [],
-  tokensListsPending: false
+  tokensListsPending: false,
+  tokensListsError: false
 } as TokensListsContext;
 
 const TokensListsContext = createContext<TokensListsContext>(defaultCtx);
@@ -68,7 +71,7 @@ async function fetchJson<T extends TokenFetched[]>(url: string): Promise<T> {
 const fetchIcTokensLists = async (url: string): Promise<TokenListed[]> => {
   const icFetchedTokens = await fetchJson<TokenIcFetched[]>(url);
 
-  const validStandards = ['icrc1', 'icrc2'];
+  const validStandards = ['icrc1', 'icrc2', 'icp'];
 
   return icFetchedTokens
     .filter(({ standard }) => validStandards.includes(standard.toLowerCase()))
@@ -79,7 +82,8 @@ const fetchIcTokensLists = async (url: string): Promise<TokenListed[]> => {
         symbol: token.symbol,
         decimals: token.decimals,
         fee: token.fee,
-        type: 'icrc'
+        type: 'icrc',
+        logo: token.logo
       } satisfies TokenListed;
     });
 };
@@ -94,7 +98,8 @@ const fetchEthTokensLists = async (url: string): Promise<TokenListed[]> => {
       symbol: token.symbol,
       decimals: token.decimals,
       fee: 0,
-      type: 'evmc'
+      type: 'evmc',
+      logo: token.logo
     } satisfies TokenListed;
   });
 };
@@ -117,39 +122,34 @@ export const TokensListsProvider = ({
   const tokensListsQuery = useQueries({
     queries: listsUrls
       .filter(({ name }) => name === network)
-      .map((listUrl) => {
-        return [
-          { type: 'ic', url: listUrl.icUrl },
-          { type: 'eth', url: listUrl.ethUrl }
-        ] as const;
-      })
-      .flat()
-      .map(({ url, type }) => {
-        return {
-          queryKey: ['token-lists', url],
-          queryFn: () =>
-            type === 'ic' ? fetchIcTokensLists(url) : fetchEthTokensLists(url),
-          staleTime: IS_DEV ? 0 : 60 * 1000,
-          gcTime: IS_DEV ? 0 : undefined
-        };
-      })
+      .flatMap((listUrl) => [
+        { type: 'ic', url: listUrl.icUrl },
+        { type: 'eth', url: listUrl.ethUrl }
+      ])
+      .map(({ url, type }) => ({
+        queryKey: ['token-lists', url],
+        queryFn: () =>
+          type === 'ic' ? fetchIcTokensLists(url) : fetchEthTokensLists(url),
+        staleTime: IS_DEV ? 0 : 60 * 1000,
+        gcTime: IS_DEV ? 0 : undefined
+      }))
   });
 
   const tokens = tokensListsQuery
     .map((result) => result.data!)
-    .filter((result) => !!result)
+    .filter(result => !!result)
     .flat();
 
-  const isLoading = tokensListsQuery
-    .map((result) => result.isLoading)
-    .some((loading) => loading);
+  const isLoading = tokensListsQuery.some((result) => result.isLoading);
+  const isError = tokensListsQuery.some((result) => result.isError);
 
   const ctx: TokensListsContext = useMemo(() => {
     return {
       tokensListed: tokens.concat(tokensListed),
-      tokensListsPending: isLoading
+      tokensListsPending: isLoading,
+      tokensListsError: isError
     };
-  }, [tokens, isLoading, tokensListed]);
+  }, [tokens, isLoading, isError, tokensListed]);
 
   return (
     <TokensListsContext.Provider value={ctx}>

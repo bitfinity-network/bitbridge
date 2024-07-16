@@ -26,6 +26,10 @@ export class Connector {
     this.bridger.createBridges();
   }
 
+  addNetworks(networks: BridgeNetwork[]) {
+    networks.forEach((network) => this.addNetwork(network));
+  }
+
   getNetworks() {
     return this.networks.all();
   }

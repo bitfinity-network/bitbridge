@@ -24,59 +24,117 @@ type ModalHeaderProps = {
   disableClose?: boolean;
   iconPrefix?: IconType[];
   onIconPrefixClick?: (() => void)[];
+  iconSuffix?: IconType[];
+  onIconSuffixClick?: (() => void)[];
+  showCloseIcon?: boolean;
 };
+
 type CustomModalProps = {
   isOpen: boolean;
   children: ReactNode;
   modalContentProps?: ModalContentProps;
   modalHeaderProps?: Pick<
     ModalHeaderProps,
-    'title' | 'disableClose' | 'iconPrefix' | 'onIconPrefixClick'
+    | 'title'
+    | 'disableClose'
+    | 'iconPrefix'
+    | 'onIconPrefixClick'
+    | 'iconSuffix'
+    | 'onIconSuffixClick'
+    | 'showCloseIcon'
   >;
 };
 
 const ModalHeader = ({
   title,
   onClose,
-  disableClose,
-  iconPrefix,
-  onIconPrefixClick
+  disableClose = false,
+  iconPrefix = [],
+  onIconPrefixClick = [],
+  iconSuffix = [],
+  onIconSuffixClick = [],
+  showCloseIcon = true
 }: ModalHeaderProps) => {
-  if (title) {
-    return (
-      <HStack justifyContent="space-between">
-        {iconPrefix?.length && (
-          <HStack p={2} bg="secondary.alpha4" borderRadius="16px" gap="16px">
-            {iconPrefix.map((IconItem, index) => (
-              <Icon
-                key={index}
-                color="primary.main"
-                height="24px"
-                width="24px"
-                onClick={onIconPrefixClick?.[index]}
-                cursor="pointer"
-                size="48px"
-                as={IconItem}
-              />
-            ))}
-          </HStack>
-        )}
+  if (!title) return null;
+
+  return (
+    <HStack justifyContent="space-between">
+      {iconPrefix.length > 0 && (
+        <HStack p={2} gap="16px">
+          {iconPrefix.map((IconItem, index) => (
+            <Icon
+              key={index}
+              color="misc.icon.main"
+              height="24px"
+              width="24px"
+              onClick={onIconPrefixClick[index]}
+              cursor="pointer"
+              size="48px"
+              as={IconItem}
+              _hover={{
+                color: 'misc.icon.hover'
+              }}
+            />
+          ))}
+          {!showCloseIcon && (
+            <Text color="brand.100" fontWeight={600} fontSize="20px">
+              {title}
+            </Text>
+          )}
+        </HStack>
+      )}
+      {showCloseIcon && (
         <Text color="brand.100" fontWeight={600} fontSize="20px">
           {title}
         </Text>
-        <Icon
-          color="text.disabled"
-          h="28px"
-          w="28px"
-          onClick={!disableClose ? onClose : undefined}
-          cursor={disableClose ? 'default' : 'pointer'}
-          size="48px"
-          as={IoClose}
-        />
+      )}
+
+      <HStack gap="16px">
+        <>
+          {iconSuffix.length > 0 && (
+            <HStack gap="16px">
+              {iconSuffix.map((IconItem, index) => (
+                <Icon
+                  key={index}
+                  color="misc.icon.main"
+                  height="24px"
+                  width="24px"
+                  onClick={onIconSuffixClick[index]}
+                  cursor="pointer"
+                  size="48px"
+                  as={IconItem}
+                  _hover={{
+                    color: 'misc.icon.hover'
+                  }}
+                />
+              ))}
+            </HStack>
+          )}
+          {iconSuffix.length > 0 && (
+            <Box
+              height="24px"
+              borderLeft="1.5px solid"
+              borderColor="misc.icon.hover"
+            />
+          )}
+          {showCloseIcon && (
+            <Icon
+              color="misc.icon.main"
+              h="28px"
+              w="28px"
+              onClick={!disableClose ? onClose : undefined}
+              cursor={disableClose ? 'default' : 'pointer'}
+              size="48px"
+              as={IoClose}
+              _hover={{
+                color: 'misc.icon.hover'
+              }}
+            />
+          )}
+        </>
       </HStack>
-    );
-  }
-  return null;
+    </HStack>
+  );
 };
 
 const CustomModal = ({
@@ -84,13 +142,18 @@ const CustomModal = ({
   onClose,
   children,
   modalContentProps,
-  modalHeaderProps,
+  modalHeaderProps: {
+    title,
+    disableClose = false,
+    iconPrefix = [],
+    onIconPrefixClick = [],
+    iconSuffix = [],
+    onIconSuffixClick = [],
+    showCloseIcon
+  } = {},
   ...rest
 }: CustomModalProps & ModalProps) => {
   const breakpoint = useBreakpointValue({ base: 'base', md: 'md', lg: 'lg' });
-
-  const { title, disableClose, iconPrefix, onIconPrefixClick } =
-    modalHeaderProps || {};
 
   if (breakpoint === 'base') {
     return (
@@ -100,38 +163,47 @@ const CustomModal = ({
         style={{ background: 'none' }}
       >
         <Box bg="bg.300" p={6}>
-          {title ? (
+          {title && (
             <ModalHeader
               title={title}
               onClose={onClose}
               disableClose={disableClose}
+              iconPrefix={iconPrefix}
+              onIconPrefixClick={onIconPrefixClick}
+              iconSuffix={iconSuffix}
+              onIconSuffixClick={onIconSuffixClick}
+              showCloseIcon={showCloseIcon}
             />
-          ) : null}
+          )}
           {children}
         </Box>
       </BottomSheet>
     );
   }
+
   return (
     <Modal size="sm" isOpen={isOpen} onClose={onClose} isCentered {...rest}>
       <ModalOverlay bg="" />
       <ModalContent
         boxShadow="0 20px 40px 0 rgba(0, 0, 0, 0.24)"
         p={4}
-        bg="bg.modal"
+        bg="bg.main"
         backdropFilter="blur(40px)"
         borderRadius="8px"
         {...modalContentProps}
       >
-        {title ? (
+        {title && (
           <ModalHeader
             onClose={onClose}
             title={title}
             disableClose={disableClose}
             iconPrefix={iconPrefix}
             onIconPrefixClick={onIconPrefixClick}
+            iconSuffix={iconSuffix}
+            onIconSuffixClick={onIconSuffixClick}
+            showCloseIcon={showCloseIcon}
           />
-        ) : null}
+        )}
         <ModalBody p={0}>{children}</ModalBody>
       </ModalContent>
     </Modal>
