@@ -24,7 +24,7 @@ import {
 // also you can add your custom chains
 const config = getDefaultConfig({
   appName: 'bridge-widget',
-  projectId: 'YOUR_PROJECT_ID', // leave as is if yoi don't have rainbowkit projectId
+  projectId: 'YOUR_PROJECT_ID', // leave as is if you don't have rainbowkit projectId
   chains: [...BITFINITY_CHAINS]
 });
 
@@ -48,7 +48,7 @@ const networks = [
   }
 ];
 
-// leave as is if yoi don't have btc-connectkit projectId
+// leave as is if you don't have btc-connectkit projectId
 const btcOptions = {
   projectId: 'xxxx', 
   clientKey: 'xxxx',
