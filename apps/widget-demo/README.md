@@ -15,7 +15,6 @@ import {
   XverseConnector
 } from '@particle-network/btc-connectkit';
 
-
 import {
   BridgeWidget,
   BITFINITY_CHAINS
@@ -25,7 +24,7 @@ import {
 // also you can add your custom chains
 const config = getDefaultConfig({
   appName: 'bridge-widget',
-  projectId: 'YOUR_PROJECT_ID',
+  projectId: 'YOUR_PROJECT_ID', // leave as is if yoi don't have rainbowkit projectId
   chains: [...BITFINITY_CHAINS]
 });
 
@@ -46,6 +45,23 @@ const networks = [
   }
 ];
 
+// leave as is if yoi don't have btc-connectkit projectId
+const btcOptions = {
+  projectId: 'xxxx', 
+  clientKey: 'xxxx',
+  appId: 'xxxx',
+  aaOptions: {
+    accountContracts: {
+      BTC: [
+        {
+          chainIds: [],
+          version: '1.0.0'
+        }
+      ]
+    }
+  }
+};
+
 const widget = (
   <BridgeWidget
     showWidgetModal={false}
@@ -54,7 +70,7 @@ const widget = (
     network={'mainnet'}
     config={config}
     tokensListed={[]}
-    btcOptions={}
+    btcOptions={btcOptions}
     btcConnectors={[
       new UnisatConnector(),
       new OKXConnector(),
@@ -62,4 +78,5 @@ const widget = (
     ]}
   />
 );
+
 ```
