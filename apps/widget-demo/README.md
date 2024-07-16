@@ -24,11 +24,14 @@ import {
 // also you can add your custom chains
 const config = getDefaultConfig({
   appName: 'bridge-widget',
-  projectId: 'YOUR_PROJECT_ID', // leave as is if yoi don't have rainbowkit projectId
+  projectId: 'YOUR_PROJECT_ID', // leave as is if you don't have rainbowkit projectId
   chains: [...BITFINITY_CHAINS]
 });
 
-// default mainnet bridge configuration
+// 
+// Sample mainnet bridge configuration
+// Use at your own caution. Bridges have not been audited, and Bitfinity makes no warrantee about the security. 
+// This is hooks up to an example bridge that is not deployed by Bitfinity.
 const networks = [
   {
     name: 'mainnet',
@@ -45,7 +48,7 @@ const networks = [
   }
 ];
 
-// leave as is if yoi don't have btc-connectkit projectId
+// leave as is if you don't have btc-connectkit projectId
 const btcOptions = {
   projectId: 'xxxx', 
   clientKey: 'xxxx',
