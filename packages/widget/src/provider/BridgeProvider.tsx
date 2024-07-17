@@ -37,6 +37,7 @@ import BtcIcon from '../assets/icons/bitcoin.svg';
 import IcIcon from '../assets/icons/ic.svg';
 import { useTokenListsContext } from './TokensListsProvider.tsx';
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const BRIDGE_TYPES: BridgeType[] = Object.values(BridgeType.enum);
 
 const WALLET_TYPES = ['eth', 'btc', 'ic'] as const;
@@ -48,6 +49,7 @@ export type WalletInfo = {
   symbol: string;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const WALLETS_INFO: Record<WalletType, WalletInfo> = {
   eth: {
     name: 'BITFINITY EVM',
@@ -559,6 +561,8 @@ export const BridgeProvider = ({
     ethWalletDisconnect,
     icWalletConnect,
     icWalletDisconnect,
+    btcWalletConnect,
+    btcWalletDisconnect,
     bridgeNetworks,
     networkName
   ]);

@@ -158,6 +158,7 @@ export const TokensListsProvider = ({
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useTokenListsContext = () => {
   return useContext(TokensListsContext);
 };
