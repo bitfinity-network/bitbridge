@@ -76,7 +76,7 @@ export const BITFINITY_CHAINS: [Chain] | [Chain, Chain] = IS_DEV
     ]
   : [
       {
-        id: 355110,
+        id: 355113,
         name: 'Bitfinity Testnet',
         nativeCurrency,
         rpcUrls: {
@@ -85,12 +85,12 @@ export const BITFINITY_CHAINS: [Chain] | [Chain, Chain] = IS_DEV
         }
       } as const satisfies Chain,
       {
-        id: 355113,
+        id: 355110,
         name: 'Bitfinity Mainnet',
         nativeCurrency,
         rpcUrls: {
-          public: { http: ['https://testnet.bitfinity.network'] },
-          default: { http: ['https://testnet.bitfinity.network'] }
+          public: { http: ['https://mainnet.bitfinity.network'] },
+          default: { http: ['https://mainnet.bitfinity.network'] }
         }
       } as const satisfies Chain
     ];
