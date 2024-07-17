@@ -151,6 +151,7 @@ export async function mintNativeToken(toAddress: string, amount: string) {
 
 export const createBitfinityWallet = (agent: HttpAgent) => {
   return {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async requestConnect(args) {
       return {};
     },

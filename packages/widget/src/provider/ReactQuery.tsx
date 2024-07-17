@@ -13,6 +13,7 @@ const persister = {
 
 export const TANSTACK_GARBAGE_COLLECTION_TIME = 1000 * 60 * 8; // 8 minutes
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const reactQueryClient = new QueryClient({
   defaultOptions: {
     queries: {
