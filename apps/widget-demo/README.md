@@ -1,5 +1,43 @@
 # The React Bitfinity Bridge Widget Application demo
 
+### Install deps:
+
+```
+"@bitfinity-network/bridge": "^1.1.0",
+"@bitfinity-network/bridge-widget": "^1.1.0",
+"@rainbow-me/rainbowkit": "^2.0.7",
+"@particle-network/btc-connectkit": "^1.0.0-alpha.25"
+```    
+
+### Setup packer
+
+Here is an example for Vite:
+
+```typescript
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [
+    react(),
+    nodePolyfills({
+      include: ['buffer'],
+      globals: {
+        Buffer: true
+      }
+    })
+  ],
+  define: {
+    'process.env': process.env,
+    global: 'window'
+  }
+});
+```
+
+### Setup widget
+
 You could clone this repository to bootstrap the integration.
 
 Or to get started use the following config to init the widget:
@@ -28,10 +66,9 @@ const config = getDefaultConfig({
   chains: [...BITFINITY_CHAINS]
 });
 
-// 
-// Sample mainnet bridge configuration
-// Use at your own caution. Bridges have not been audited, and Bitfinity makes no warrantee about the security. 
-// This is hooks up to an example bridge that is not deployed by Bitfinity.
+// sample mainnet bridge configuration
+// use at your own caution. Bridges have not been audited, and Bitfinity makes no warrantee about the security. 
+// this is hooks up to an example bridge that is not deployed by Bitfinity.
 const networks = [
   {
     name: 'mainnet',
