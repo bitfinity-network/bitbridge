@@ -5,6 +5,9 @@
   "author": "Bitfinity <support@infinityswap.one> (https://bitfinity.network/)",
   "homepage": "https://github.com/bitfinity-network/bitbridge",
   "bugs": "https://github.com/bitfinity-network/bitbridge/issues",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "files": [
     "dist"
@@ -22,8 +25,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview",
-    "lists": "cd "
+    "preview": "vite preview"
   },
   "license": "MIT",
   "dependencies": {
