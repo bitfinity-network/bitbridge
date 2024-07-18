@@ -53,8 +53,8 @@ export const LIST_URLS: ListsUrl[] = IS_DEV
       }
     ];
 
-export const IC_HOST = z.string().parse(process.env.IC_HOST);
-export const RPC_URL = z.string().parse(process.env.RPC_URL);
+export const IC_HOST = z.string().default('http://127.0.0.1:4943').parse(process.env.IC_HOST);
+export const RPC_URL = z.string().default('http://127.0.0.1:8545').parse(process.env.RPC_URL);
 
 const nativeCurrency = {
   name: 'Bitfinity',
