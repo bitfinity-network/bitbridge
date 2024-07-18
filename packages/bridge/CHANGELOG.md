@@ -1,5 +1,11 @@
 # @bitfinity-network/bridge
 
+## 1.1.0
+
+### Minor Changes
+
+- 4421aed: Make envs optional
+
 ## 1.0.0
 
 ### Major Changes
