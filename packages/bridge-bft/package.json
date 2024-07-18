@@ -48,7 +48,9 @@
     "typescript": "^5.4.3",
     "vitest": "^1.4.0"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@bitfinity-network/id256": "*"
+  },
   "peerDependencies": {
     "ethers": ">=6.3.0",
     "@dfinity/agent": ">=0.15.3 <=1.3.0",
