@@ -140,7 +140,7 @@ export function TokenListModal({ isOpen, onClose }: TokenListModelProps) {
                       width="auto"
                       borderRadius="8px"
                     >
-                      <HStack alignItems="center" gap="12px" padding="8px">
+                      <HStack alignItems="center" gap="16px" padding="8px">
                         <Image
                           src={token.logo || fallbackSrc}
                           fallbackSrc={fallbackSrc}
