@@ -1,5 +1,11 @@
 # @bitfinity-network/bridge
 
+## 1.1.1
+
+### Patch Changes
+
+- 7fc2058: Improved UI and error reporting
+
 ## 1.1.0
 
 ### Minor Changes
