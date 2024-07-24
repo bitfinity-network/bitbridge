@@ -90,6 +90,10 @@ export const themeColors = {
       default: '#eff1f4',
       _dark: '#323741'
     },
+    popover: {
+      default: '#00013a',
+      _dark: '#ffffff'
+    },
     interactive: {
       main: { default: '#d7d9e0', _dark: '#494e5a' },
       hover: { default: '#c6c8d2', _dark: '#525967' }
@@ -110,6 +114,10 @@ export const themeColors = {
     disabled: {
       default: 'rgba(0, 0, 0, 0.16)',
       _dark: 'rgba(255, 255, 255, 0.72)'
+    },
+    popover: {
+      default: '#FFFFFF',
+      _dark: '#00013a'
     }
   },
   misc: {
