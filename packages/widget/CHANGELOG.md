@@ -1,5 +1,13 @@
 # @bitfinity-network/bridge-widget
 
+## 1.1.1
+
+### Patch Changes
+
+- 7fc2058: Improved UI and error reporting
+- Updated dependencies [7fc2058]
+  - @bitfinity-network/bridge@1.1.1
+
 ## 1.1.0
 
 ### Minor Changes
