@@ -25,7 +25,7 @@ import { TokenTag } from '../../ui/TokenTag';
 import { WALLETS_INFO, WalletType } from '../../provider/BridgeProvider.tsx';
 import { TokenType } from '../../provider/TokensListsProvider.tsx';
 import { LuCopy } from 'react-icons/lu';
-import { shortenAddress } from '../../utils/format.ts';
+import { shortenAddress } from '../../utils';
 
 type TokenListModelProps = {
   isOpen: boolean;
@@ -37,6 +37,10 @@ const tokenMap: Record<TokenType, WalletType> = {
   btc: 'btc',
   evmc: 'eth',
   rune: 'btc'
+};
+
+const normalize = (str: string) => {
+  return str.trim().toLowerCase().replace(/-/g, '').replace(/^0x/, '');
 };
 
 export function TokenListModal({ isOpen, onClose }: TokenListModelProps) {
@@ -57,11 +61,10 @@ export function TokenListModal({ isOpen, onClose }: TokenListModelProps) {
       return tabTokens;
     }
 
-    const needle = search.trim().toLowerCase();
-
-    return tabTokens.filter(({ name, symbol }) => {
-      const searchable = [name, symbol].map((str) => str.trim().toLowerCase());
-      return searchable.some((haystack) => haystack.includes(needle));
+    return tabTokens.filter(({ name, symbol, id }) => {
+      return [name, symbol, id].some((haystack) =>
+        normalize(haystack).includes(normalize(search))
+      );
     });
   }, [search, tabTokens]);
 

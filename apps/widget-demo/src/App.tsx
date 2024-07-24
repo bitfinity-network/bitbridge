@@ -19,7 +19,7 @@ const networks = [
   {
     name: 'mainnet',
     icHost: 'https://ic0.app',
-    ethCain: 355110,
+    ethChain: 355110,
     bridges: [
       {
         type: 'icrc_evm',

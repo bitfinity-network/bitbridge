@@ -66,7 +66,7 @@ const networks = {
   networks: [
     {
       name: 'devnet',
-      ethCain: 355113,
+      ethChain: 355113,
       icHost: IC_HOST,
       bridges: [
         {
@@ -79,12 +79,11 @@ const networks = {
     },
     {
       name: 'devnet 2',
-      ethCain: 355113,
+      ethChain: 355113,
       icHost: IC_HOST,
       bridges: [
         {
           type: 'icrc_evm',
-          ethCain: 355113,
           bftAddress: BFT_ETH_ADDRESS,
           iCRC2MinterCanisterId: ICRC2_MINTER_CANISTER_ID,
           feeChargeAddress: FEE_CHARGE_ADDRESS
