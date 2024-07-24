@@ -2,6 +2,7 @@ import {
   Box,
   Flex,
   HStack,
+  Icon,
   Image,
   Tab,
   TabIndicator,
@@ -9,7 +10,12 @@ import {
   TabPanel,
   TabPanels,
   Tabs,
-  Text
+  Text,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverArrow,
+  PopoverBody
 } from '@chakra-ui/react';
 import { useState, useMemo } from 'react';
 import { IoMdArrowBack } from 'react-icons/io';
@@ -18,6 +24,8 @@ import { CustomModal, SearchInput } from '../../ui';
 import { TokenTag } from '../../ui/TokenTag';
 import { WALLETS_INFO, WalletType } from '../../provider/BridgeProvider.tsx';
 import { TokenType } from '../../provider/TokensListsProvider.tsx';
+import { LuCopy } from 'react-icons/lu';
+import { shortenAddress } from '../../utils/format.ts';
 
 type TokenListModelProps = {
   isOpen: boolean;
@@ -34,6 +42,7 @@ const tokenMap: Record<TokenType, WalletType> = {
 export function TokenListModal({ isOpen, onClose }: TokenListModelProps) {
   const [tabIndex, setTabIndex] = useState(0);
   const { tokens, setSelectedToken } = useTokenContext();
+  const [popoverOpen, setPopoverOpen] = useState<Record<string, boolean>>({});
 
   const tabTokens = useMemo(() => {
     return tokens.filter(({ type }) => {
@@ -90,26 +99,86 @@ export function TokenListModal({ isOpen, onClose }: TokenListModelProps) {
         />
         <Box paddingTop={4}>
           <Flex gap={2} flexWrap="wrap">
-            {filteredTokens.map(({ id, ...token }) => (
-              <Box
-                borderWidth={1}
-                borderColor="secondary.alpha12"
-                borderRadius="8px"
-                cursor="pointer"
-                py={3}
-                px={3}
-                key={id}
-                onClick={() => {
-                  setSelectedToken(id);
-                  onClose();
-                }}
-                _hover={{
-                  bg: 'bg.border'
-                }}
-              >
-                <TokenTag token={{ id, ...token }} variant="sm" />
-              </Box>
-            ))}
+            {filteredTokens.map(({ id, ...token }) => {
+              const fallbackSrc = `https://api.dicebear.com/7.x/initials/svg?seed=${token.name}`;
+
+              return (
+                <Popover
+                  key={id}
+                  isOpen={popoverOpen[id] || false}
+                  trigger="hover"
+                  onClose={() =>
+                    setPopoverOpen((prev) => ({ ...prev, [id]: false }))
+                  }
+                  onOpen={() =>
+                    setPopoverOpen((prev) => ({ ...prev, [id]: true }))
+                  }
+                >
+                  <PopoverTrigger>
+                    <Box
+                      borderWidth={1}
+                      borderColor="secondary.alpha12"
+                      borderRadius="8px"
+                      cursor="pointer"
+                      py={3}
+                      px={3}
+                      onClick={() => {
+                        setSelectedToken(id);
+                        onClose();
+                      }}
+                      _hover={{
+                        bg: 'bg.border'
+                      }}
+                    >
+                      <TokenTag token={{ id, ...token }} variant="sm" />
+                    </Box>
+                  </PopoverTrigger>
+                  <PopoverContent width="auto">
+                    <PopoverArrow bg="bg.popover" />
+                    <PopoverBody
+                      bg="bg.popover"
+                      width="auto"
+                      borderRadius="8px"
+                    >
+                      <HStack alignItems="center" gap="12px" padding="8px">
+                        <Image
+                          src={token.logo || fallbackSrc}
+                          fallbackSrc={fallbackSrc}
+                          alt={token.name}
+                          h="20px"
+                          w="20px"
+                        />
+                        <Text as="span" isTruncated={true} color="text.popover">
+                          {shortenAddress(id, 7, 5)}
+                        </Text>
+                        <HStack
+                          as="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(id);
+                            setPopoverOpen((prev) => ({
+                              ...prev,
+                              [id]: false
+                            }));
+                          }}
+                          background="bg.main"
+                          width="24px"
+                          height="24px"
+                          padding="8px"
+                          borderRadius="8px"
+                          alignItems="center"
+                          justifyContent="center"
+                          _hover={{
+                            bg: 'bg.module'
+                          }}
+                        >
+                          <Icon as={LuCopy} color="text.primary" />
+                        </HStack>
+                      </HStack>
+                    </PopoverBody>
+                  </PopoverContent>
+                </Popover>
+              );
+            })}
           </Flex>
         </Box>
       </TabPanel>
