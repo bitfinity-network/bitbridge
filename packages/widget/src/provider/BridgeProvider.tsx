@@ -532,7 +532,7 @@ export const BridgeProvider = ({
 
       const chainNet = bridgeNetworks.find(
         ({ name }) => name === networkName
-      )?.ethCain;
+      )?.ethChain;
       const chainWallet =
         wallet && 'chain' in wallet ? wallet.chain : undefined;
 
@@ -578,7 +578,7 @@ export const BridgeProvider = ({
 
     if (walletsConnected.ic && walletsConnected.eth) {
       const walletChain = walletsConnected.eth.chain;
-      if (network.ethCain === walletChain) {
+      if (network.ethChain === walletChain) {
         const bridge = connector.getBridge(networkName, 'icrc_evm');
         ready.push({ type: 'icrc_evm', bridge, ...BRIDGES_INFO.icrc_evm });
       }

@@ -14,8 +14,6 @@ export const BridgeBase = z.object({
   type: BridgeType,
   bftAddress: z.string(),
   feeChargeAddress: z.string(),
-  // icHost: z.string(),
-  // ethCain: z.number()
 });
 
 export const BridgeIcrc = BridgeBase.extend({
@@ -45,7 +43,7 @@ export const Bridge = z.discriminatedUnion('type', [
 export const BridgeNetwork = z.object({
   name: z.string(),
   icHost: z.string(),
-  ethCain: z.number(),
+  ethChain: z.number(),
   bridges: z.array(Bridge)
 });
 export type BridgeNetwork = z.infer<typeof BridgeNetwork>;

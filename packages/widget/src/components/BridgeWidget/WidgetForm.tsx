@@ -113,15 +113,25 @@ export const WidgetForm = () => {
         return;
       }
 
-      await bridgeTo(token, floatingAmount);
+      const result = await bridgeTo(token, floatingAmount);
 
-      toast({
-        title: 'Bridged successfully',
-        description: 'You received your tokens!',
-        status: 'success',
-        duration: 9000,
-        isClosable: true
-      });
+      if (result.status === 'ok') {
+        toast({
+          title: 'Bridged successfully',
+          description: 'You received your tokens!',
+          status: 'success',
+          duration: 9000,
+          isClosable: true
+        });
+      } else {
+        toast({
+          title: 'Bridge error',
+          description: 'Your tokens was not bridged over',
+          status: 'error',
+          duration: 9000,
+          isClosable: true
+        });
+      }
 
       setStrAmount('');
     } else {

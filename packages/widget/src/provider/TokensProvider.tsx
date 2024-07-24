@@ -24,9 +24,11 @@ import {
   TANSTACK_GARBAGE_COLLECTION_TIME
 } from './ReactQuery.tsx';
 
+export type BridgeResult = { status: 'ok' } | { status: 'err' };
+
 export type TokensContext = {
   tokens: Token[];
-  bridge: (token: Token, floatingAmount: number) => Promise<void>;
+  bridge: (token: Token, floatingAmount: number) => Promise<BridgeResult>;
   isBridgingInProgress: boolean;
   nativeEthBalance: bigint;
   selectedToken: string | undefined;
@@ -35,7 +37,9 @@ export type TokensContext = {
 
 const defaultCtx = {
   tokens: [],
-  async bridge() {},
+  async bridge() {
+    return { status: 'err' };
+  },
   isBridgingInProgress: false,
   nativeEthBalance: 0n,
   selectedToken: undefined,
@@ -216,6 +220,12 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
             ({ wrapped }) => wrapped === tokenListed.id
           );
 
+          let logo: string | undefined = undefined;
+
+          if (!tokenListed.logo) {
+            logo = tokensListed.find(({ id }) => id === wrapped?.base)?.logo;
+          }
+
           tokens.push({
             ...tokenListed,
             type: 'evmc',
@@ -223,7 +233,8 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
             bridge: bridge.type,
             id: tokenListed.id,
             wrapped: wrapped ? wrapped.base : undefined,
-            balance: 0n
+            balance: 0n,
+            logo
           });
         }
       }
@@ -340,21 +351,21 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
   const bridge = useCallback(
     async (token: Token, floatingAmount: number) => {
       if (nativeEthBalance <= 0) {
-        return;
+        return { status: 'err' } as const;
       }
 
       const from = token.type === 'evmc';
 
       const bridgeInfo = bridges.find((bridge) => bridge.type === token.bridge);
       if (!bridgeInfo) {
-        return;
+        return { status: 'err' } as const;
       }
       const { bridge } = bridgeInfo;
 
       const amount = fromFloating(floatingAmount, token.decimals);
 
       if (token.balance <= amount) {
-        return;
+        return { status: 'err' } as const;
       }
 
       let owner: string | undefined;
@@ -373,11 +384,13 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
       }
 
       if (!(recipient && owner)) {
-        return;
+        return { status: 'err' } as const;
       }
 
       // All is ready start bridging itself
       setIsBridgingInProgress(true);
+
+      let error = undefined;
 
       try {
         if (!from) {
@@ -439,6 +452,7 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
         }
       } catch (err) {
         console.error('Error while bridging', err);
+        error = err;
       }
 
       // Immediately invalidate bridged token old balance
@@ -447,6 +461,8 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
       });
 
       setIsBridgingInProgress(false);
+
+      return error ? ({ status: 'err' } as const) : ({ status: 'ok' } as const);
     },
     [ethWallet, icWallet, bridges, nativeEthBalance, tokens]
   );
