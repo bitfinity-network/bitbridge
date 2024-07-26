@@ -52,8 +52,13 @@ export class IcrcBridge implements Bridge {
     return await this.bftBridge.getWrappedTokenAddress(wrapped);
   }
 
-  async deployWrappedToken({ id, name, symbol }: DeployWrappedToken) {
-    return await this.bftBridge.deployIcrcWrappedToken(id, name, symbol);
+  async deployWrappedToken({ id, name, symbol, decimals }: DeployWrappedToken) {
+    return await this.bftBridge.deployIcrcWrappedToken(
+      id,
+      name,
+      symbol,
+      decimals
+    );
   }
 
   baseToken(token: string) {
