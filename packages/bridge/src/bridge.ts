@@ -2,6 +2,7 @@ export type DeployWrappedToken = {
   id: string;
   name: string;
   symbol: string;
+  decimals: number
 };
 
 export type BridgeToEvmc = {

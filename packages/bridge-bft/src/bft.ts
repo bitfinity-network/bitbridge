@@ -60,14 +60,20 @@ export class Bft {
   async getIcrcTokensPairs(): Promise<{ wrapped: string; base: string }[]> {
     const pairs = await this.getTokensPairs();
 
-    return pairs.map(({ eth, id256 }) => {
-      return {
-        wrapped: eth,
-        base: Id256Factory.toPrincipal(
-          Buffer.from(id256.replace(/^0x/, ''), 'hex')
-        ).toText()
-      };
-    });
+    return pairs
+      .map(({ eth, id256 }) => {
+        try {
+          const buff = Buffer.from(id256.replace(/^0x/, ''), 'hex');
+
+          return {
+            wrapped: eth,
+            base: Id256Factory.toPrincipal(buff).toText()
+          };
+        } catch (_) {
+          return undefined!;
+        }
+      })
+      .filter((pair) => !!pair);
   }
 
   async getBtcTokensPairs(): Promise<{ wrapped: string; base: string }[]> {
@@ -103,14 +109,20 @@ export class Bft {
   async deployIcrcWrappedToken(
     baseTokenCanisterId: string,
     name: string,
-    symbol: string
+    symbol: string,
+    decimals: number
   ): Promise<string> {
     const wrappedTokenAddress =
       await this.getWrappedTokenAddress(baseTokenCanisterId);
 
     if (wrappedTokenAddress && new Address(wrappedTokenAddress).isZero()) {
       const id256 = this.idFromCanister(baseTokenCanisterId);
-      const tx = await this.bftBridge.deployERC20(name, symbol, id256);
+      const tx = await this.bftBridge.deployERC20(
+        name,
+        symbol,
+        decimals,
+        id256
+      );
       await tx.wait(2);
     }
 

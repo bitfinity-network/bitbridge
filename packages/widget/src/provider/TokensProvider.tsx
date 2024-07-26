@@ -400,7 +400,8 @@ export const TokensProvider = ({ children }: { children: ReactNode }) => {
             justWrapped = await bridge.deployWrappedToken({
               id: token.id,
               name: token.name,
-              symbol: token.symbol
+              symbol: token.symbol,
+              decimals: token.decimals
             });
           }
 
