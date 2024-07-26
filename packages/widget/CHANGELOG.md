@@ -1,5 +1,16 @@
 # @bitfinity-network/bridge-widget
 
+## 1.2.0
+
+### Minor Changes
+
+- 498dc7d: Handling the decimals in deployERC20
+
+### Patch Changes
+
+- Updated dependencies [498dc7d]
+  - @bitfinity-network/bridge@1.2.0
+
 ## 1.1.1
 
 ### Patch Changes
