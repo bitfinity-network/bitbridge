@@ -97,7 +97,11 @@ export function TokenListModal({ isOpen, onClose }: TokenListModelProps) {
             borderRadius: '12px',
             borderWidth: 1,
             borderColor: 'bg.border',
-            bg: 'bg.module'
+            bg: 'bg.module',
+            _focus: {
+              boxShadow: 'none',
+              borderColor: 'bg.border'
+            }
           }}
         />
         <Box paddingTop={4}>
