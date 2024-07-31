@@ -130,7 +130,7 @@ export function TokenListModal({ isOpen, onClose }: TokenListModelProps) {
                         onClose();
                       }}
                       _hover={{
-                        bg: 'bg.border'
+                        bg: 'bg.module'
                       }}
                     >
                       <TokenTag token={{ id, ...token }} variant="sm" />
