@@ -5,7 +5,7 @@ import { Chain } from '@rainbow-me/rainbowkit';
 import { ListsUrl } from '../provider/TokensListsProvider.tsx';
 
 export const BITFINITY_INSTALLATION_URL =
-  'https://chrome.google.com/webstore/detail/bitfinity-wallet/jnldfbidonfeldmalbflbmlebbipcnle?hl=kk';
+  'https://chromewebstore.google.com/detail/bitfinity-wallet/jnldfbidonfeldmalbflbmlebbipcnle';
 
 export const IS_DEV = z.coerce
   .boolean()

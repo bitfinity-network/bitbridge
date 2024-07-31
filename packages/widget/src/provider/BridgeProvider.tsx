@@ -18,7 +18,8 @@ import {
   RuneBridge
 } from '@bitfinity-network/bridge';
 import * as ethers from 'ethers';
-import { useAccount, useDisconnect } from 'wagmi';
+import { useAccount, useDisconnect, useConnect } from 'wagmi';
+import { injected } from 'wagmi/connectors';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import {
   useConnectModal as useBtcConnectModal,
@@ -223,12 +224,17 @@ const useEthWalletConnection = ({
 }) => {
   const ethAccount = useAccount();
   const ethAccountStatus = ethAccount.status;
+  const { connect: wagmiConnect } = useConnect();
   const { disconnect: ethDisconnect } = useDisconnect();
   const { openConnectModal, connectModalOpen } = useConnectModal();
 
   const ethWalletConnect = useCallback(() => {
-    openConnectModal?.();
-  }, [openConnectModal]);
+    if (window.ethereum?.isBitfinityWallet) {
+      wagmiConnect({ connector: injected() });
+    } else {
+      openConnectModal?.();
+    }
+  }, [openConnectModal, wagmiConnect]);
 
   const ethWalletDisconnect = useCallback(() => {
     ethDisconnect();
@@ -246,7 +252,9 @@ const useEthWalletConnection = ({
 
     if (ethAccountStatus === 'connected') {
       (async () => {
-        const provider = new ethers.BrowserProvider(window.ethereum);
+        const provider = new ethers.BrowserProvider(
+          (await ethAccount.connector.getProvider()) as any
+        );
         const signer = await provider.getSigner();
 
         onConnect(signer, provider, ethAccount.address, ethAccount.chainId);
@@ -256,6 +264,7 @@ const useEthWalletConnection = ({
     ethAccountStatus,
     ethAccount.address,
     ethAccount.chainId,
+    ethAccount.connector,
     onConnect,
     onDisconnect
   ]);
@@ -319,8 +328,12 @@ const useIcWalletConnection = (
 
     const { icConnected } = getStorage();
 
-    if (icConnected) {
-      onConnect(window.ic.bitfinityWallet).then(() => {});
+    if (window.ic) {
+      if (icConnected) {
+        onConnect(window.ic.bitfinityWallet).then(() => {});
+      }
+    } else {
+      setStorageItems({ icConnected: false });
     }
   }, [isReady, onConnect]);
 
