@@ -162,7 +162,7 @@ const CustomModal = ({
         onDismiss={onClose}
         style={{ background: 'none' }}
       >
-        <Box bg="bg.300" p={6}>
+        <Box bg="bg.main" p={6}>
           {title && (
             <ModalHeader
               title={title}

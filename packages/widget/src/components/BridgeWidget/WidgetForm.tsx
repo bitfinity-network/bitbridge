@@ -176,7 +176,12 @@ export const WidgetForm = () => {
     <Box minW="auto">
       <form>
         <EnhancedFormControl>
-          <HStack width="full" padding={4} borderRadius="9px">
+          <HStack
+            width="full"
+            padding={4}
+            borderRadius="9px"
+            justifyContent="space-between"
+          >
             <Input
               placeholder="0.00"
               variant="unstyled"
