@@ -252,7 +252,9 @@ const useEthWalletConnection = ({
 
     if (ethAccountStatus === 'connected') {
       (async () => {
-        const provider = new ethers.BrowserProvider(window.ethereum);
+        const provider = new ethers.BrowserProvider(
+          (await ethAccount.connector.getProvider()) as any
+        );
         const signer = await provider.getSigner();
 
         onConnect(signer, provider, ethAccount.address, ethAccount.chainId);
@@ -262,6 +264,7 @@ const useEthWalletConnection = ({
     ethAccountStatus,
     ethAccount.address,
     ethAccount.chainId,
+    ethAccount.connector,
     onConnect,
     onDisconnect
   ]);
