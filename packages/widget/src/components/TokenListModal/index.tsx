@@ -110,6 +110,7 @@ export function TokenListModal({ isOpen, onClose }: TokenListModelProps) {
                   key={id}
                   isOpen={popoverOpen[id] || false}
                   trigger="hover"
+                  openDelay={1500}
                   onClose={() =>
                     setPopoverOpen((prev) => ({ ...prev, [id]: false }))
                   }
