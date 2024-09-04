@@ -97,7 +97,11 @@ export function TokenListModal({ isOpen, onClose }: TokenListModelProps) {
             borderRadius: '12px',
             borderWidth: 1,
             borderColor: 'bg.border',
-            bg: 'bg.module'
+            bg: 'bg.module',
+            _focus: {
+              boxShadow: 'none',
+              borderColor: 'bg.border'
+            }
           }}
         />
         <Box paddingTop={4}>
@@ -110,6 +114,7 @@ export function TokenListModal({ isOpen, onClose }: TokenListModelProps) {
                   key={id}
                   isOpen={popoverOpen[id] || false}
                   trigger="hover"
+                  openDelay={1500}
                   onClose={() =>
                     setPopoverOpen((prev) => ({ ...prev, [id]: false }))
                   }
@@ -130,7 +135,7 @@ export function TokenListModal({ isOpen, onClose }: TokenListModelProps) {
                         onClose();
                       }}
                       _hover={{
-                        bg: 'bg.border'
+                        bg: 'bg.module'
                       }}
                     >
                       <TokenTag token={{ id, ...token }} variant="sm" />
